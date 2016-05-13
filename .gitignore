@@ -1,0 +1,16 @@
+# Installable resources
+node_modules
+typings
+bower_components
+
+# Built resources
+build
+
+# MongoDB directory
+data
+
+# OSX
+.DS_Store
+
+# Sublime
+*.sublime-workspace
