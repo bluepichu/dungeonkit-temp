@@ -272,7 +272,7 @@ function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 
 function censorEntity(entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredCrawlEntity {
 	return {
-		id: entity.id,
+		id: entity.id, 
 		name: entity.name,
 		location: entity.location,
 		graphics: entity.graphics,
