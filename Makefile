@@ -6,6 +6,7 @@ clean:
 install: package.json typings.json
 	npm install
 	typings install
+	bower install
 
 build: src/**/*.*
 	cp -r src build
