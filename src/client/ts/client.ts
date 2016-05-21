@@ -228,9 +228,14 @@ function animate() {
 					break;
 			}
 
+
+			let options: Game.Crawl.ClientActionOptions = {
+				dash: key.isPressed(66)
+			};
+
 			if (dir >= 0) {
 				let action: Game.Crawl.MoveAction = { type: "move", direction: dir };
-				socket.emit("action", action);
+				socket.emit("action", action, options);
 			} else {
 				awaitingMove = true;
 			}

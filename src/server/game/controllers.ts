@@ -47,22 +47,61 @@ export class SocketController implements Game.Crawl.Controller {
 	socket: SocketIO.Socket;
 	log: Game.Crawl.LogEvent[];
 	lastState: Game.Crawl.CensoredEntityCrawlState;
+	dashing: boolean;
+	dashPattern: number;
+	dashDirection: number;
 
 	constructor(socket: SocketIO.Socket) {
 		this.socket = socket;
 		this.log = [];
 		this.lastState = undefined;
+		this.dashing = false;
+		this.dashPattern = 0;
+		this.dashDirection = 0;
 	}
 
 	getAction(state: Game.Crawl.CensoredEntityCrawlState,
 	          entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
 		log.logf("<yellow>W %s</yellow>", this.socket.id);
+
+		let pattern = 0;
+
+		let loc = entity.location;
+
+		for (let i = 0; i < 8; i++) {
+			let [dr, dc] = utils.decodeDirection(i);
+
+			pattern <<= 1;
+			let [r, c] = [loc.r + dr, loc.c + dc];
+
+			if (0 <= r && r < state.floor.map.height && 0 <= c && c < state.floor.map.width) {
+				if (state.floor.map.grid[r][c].type === "wall") {
+					pattern |= 1;
+				}
+			} else {
+				pattern |= 1;
+			}
+		}
+
+		if (this.dashing && this.dashPattern === pattern) {
+			return Promise.resolve({ type: "move" as "move", direction: this.dashDirection });
+		}
+
+		this.dashing = false;
+
 		return new Promise((resolve, reject) => {
 			this.flushLog(true, state);
-			this.socket.on("action", (action: Game.Crawl.Action) => {
+			this.socket.on("action", (action: Game.Crawl.Action, options: Game.Crawl.ClientActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
 				if (executer.isValidAction(state, entity, action)) {
 					this.socket.removeAllListeners("action");
+
+					if (options.dash && action.type === "move") {
+						this.dashPattern = pattern;
+						this.dashing = true;
+						this.dashDirection = (action as Game.Crawl.MoveAction).direction;
+					}
+
 					resolve(action);
 				} else {
 					this.socket.emit("invalid");

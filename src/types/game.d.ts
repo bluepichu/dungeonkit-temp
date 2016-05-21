@@ -358,6 +358,10 @@ declare namespace Game {
 			// some other stuff...
 		}
 
+		interface ClientActionOptions {
+			dash?: boolean;
+		}
+
 		interface CensoredInProgressCrawlState {
 			dungeon: CensoredDungeon;
 			floor: Floor;
