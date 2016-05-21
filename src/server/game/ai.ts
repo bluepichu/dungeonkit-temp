@@ -1,5 +1,6 @@
 "use strict";
 
-export function getAction(state: Game.Crawl.InProgressCrawlState, entity: Game.Crawl.CrawlEntity): Game.Crawl.Action {
+export function getAction(state: Game.Crawl.CensoredEntityCrawlState,
+                          entity: Game.Crawl.CrawlEntity): Game.Crawl.Action {
 	return { type: "wait" };
 }

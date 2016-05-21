@@ -1,8 +1,10 @@
 "use strict";
 
 import * as log      from "beautiful-log";
+import * as shortid  from "shortid";
 
 import * as ai       from "./ai";
+import * as crawl    from "./crawl";
 import * as executer from "./executer";
 import * as utils    from "./utils";
 
@@ -17,13 +19,13 @@ export class AIController implements Game.Crawl.Controller {
 		this.attr = attributes;
 	}
 
-	getAction(state: Game.Crawl.InProgressCrawlState, entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
+	getAction(state: Game.Crawl.CensoredEntityCrawlState, entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
 		return new Promise((resolve, reject) => {
 			resolve(ai.getAction(state, entity));
 		});
 	}
 
-	updateState(state: Game.Crawl.CensoredInProgressCrawlState): void {
+	updateState(state: Game.Crawl.CensoredEntityCrawlState): void {
 		// TODO
 	}
 
@@ -44,18 +46,19 @@ export class SocketController implements Game.Crawl.Controller {
 	await: boolean = true;
 	socket: SocketIO.Socket;
 	log: Game.Crawl.LogEvent[];
+	lastState: Game.Crawl.CensoredEntityCrawlState;
 
 	constructor(socket: SocketIO.Socket) {
 		this.socket = socket;
 		this.log = [];
+		this.lastState = undefined;
 	}
 
-	getAction(state: Game.Crawl.InProgressCrawlState,
+	getAction(state: Game.Crawl.CensoredEntityCrawlState,
 	          entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
 		log.logf("<yellow>W %s</yellow>", this.socket.id);
 		return new Promise((resolve, reject) => {
-			this.flushLog();
-			this.socket.emit("go");
+			this.flushLog(true, state);
 			this.socket.on("action", (action: Game.Crawl.Action) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
 				if (executer.isValidAction(state, entity, action)) {
@@ -72,20 +75,25 @@ export class SocketController implements Game.Crawl.Controller {
 		this.log.push(event);
 	}
 
-	updateState(state: Game.Crawl.CensoredInProgressCrawlState): void {
-		this.flushLog();
-		this.socket.emit("update", state);
+	updateState(state: Game.Crawl.CensoredEntityCrawlState): void {
+		this.flushLog(false, state);
 	}
 
 	wait(): void {
-		this.flushLog();
+		this.flushLog(false);
 	}
 
-	flushLog(): void {
-		if (this.log.length > 0) {
-			this.socket.emit("events", this.log);
-			this.log = [];
-		}
+	flushLog(move: boolean, state?: Game.Crawl.CensoredEntityCrawlState): void {
+		let update: Game.Crawl.ClientUpdate = {
+			state: state,
+			log: this.log,
+			move: move
+		};
+
+		this.socket.emit("update", update);
+
+		this.lastState = state;
+		this.log = [];
 	}
 
 	init(entity: Game.Crawl.UnplacedCrawlEntity): void {

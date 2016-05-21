@@ -26,10 +26,17 @@ export function startCrawl(dungeon: Game.Crawl.Dungeon,
 
 function step(state: Game.Crawl.InProgressCrawlState, done: (state: Game.Crawl.ConcludedCrawlState) => void): void {
 	let entity = nextEntity(state);
+	let censoredState = getCensoredState(state, entity);
 
-	entity.controller.updateState(getCensoredState(state, entity));
+	if (entity.controller.wait) {
+		state.entities.forEach((ent) => {
+			if (ent !== entity) {
+				ent.controller.wait();
+			}
+		});
+	}
 
-	entity.controller.getAction(state, entity)
+	entity.controller.getAction(censoredState, entity)
 		.then((action: Game.Crawl.Action) => {
 			let newState = executer.execute(state, entity, action);
 
@@ -39,7 +46,7 @@ function step(state: Game.Crawl.InProgressCrawlState, done: (state: Game.Crawl.C
 				step(newState, done);
 			}
 		})
-		.catch((err) => {
+		.catch((err: Error) => {
 			log.error(err.stack);
 		});
 }
@@ -116,7 +123,7 @@ function placeStairs(state: Game.Crawl.InProgressCrawlState): void {
 		c: utils.randint(0, state.floor.map.width - 1)
 	};
 
-	while (!(utils.isLocationInRoom(state, loc))) {
+	while (!(utils.isLocationInRoom(state.floor.map, loc))) {
 		loc = {
 			r: utils.randint(0, state.floor.map.height - 1),
 			c: utils.randint(0, state.floor.map.width - 1)
@@ -141,7 +148,7 @@ function placeEntities(state: Game.Crawl.InProgressCrawlState, ...entities: Game
 		c: utils.randint(0, state.floor.map.width - 1)
 	};
 
-	while (!(utils.isLocationInRoom(state, loc) && utils.isLocationEmpty(state, loc))) {
+	while (!(utils.isLocationInRoom(state.floor.map, loc) && utils.isLocationEmpty(state, loc))) {
 		loc = {
 			r: utils.randint(0, state.floor.map.height - 1),
 			c: utils.randint(0, state.floor.map.width - 1)
@@ -169,7 +176,7 @@ function placeEntities(state: Game.Crawl.InProgressCrawlState, ...entities: Game
 				dr++;
 			}
 
-			if (utils.isLocationInRoom(state, { r: loc.r + dr, c: loc.c + dc })
+			if (utils.isLocationInRoom(state.floor.map, { r: loc.r + dr, c: loc.c + dc })
 				&& utils.isLocationEmpty(state, { r : loc.r + dr, c : loc.c + dc })) {
 				let entity = createPlacedEntity(entities[i], { r: loc.r + dr, c: loc.c + dc }, map);
 				state.entities.push(entity);
@@ -190,7 +197,7 @@ function placeEntities(state: Game.Crawl.InProgressCrawlState, ...entities: Game
 				dc--;
 			}
 
-			if (utils.isLocationInRoom(state, { r: loc.r + dr, c: loc.c + dc })
+			if (utils.isLocationInRoom(state.floor.map, { r: loc.r + dr, c: loc.c + dc })
 				&& utils.isLocationEmpty(state, { r: loc.r + dr, c: loc.c + dc })) {
 				let entity = createPlacedEntity(entities[i], { r: loc.r + dr, c: loc.c + dc }, map);
 				state.entities.push(entity);
@@ -247,24 +254,25 @@ function getFloorBlueprint(dungeon: Game.Crawl.Dungeon, floor: number): Game.Cra
 		dungeon.name));
 }
 
-function getCensoredState(state: Game.Crawl.InProgressCrawlState,
-                          entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredEntityCrawlState {
+export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
+                                 entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredEntityCrawlState {
 	return {
 		self: censorSelf(entity),
 		dungeon: {
 			name: state.dungeon.name,
 			floors: state.dungeon.floors,
 			direction: state.dungeon.direction,
-			difficulty: state.dungeon.difficulty
+			difficulty: state.dungeon.difficulty,
+			graphics: state.dungeon.graphics
 		},
 		floor: {
 			number: state.floor.number,
 			map: entity.map,
 			items: state.floor.items.filter((item: Game.Crawl.CrawlItem) =>
-				utils.visible(state, entity.location, item.location))
+				utils.visible(state.floor.map, entity.location, item.location))
 		},
 		entities: state.entities.filter((ent: Game.Crawl.CrawlEntity) =>
-			utils.visible(state, entity.location, ent.location)
+			utils.visible(state.floor.map, entity.location, ent.location)
 			|| entity.alignment !== 0
 			&& entity.alignment === ent.alignment).map(censorEntity)
 	};
@@ -272,7 +280,7 @@ function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 
 function censorEntity(entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredCrawlEntity {
 	return {
-		id: entity.id, 
+		id: entity.id,
 		name: entity.name,
 		location: entity.location,
 		graphics: entity.graphics,

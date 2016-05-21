@@ -79,12 +79,46 @@ declare namespace Game {
 	}
 
 	namespace Graphics {
-		interface EntityGraphics {
+		interface DungeonGraphics {
+			base: string;
+			walls: DungeonTileSelector[];
+			open: GraphicsObject;
+			stairs: GraphicsObject;
+		}
 
+		interface DungeonTileSelector {
+			pattern: number;
+			object: GraphicsObject;
+		}
+
+		type GraphicsObject = AnimatedGraphicsObject | StaticGraphicsObject;
+
+		interface EntityGraphics {
+			base: string;
+			object: AnimatedGraphicsObject;
+		}
+
+		interface StaticGraphicsObject {
+			type: "static";
+			frames: Frame[];
+		}
+
+		interface AnimatedGraphicsObject {
+			type: "animated";
+			animations: { [key: string]: Animation };
+			default: string;
+		}
+
+		interface Animation {
+			steps: AnimationFrame[];
+		}
+
+		interface AnimationFrame {
+			frames: Frame[];
+			duration: number;
 		}
 
 		interface Frame {
-			name: string;
 			texture: string;
 			anchor: Point;
 		}
@@ -116,6 +150,7 @@ declare namespace Game {
 			direction: "up" | "down";
 			difficulty: number;
 			blueprint: DungeonBlueprint;
+			graphics: Graphics.DungeonGraphics;
 		}
 
 		interface Floor {
@@ -167,8 +202,8 @@ declare namespace Game {
 		}
 
 		interface Controller {
-			getAction(state: CensoredInProgressCrawlState, entity: CrawlEntity): Promise<Action>;
-			updateState(state: CensoredInProgressCrawlState): void;
+			getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Promise<Action>;
+			updateState(state: CensoredEntityCrawlState): void;
 			pushEvent(event: LogEvent): void;
 			wait(): void;
 			init(entity: UnplacedCrawlEntity): void;
@@ -195,6 +230,7 @@ declare namespace Game {
 			};
 			start: Location;
 			end: Location;
+			direction: number;
 		}
 
 		interface AttackLogEvent {
@@ -217,6 +253,12 @@ declare namespace Game {
 			location: Location;
 			stat: string;
 			change: number;
+		}
+
+		interface SynchronizedMessage<T> {
+			id: string;
+			last?: string;
+			message: T;
 		}
 
 		type DungeonBlueprint = FloorRangeBlueprint[];
@@ -331,6 +373,7 @@ declare namespace Game {
 			floors: number;
 			direction: "up" | "down";
 			difficulty: number;
+			graphics: Graphics.DungeonGraphics;
 		}
 
 		interface CensoredCrawlEntity extends Locatable {
@@ -349,6 +392,12 @@ declare namespace Game {
 			advances: boolean;
 			bag: Bag;
 			map: Map;
+		}
+
+		interface ClientUpdate {
+			state: CensoredEntityCrawlState;
+			log: LogEvent[];
+			move: boolean;
 		}
 	}
 }

@@ -31,6 +31,11 @@ export function isLocationEqual(a: Game.Crawl.Location, b: Game.Crawl.Location):
 }
 
 export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
+	                                location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void;
+export function getEntityAtLocation(state: Game.Crawl.CensoredInProgressCrawlState,
+                                    location: Game.Crawl.Location): Game.Crawl.CensoredCrawlEntity | void;
+
+export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
                                     location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void {
 	for (let i = 0; i < state.entities.length; i++) {
 		if (isLocationEqual(location, state.entities[i].location)) {
@@ -41,15 +46,16 @@ export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
 	return undefined;
 }
 
-export function isLocationEmpty(state: Game.Crawl.InProgressCrawlState, location: Game.Crawl.Location): boolean {
+export function isLocationEmpty(state: Game.Crawl.CensoredInProgressCrawlState,
+                                location: Game.Crawl.Location): boolean {
 	return (getEntityAtLocation(state, location) === undefined);
 }
 
-export function isLocationInMap(state: Game.Crawl.InProgressCrawlState, location: Game.Crawl.Location): boolean {
+export function isLocationInMap(map: Game.Crawl.Map, location: Game.Crawl.Location): boolean {
 	return location.r >= 0
 	    && location.c >= 0
-	    && location.r < state.floor.map.height
-	    && location.c < state.floor.map.width;
+	    && location.r < map.height
+	    && location.c < map.width;
 }
 
 export function isCrawlOver(state: Game.Crawl.CrawlState): state is Game.Crawl.ConcludedCrawlState {
@@ -169,23 +175,21 @@ export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
 	return ret;
 }
 
-export function isLocationInRoom(state: Game.Crawl.InProgressCrawlState, loc: Game.Crawl.Location) {
-	return isLocationInMap(state, loc) && state.floor.map.grid[loc.r][loc.c].roomId > 0;
+export function isLocationInRoom(map: Game.Crawl.Map, loc: Game.Crawl.Location) {
+	return isLocationInMap(map, loc) && map.grid[loc.r][loc.c].roomId > 0;
 }
 
-export function inSameRoom(state: Game.Crawl.InProgressCrawlState,
-                           a: Game.Crawl.Location,
-                           b: Game.Crawl.Location): boolean {
-	return isLocationInRoom(state, a)
-	    && isLocationInRoom(state, b)
-	    && state.floor.map.grid[a.r][a.c].roomId === state.floor.map.grid[b.r][b.c].roomId;
+export function inSameRoom(map: Game.Crawl.Map, a: Game.Crawl.Location, b: Game.Crawl.Location): boolean {
+	return isLocationInRoom(map, a)
+	    && isLocationInRoom(map, b)
+	    && map.grid[a.r][a.c].roomId === map.grid[b.r][b.c].roomId;
 }
 
-export function visible(state: Game.Crawl.InProgressCrawlState,
+export function visible(map: Game.Crawl.Map,
                         observer: Game.Crawl.Location,
                         location: Game.Crawl.Location): boolean {
-	if (isLocationInRoom(state, observer)) {
-		if (inSameRoom(state, observer, location)) {
+	if (isLocationInRoom(map, observer)) {
+		if (inSameRoom(map, observer, location)) {
 			return true;
 		}
 	}

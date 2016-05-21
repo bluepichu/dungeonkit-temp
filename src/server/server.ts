@@ -9,6 +9,7 @@ import * as path        from "path";
 import * as shortid     from "shortid";
 import * as socketio    from "socket.io";
 import * as sourcemap   from "source-map-support";
+import {sprintf}        from "sprintf-js";
 
 import * as crawl       from "./game/crawl";
 import * as controllers from "./game/controllers";
@@ -157,11 +158,62 @@ export function start() {
 		corridors: corridorFeatures
 	};
 
+	function std(pattern: number): Game.Graphics.DungeonTileSelector {
+		return {
+			pattern: pattern,
+			object: {
+				type: "static",
+				frames: [
+					{ texture: sprintf("wall-%02x", pattern), anchor: { x: 12, y: 5 } }
+				]
+			}
+		};
+	}
+
+	let graphics: Game.Graphics.DungeonGraphics = {
+		base: "dng-proto",
+		walls: [
+			std(0xff), // surrounded
+			std(0x7f), // one direction open
+			std(0xbf),
+			std(0xdf),
+			std(0xef),
+			std(0xf7),
+			std(0xfb),
+			std(0xfd),
+			std(0xfe),
+			std(0x3e), // one side open
+			std(0x8f),
+			std(0xe3),
+			std(0xf8),
+			std(0xe0), // two sides open
+			std(0x38),
+			std(0x0e),
+			std(0x83),
+			std(0x22),
+			std(0x88),
+			std(0x80), // three sides open
+			std(0x20),
+			std(0x08),
+			std(0x02),
+			std(0x00)  // island
+		],
+		open: {
+			type: "static",
+			frames: [ { texture: "open", anchor: { x: 12, y: 5 } } ]
+		},
+		stairs: {
+			type: "static",
+			frames: [ { texture: "stairs", anchor: { x: 12, y: 5 } } ]
+		}
+	};
+
 	let dungeon: Game.Crawl.Dungeon = {
 		name: "Prototypical Forest",
 		floors: 10,
 		direction: "up",
 		difficulty: 3,
+		graphics: graphics,
 		blueprint: [
 			{
 				range: [1, 4],
@@ -271,7 +323,6 @@ export function start() {
 		return {
 			id: shortid.generate(),
 			name: "Mudkip",
-			graphics: "mudkip",
 			stats: {
 				level: 10,
 				hp: {
@@ -297,7 +348,9 @@ export function start() {
 					},
 					accuracy: 100,
 					power: 50,
-					onHit: []
+					onHit: [
+
+					]
 				},
 				{
 					name: "Growl",
@@ -326,16 +379,79 @@ export function start() {
 					},
 					accuracy: 40,
 					power: 100,
-					onHit: []
+					onHit: [
+
+					]
 				}
 			],
 			bag: {
 				capacity: 16,
-				items: []
+				items: [
+
+				]
 			},
 			controller: new controllers.SocketController(socket),
 			alignment: 1,
-			advances: true
+			advances: true,
+			graphics: {
+				base: "mudkip",
+				object: {
+					type: "animated",
+					animations: {
+						idle: {
+							steps: [
+								{
+									frames: [
+										{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
+										{ texture: "shadow", anchor: { x: 12, y: 5 } }
+									],
+									duration: 100
+								},
+								{
+									frames: [
+										{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
+										{ texture: "shadow", anchor: { x: 12, y: 5 } }
+									],
+									duration: 10
+								},
+								{
+									frames: [
+										{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
+										{ texture: "shadow", anchor: { x: 12, y: 5 } }
+									],
+									duration: 10
+								}
+							]
+						},
+						walk: {
+							steps: [
+								{
+									frames: [
+										{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
+										{ texture: "shadow", anchor: { x: 12, y: 5 } }
+									],
+									duration: 4
+								},
+								{
+									frames: [
+										{ texture: "walk-%(dir)db", anchor: { x: 12, y: 15 } },
+										{ texture: "shadow", anchor: { x: 12, y: 5 } }
+									],
+									duration: 4
+								},
+								{
+									frames: [
+										{ texture: "walk-%(dir)dc", anchor: { x: 12, y: 15 } },
+										{ texture: "shadow", anchor: { x: 12, y: 5 } }
+									],
+									duration: 4
+								}
+							]
+						}
+					},
+					default: "idle"
+				}
+			}
 		};
 	}
 }

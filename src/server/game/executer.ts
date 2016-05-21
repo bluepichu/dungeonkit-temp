@@ -5,7 +5,7 @@ import * as log   from "beautiful-log";
 import * as crawl from "./crawl";
 import * as utils from "./utils";
 
-export function isValidAction(state: Game.Crawl.InProgressCrawlState,
+export function isValidAction(state: Game.Crawl.CensoredInProgressCrawlState,
                               entity: Game.Crawl.CrawlEntity,
                               action: Game.Crawl.Action): boolean {
 	switch (action.type) {
@@ -60,6 +60,7 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 	}
 
 	newState.entities.forEach((entity) => updateMap(newState, entity));
+	entity.controller.updateState(crawl.getCensoredState(newState, entity));
 
 	return newState;
 }
@@ -83,19 +84,20 @@ function executeMove(state: Game.Crawl.InProgressCrawlState,
 			name: entity.name
 		},
 		start: start,
-		end: entity.location
+		end: entity.location,
+		direction: action.direction
 	});
 
 	return state;
 }
 
-function isValidMove(state: Game.Crawl.InProgressCrawlState,
+function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
                      entity: Game.Crawl.CrawlEntity,
                      direction: number): boolean {
 	let offset: [number, number] = utils.decodeDirection(direction);
 	let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
 
-	if (!utils.isLocationInMap(state, location)) {
+	if (!utils.isLocationInMap(state.floor.map, location)) {
 		return false;
 	}
 
@@ -153,7 +155,7 @@ function getTargets(state: Game.Crawl.InProgressCrawlState,
 			if (room === 0) {
 				selection = selection.filter((entity) => utils.distance(attacker.location, entity.location) <= 2);
 			} else {
-				return state.entities.filter((entity) => utils.inSameRoom(state, attacker.location, entity.location));
+				return state.entities.filter((entity) => utils.inSameRoom(state.floor.map, attacker.location, entity.location));
 			}
 
 			return selection.filter((entity) => entity.alignment !== attacker.alignment
@@ -201,7 +203,7 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 			let evt: Game.Crawl.Locatable = (event as any as Game.Crawl.Locatable);
 
 			state.entities.forEach((entity) => {
-				if (utils.visible(state, entity.location, evt.location)) {
+				if (utils.visible(state.floor.map, entity.location, evt.location)) {
 					entity.controller.pushEvent(event);
 				}
 			});
@@ -213,8 +215,8 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 			let moveEvent = event as Game.Crawl.MoveLogEvent;
 
 			state.entities.forEach((entity) => {
-				if (utils.visible(state, entity.location, moveEvent.start)
-				 || utils.visible(state, entity.location, moveEvent.end)) {
+				if (utils.visible(state.floor.map, entity.location, moveEvent.start)
+				 || utils.visible(state.floor.map, entity.location, moveEvent.end)) {
 					entity.controller.pushEvent(event);
 				}
 			});
@@ -226,16 +228,28 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 export function updateMap(state: Game.Crawl.InProgressCrawlState, entity: Game.Crawl.CrawlEntity): void {
 	for (let i = 0; i < state.floor.map.height; i++) {
 		for (let j = 0; j < state.floor.map.width; j++) {
-			if (utils.isLocationInRoom(state, entity.location)) {
-				if (utils.inSameRoom(state, entity.location, { r: i, c: j })) {
+			if (utils.isLocationInRoom(state.floor.map, entity.location)) {
+				if (utils.inSameRoom(state.floor.map, entity.location, { r: i, c: j })) {
 					entity.map.grid[i][j] = state.floor.map.grid[i][j];
 				} else {
 					for (let k = 0; k < 8; k++) {
-						let [di, dj] = utils.decodeDirection(k);
-						if (utils.isLocationInMap(state, { r: i + di, c: j + dj })
-						 && utils.inSameRoom(state, entity.location, { r: i + di, c: j + dj })) {
+						let [di1, dj1] = utils.decodeDirection(k);
+
+						if (utils.isLocationInMap(state.floor.map, { r: i + di1, c: j + dj1 })
+						    && utils.inSameRoom(state.floor.map, entity.location, { r: i + di1, c: j + dj1 })) {
 							entity.map.grid[i][j] = state.floor.map.grid[i][j];
 							break;
+						}
+
+						for (let l = 0; l < 8; l++) {
+							let [di2, dj2] = utils.decodeDirection(l);
+							let [di, dj] = [di1 + di2, dj1 + dj2];
+
+							if (utils.isLocationInMap(state.floor.map, { r: i + di, c: j + dj })
+								&& utils.inSameRoom(state.floor.map, entity.location, { r: i + di, c: j + dj })) {
+								entity.map.grid[i][j] = state.floor.map.grid[i][j];
+								break;
+							}
 						}
 					}
 				}
