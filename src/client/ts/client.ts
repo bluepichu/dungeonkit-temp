@@ -76,6 +76,10 @@ function init() {
 		processAll(updates);
 	});
 
+	for (let name in PIXI.utils.TextureCache) {
+		PIXI.utils.TextureCache[name].baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+	}
+
 	let resolution = window.devicePixelRatio || 1;
 
 	renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, {

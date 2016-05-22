@@ -160,9 +160,11 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 					graphics: entity.graphics
 				}
 			});
-			
+
 			entity.controller.updateState(getCensoredState(state, entity));
 		});
+
+		utils.printState(state);
 
 		return state;
 	}
