@@ -18,10 +18,12 @@ let moveInput = 0;
 let minimap: MiniMap = undefined;
 let commandArea: CommandArea = undefined;
 let dungeonLayer: DungeonLayer = undefined;
+let messageLog: MessageLog = undefined;
 let player: Game.Crawl.CensoredSelfCrawlEntity = undefined;
 let tweenHandler: TweenHandler = undefined;
 let processChain: Thenable = Promise.resolve();
 let prerender: (() => any)[] = [];
+let floorSign: PIXI.Container = undefined;
 
 document.addEventListener("DOMContentLoaded", () => {
 	PIXI.loader
@@ -63,7 +65,6 @@ function init() {
 
 		if (state !== undefined) {
 			player = state.self;
-			console.log(state);
 			updates.push({ type: "done", move: move, state: state });
 		}
 
@@ -95,31 +96,37 @@ function init() {
 	commandArea.y = 50;
 	gameContainer.addChild(commandArea);
 
+	messageLog = new MessageLog();
+	messageLog.x = window.innerWidth;
+	messageLog.y = window.innerHeight;
+	gameContainer.addChild(messageLog);
+
+	floorSign = new PIXI.Container();
+	floorSign.alpha = 0;
+
 	tweenHandler = new TweenHandler();
 
 	requestAnimationFrame(animate);
 }
 
-function processAll(updates: Processable[], state?: Game.Crawl.CensoredEntityCrawlState): void {
+function processAll(updates: Processable[]): void {
 	while (updates.length > 0) {
 		processChain = processChain.then(getResolutionPromise(updates.shift()));
-	}
-
-	if (state !== undefined) {
-		processChain = processChain.then(() => {
-			minimap.update(state);
-			dungeonLayer.update(state);
-		});
 	}
 }
 
 function getResolutionPromise(proc: Processable): (value: any) => Promise<void> {
 	return (value: any) => new Promise<void>((resolve, reject) => {
+		console.log(proc);
 		if (proc.type === "done") {
 			let p = proc as { type: "done", move: boolean, state: Game.Crawl.CensoredEntityCrawlState };
 
+			console.log("start update");
+
 			minimap.update(p.state);
 			dungeonLayer.update(p.state);
+
+			console.log("end update", Math.random());
 
 			awaitingMove = p.move;
 
@@ -129,20 +136,44 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 
 			switch (event.type) {
 				case "wait":
-					return Promise.resolve();
+					messageLog.push(sprintf("%s waits.", event.entity.name));
+					resolve();
+					break;
 
 				case "move":
 					let mEvent = event as Game.Crawl.MoveLogEvent;
-					dungeonLayer.setEntityAnimation(mEvent.entity.id, "walk", mEvent.direction);
-					return dungeonLayer.moveEntity(event.entity.id, mEvent.start, mEvent.end)
+					messageLog.push(sprintf("%s moves.", event.entity.name));
+					dungeonLayer.moveEntity(event.entity, mEvent.start, mEvent.end, "walk", mEvent.direction)
 						.then(() => dungeonLayer.setEntityAnimation(mEvent.entity.id, "idle"))
 						.then(resolve);
+					break;
 
-				case "attck":
-					return Promise.resolve();
+				case "attack":
+					messageLog.push(sprintf("%s attacks!", event.entity.name));
+					resolve();
+					break;
 
 				case "stat":
-					return Promise.resolve();
+					messageLog.push(sprintf("%s does stat things!", event.entity.name));
+					resolve();
+					break;
+
+				case "stairs":
+					messageLog.push(sprintf("%s went up the stairs!", event.entity.name));
+					tweenHandler.tween(floorSign, "alpha", 1, .1)
+						.then(() => new Promise((resolve, reject) => {
+							minimap.clear();
+							dungeonLayer.clear();
+							console.log("wait for it...");
+
+							setTimeout(resolve, 2400);
+						}))
+						.then(() => {
+							console.log("done with the wait.");
+							tweenHandler.tween(floorSign, "alpha", 0, .1);
+						})
+						.then(resolve);
+					break;
 			}
 		}
 	});
@@ -311,7 +342,7 @@ class MiniMap extends PIXI.Container {
 	update(state: Game.Crawl.CensoredEntityCrawlState) {
 		this.mapContent.clear();
 
-		this.mapContent.beginFill(0x222222);
+		this.mapContent.beginFill(0x2d2d2d);
 		this.mapContent.drawRect(- state.floor.map.width * this.gridSize,
 		                         - state.floor.map.height * this.gridSize,
 								 3 * state.floor.map.width * this.gridSize,
@@ -375,12 +406,14 @@ class MiniMap extends PIXI.Container {
 			}
 		}
 
-		this.mapContent.beginFill(0xffff00);
-
 		state.entities.forEach((entity: Game.Crawl.CensoredCrawlEntity) => {
+			this.mapContent.beginFill(entity.id === player.id ? 0xffcc66 : 0xea777a);
+
 			this.mapContent.drawCircle((entity.location.c + .5) * this.gridSize,
 			                           (entity.location.r + .5) * this.gridSize,
-									   this.gridSize / 2 - 1);
+			                           this.gridSize / 2 - 1);
+
+			this.mapContent.endFill();
 
 			if (entity.id === player.id) {
 				this.mapContent.x = this.maskWidth / 2 - (entity.location.c + .5) * this.gridSize;
@@ -390,7 +423,7 @@ class MiniMap extends PIXI.Container {
 	}
 
 	clear() {
-		// TODO
+		this.mapContent.clear();
 	}
 }
 
@@ -518,6 +551,76 @@ class CommandArea extends PIXI.Container {
 	}
 }
 
+class MessageLog extends PIXI.Container {
+	messages: PIXI.Container[];
+	timeouts: number[];
+	keepTime: number;
+	spacing: number;
+	maximum: number;
+
+	constructor() {
+		super();
+		this.messages = [];
+		this.timeouts = [];
+
+		this.spacing = 40;
+		this.keepTime = 5000;
+		this.maximum = 12;
+	}
+
+	push(message: string): void {
+		let msg = this.createMessage(message);
+		this.addChild(msg);
+		msg.x = msg.width + 12;
+		msg.y = -12;
+
+		this.messages.unshift(msg);
+
+		while (this.messages.length > this.maximum) {
+			this.pop();
+		}
+
+		this.messages.forEach((message, index) => {
+			tweenHandler.tween(message, "x", -12, 1.1, "smooth");
+			tweenHandler.tween(message, "y", -index * this.spacing - 12, 1.1, "smooth");
+		});
+
+		this.timeouts.unshift(setTimeout(this.pop.bind(this), this.keepTime));
+	}
+
+	pop(): void {
+		if (this.messages.length === 0) {
+			return;
+		}
+
+		let last: PIXI.Container = this.messages.pop();
+		clearTimeout(this.timeouts.pop());
+
+		tweenHandler.tween(last, "x", last.width + 12, 1.1, "smooth").then(() => this.removeChild(last));
+	}
+
+	createMessage(message: string): PIXI.Container {
+		let ret = new PIXI.Container();
+
+		let text = new PIXI.Text(message, COMMAND_AREA_ACTIVE_STYLE);
+		text.style.align = "right";
+		text.anchor.x = 1;
+		text.anchor.y = 1;
+		text.resolution = window.devicePixelRatio;
+
+		let bg = new PIXI.Graphics();
+
+		bg.beginFill(0xffffff, .2);
+		bg.drawRect(-text.width - 8, -text.height - 8, text.width + 16, text.height + 16);
+		bg.endFill();
+
+		ret.addChild(bg);
+		ret.addChild(text);
+
+		return ret;
+	}
+}
+
 class DungeonLayer extends PIXI.Container {
 	private ground: GroundLayer;
 	private entities: EntityLayer;
@@ -549,18 +652,28 @@ class DungeonLayer extends PIXI.Container {
 		});
 	}
 
-	moveEntity(entityId: string, from: Game.Crawl.Location, to: Game.Crawl.Location): Thenable {
-		let prm = this.entities.moveEntity(entityId, from, to);
+	moveEntity(entity: Game.Crawl.CondensedEntity,
+	           from: Game.Crawl.Location,
+	           to: Game.Crawl.Location,
+	           animation?: string,
+	           direction?: number): Thenable {
+		let prm = this.entities.moveEntity(entity, from, to);
+		this.setEntityAnimation(entity.id, animation, direction);
 
-		if (entityId === player.id) {
+		if (entity.id === player.id) {
 			return Promise.all([prm, this.ground.moveTo(to), this.entities.moveTo(to)]);
 		}
 
 		return prm;
 	}
 
-	setEntityAnimation(entityId: string, animation: string, direction?: number) {
+	setEntityAnimation(entityId: string, animation: string, direction?: number): void {
 		this.entities.setEntityAnimation(entityId, animation, direction);
+	}
+
+	clear(): void {
+		this.ground.clear();
+		this.entities.clear();
 	}
 }
 
@@ -625,8 +738,6 @@ class GroundLayer extends PIXI.Container {
 			}
 		}
 
-		// return generateGraphicsObject(graphics.base, { type: "static", frames: [{ texture: "tile-marker", anchor: { x: 12, y: 12 } }] });
-
 		if (map.grid[loc.r][loc.c].stairs) {
 			return generateGraphicsObject(graphics.base, graphics.stairs);
 		}
@@ -640,6 +751,10 @@ class GroundLayer extends PIXI.Container {
 				return generateGraphicsObject(graphics.base, graphics.walls[i].object);
 			}
 		}
+	}
+
+	clear(): void {
+		this.removeChildren();
 	}
 }
 
@@ -796,12 +911,7 @@ class EntityLayer extends PIXI.Container {
 
 				[entitySprite.x, entitySprite.y] = locationToCoordinates(entity.location, GRID_SIZE);
 			} else {
-				let entitySprite = this.getEntitySprite(entity);
-
-				[entitySprite.x, entitySprite.y] = locationToCoordinates(entity.location, GRID_SIZE);
-
-				this.addChild(entitySprite);
-				this.spriteMap.set(entity.id, entitySprite);
+				this.addEntity(entity, entity.location);
 			}
 		});
 
@@ -811,21 +921,28 @@ class EntityLayer extends PIXI.Container {
 		});
 	}
 
-	getEntitySprite(entity: Game.Crawl.CensoredCrawlEntity): EntitySprite {
-		return new EntitySprite(entity.graphics.base, entity.graphics.object);
+	addEntity(entity: Game.Crawl.CondensedEntity, location: Game.Crawl.Location) {
+		let entitySprite = this.getEntitySprite(entity.graphics);
+
+		[entitySprite.x, entitySprite.y] = locationToCoordinates(location, GRID_SIZE);
+
+		this.addChild(entitySprite);
+		this.spriteMap.set(entity.id, entitySprite);
 	}
 
-	moveEntity(entityId: string, from: Game.Crawl.Location, to: Game.Crawl.Location): Thenable {
-		if (!this.spriteMap.has(entityId)) {
-			let [x, y] = locationToCoordinates(from, GRID_SIZE);
+	getEntitySprite(entityGraphics: Game.Graphics.EntityGraphics): EntitySprite {
+		return new EntitySprite(entityGraphics.base, entityGraphics.object);
+	}
 
-			// TODO
+	moveEntity(entity: Game.Crawl.CondensedEntity, from: Game.Crawl.Location, to: Game.Crawl.Location): Thenable {
+		if (!this.spriteMap.has(entity.id)) {
+			this.addEntity(entity, from);
 		}
 
 		let [xTarget, yTarget] = locationToCoordinates(to, GRID_SIZE);
 
-		let xPrm = tweenHandler.tween(this.spriteMap.get(entityId), "x", xTarget, WALK_SPEED);
-		let yPrm = tweenHandler.tween(this.spriteMap.get(entityId), "y", yTarget, WALK_SPEED);
+		let xPrm = tweenHandler.tween(this.spriteMap.get(entity.id), "x", xTarget, WALK_SPEED);
+		let yPrm = tweenHandler.tween(this.spriteMap.get(entity.id), "y", yTarget, WALK_SPEED);
 
 		return Promise.all([xPrm, yPrm]);
 	}
@@ -846,6 +963,11 @@ class EntityLayer extends PIXI.Container {
 			this.spriteMap.get(entityId).direction = direction;
 		}
 	}
+
+	clear(): void {
+		this.removeChildren();
+		this.spriteMap.clear();
+	}
 }
 
 class TweenHandler {
@@ -855,9 +977,10 @@ class TweenHandler {
 		this.tweens = [];
 	}
 
-	tween(obj: any, key: string, target: number, velocity: number): Thenable {
+	tween(obj: any, key: string, target: number, velocity: number, type?: "linear" | "smooth"): Thenable {
+		this.tweens = this.tweens.filter((tween) => tween.object !== obj || tween.key !== key);
 		return new Promise((resolve, reject) => {
-			this.tweens.push(new Tween(obj, key, target, velocity, resolve));
+			this.tweens.push(new Tween(obj, key, target, velocity, type, resolve));
 		});
 	}
 
@@ -866,38 +989,60 @@ class TweenHandler {
 	}
 }
 
+type TweenType = "linear" | "smooth";
+
 class Tween {
 	object: any;
 	key: string;
 	target: number;
 	velocity: number;
+	type: TweenType;
 	onComplete: Function;
 
-	constructor(obj: any, key: string, target: number, velocity: number, onComplete?: Function) {
+	constructor(obj: any, key: string, target: number, velocity: number, type?: TweenType, onComplete?: Function) {
 		this.object = obj;
 		this.key = key;
 		this.target = target;
 		this.velocity = velocity;
 		this.onComplete = onComplete;
+		this.type = type || "linear";
 	}
 
 	step(): boolean {
-		if (Math.abs(this.object[this.key] - this.target) < this.velocity) {
-			this.object[this.key] = this.target;
+		if (this.type === "linear") {
+			if (Math.abs(this.object[this.key] - this.target) < this.velocity) {
+				this.object[this.key] = this.target;
 
-			if (this.onComplete) {
-				this.onComplete();
-			}
+				if (this.onComplete) {
+					this.onComplete();
+				}
 
-			return false;
-		} else {
-			if (this.object[this.key] > this.target) {
-				this.object[this.key] -= this.velocity;
+				return false;
 			} else {
-				this.object[this.key] += this.velocity;
-			}
+				if (this.object[this.key] > this.target) {
+					this.object[this.key] -= this.velocity;
+				} else {
+					this.object[this.key] += this.velocity;
+				}
 
-			return true;
+				return true;
+			}
+		}
+
+		if (this.type === "smooth") {
+			if (Math.abs(this.object[this.key] - this.target) < .1) {
+				this.object[this.key] = this.target;
+
+				if (this.onComplete) {
+					this.onComplete();
+				}
+
+				return false;
+			} else {
+				this.object[this.key] = (this.object[this.key] + this.target * (this.velocity - 1)) / this.velocity;
+
+				return true;
+			}
 		}
 	}
 }

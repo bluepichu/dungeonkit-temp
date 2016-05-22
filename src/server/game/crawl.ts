@@ -1,11 +1,13 @@
 "use strict";
 
+import * as controllers     from "./controllers";
 import * as executer        from "./executer";
 import * as generator       from "./generator";
 import * as utils           from "./utils";
 
 import * as log             from "beautiful-log";
-import {sprintf as sprintf} from "sprintf-js";
+import * as shortid         from "shortid";
+import {sprintf}            from "sprintf-js";
 
 export function startCrawl(dungeon: Game.Crawl.Dungeon,
                            entities: Game.Crawl.UnplacedCrawlEntity[]): Promise<Game.Crawl.ConcludedCrawlState> {
@@ -109,7 +111,45 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 
 		placeStairs(state);
 
-		// TODO...
+		let enemies: Game.Crawl.UnplacedCrawlEntity[] = [];
+
+		blueprint.enemies.forEach((enemyBlueprint) => {
+			for (let i = 0; i < enemyBlueprint.density; i++) {
+				if (Math.random() < .1) {
+					let attacks: Game.Attack[] = [];
+					let options = enemyBlueprint.attacks.slice();
+					let sum = enemyBlueprint.attacks.map((atk) => atk.weight).reduce((a, b) => a + b, 0);
+
+					while (options.length > 0 && attacks.length < 4) {
+						let choice = Math.random() * sum;
+
+						for (let j = 0; j < options.length; j++) {
+							choice -= options[j].weight;
+
+							if (choice <= 0) {
+								attacks.push(options[j].attack);
+								options.splice(j, 1);
+								break;
+							}
+						}
+					}
+
+					enemies.push({
+						id: shortid.generate(),
+						name: enemyBlueprint.name,
+						graphics: enemyBlueprint.graphics,
+						stats: enemyBlueprint.stats,
+						attacks: attacks,
+						controller: new controllers.AIController([]),
+						bag: { capacity: 1, items: [] },
+						alignment: 0,
+						advances: false
+					});
+				}
+			}
+		});
+
+		enemies.forEach((enemy) => placeEntities(state, enemy));
 
 		state.entities.forEach((entity) => entity.controller.updateState(getCensoredState(state, entity)));
 

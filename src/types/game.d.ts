@@ -196,6 +196,12 @@ declare namespace Game {
 			map: Map;
 		}
 
+		interface CondensedEntity {
+			id: string;
+			name: string;
+			graphics: Game.Graphics.EntityGraphics;
+		}
+
 		interface Bag {
 			capacity: number;
 			items: Item[];
@@ -211,23 +217,17 @@ declare namespace Game {
 
 		interface CrawlItem extends Item, Locatable { }
 
-		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent;
+		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | StairsLogEvent;
 
 		interface WaitLogEvent {
 			type: "wait";
-			entity: {
-				id: string;
-				name: string;
-			};
+			entity: CondensedEntity;
 			location: Location;
 		}
 
 		interface MoveLogEvent {
 			type: "move";
-			entity: {
-				id: string;
-				name: string
-			};
+			entity: CondensedEntity;
 			start: Location;
 			end: Location;
 			direction: number;
@@ -235,10 +235,7 @@ declare namespace Game {
 
 		interface AttackLogEvent {
 			type: "attack";
-			entity: {
-				id: string;
-				name: string;
-			};
+			entity: CondensedEntity;
 			location: Location;
 			attack: Attack;
 			direction: number;
@@ -246,13 +243,15 @@ declare namespace Game {
 
 		interface StatLogEvent {
 			type: "stat";
-			entity: {
-				id: string;
-				name: string;
-			};
+			entity: CondensedEntity;
 			location: Location;
 			stat: string;
 			change: number;
+		}
+
+		interface StairsLogEvent {
+			type: "stairs";
+			entity: CondensedEntity;
 		}
 
 		interface SynchronizedMessage<T> {
@@ -270,7 +269,20 @@ declare namespace Game {
 
 		interface FloorBlueprint {
 			generatorOptions: GeneratorOptionsWrapper;
-			enemies: Entity[];
+			enemies: EntityBlueprint[];
+		}
+
+		interface EntityBlueprint {
+			density: number;
+			name: string;
+			graphics: Graphics.EntityGraphics;
+			stats: EntityStats;
+			attacks: AttackBlueprint[];
+		}
+
+		interface AttackBlueprint {
+			weight: number;
+			attack: Attack;
 		}
 
 		type GeneratorOptionsWrapper = DFSGeneratorOptionsWrapper | FeatureGeneratorOptionsWrapper;

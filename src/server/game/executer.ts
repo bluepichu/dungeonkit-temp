@@ -54,12 +54,26 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 		let loc = newState.entities[i].location;
 
 		if (newState.floor.map.grid[loc.r][loc.c].stairs && newState.entities[i].advances) {
+			propagateLogEvent(newState, {
+				type: "stairs",
+				entity: {
+					id: newState.entities[i].id,
+					name: newState.entities[i].name,
+					graphics: newState.entities[i].graphics
+				}
+			});
+
+			newState.entities.forEach((entity) => entity.controller.wait());
+
 			let advancers = newState.entities.filter((entity) => entity.advances);
 			return crawl.advanceToFloor(newState.dungeon, newState.floor.number + 1, advancers);
 		}
 	}
 
+	console.time("maps");
 	newState.entities.forEach((entity) => updateMap(newState, entity));
+	console.timeEnd("maps");
+
 	entity.controller.updateState(crawl.getCensoredState(newState, entity));
 
 	return newState;
@@ -81,7 +95,8 @@ function executeMove(state: Game.Crawl.InProgressCrawlState,
 		type: "move",
 		entity: {
 			id: entity.id,
-			name: entity.name
+			name: entity.name,
+			graphics: entity.graphics
 		},
 		start: start,
 		end: entity.location,
@@ -222,13 +237,43 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 			});
 
 			break;
+
+		case "stairs":
+			state.entities.forEach((entity) => entity.controller.pushEvent(event));
+			break;
 	}
 }
 
 export function updateMap(state: Game.Crawl.InProgressCrawlState, entity: Game.Crawl.CrawlEntity): void {
-	for (let i = 0; i < state.floor.map.height; i++) {
-		for (let j = 0; j < state.floor.map.width; j++) {
-			if (utils.isLocationInRoom(state.floor.map, entity.location)) {
+	let changed = false;
+
+	let {r, c} = entity.location;
+
+	for (let i = 0; i < 8; i++) {
+		let [dr, dc] = utils.decodeDirection(i);
+
+		if (utils.inRange(r + dr, 0, state.floor.map.height)
+		    && utils.inRange(c + dc, 0, state.floor.map.width)
+		    && entity.map.grid[r + dr][c + dc] !== state.floor.map.grid[r + dr][c + dc]) {
+			entity.map.grid[r + dr][c + dc] = state.floor.map.grid[r + dr][c + dc];
+			changed = true;
+		}
+
+		for (let j = 0; j < 8; j++) {
+			let [ddr, ddc] = utils.decodeDirection(j);
+
+			if (utils.inRange(r + dr + ddr, 0, state.floor.map.height)
+			    && utils.inRange(c + dc + ddc, 0, state.floor.map.width)
+			    && entity.map.grid[r + dr + ddr][c + dc + ddc] !== state.floor.map.grid[r + dr + ddr][c + dc + ddc]) {
+				entity.map.grid[r + dr + ddr][c + dc + ddc] = state.floor.map.grid[r + dr + ddr][c + dc + ddc];
+				changed = true;
+			}
+		}
+	}
+
+	if (utils.isLocationInRoom(state.floor.map, entity.location) && changed) {
+		for (let i = 0; i < state.floor.map.height; i++) {
+			for (let j = 0; j < state.floor.map.width; j++) {
 				if (utils.inSameRoom(state.floor.map, entity.location, { r: i, c: j })) {
 					entity.map.grid[i][j] = state.floor.map.grid[i][j];
 				} else {
@@ -253,10 +298,6 @@ export function updateMap(state: Game.Crawl.InProgressCrawlState, entity: Game.C
 						}
 					}
 				}
-			}
-
-			if (Math.abs(entity.location.r - i) <= 2 && Math.abs(entity.location.c - j) <= 2) {
-				entity.map.grid[i][j] = state.floor.map.grid[i][j];
 			}
 		}
 	}

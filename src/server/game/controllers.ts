@@ -129,6 +129,8 @@ export class SocketController implements Game.Crawl.Controller {
 			move: move
 		};
 
+		log.log(update);
+
 		this.socket.emit("update", update);
 
 		this.lastState = state;

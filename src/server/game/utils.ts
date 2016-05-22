@@ -185,6 +185,10 @@ export function inSameRoom(map: Game.Crawl.Map, a: Game.Crawl.Location, b: Game.
 	    && map.grid[a.r][a.c].roomId === map.grid[b.r][b.c].roomId;
 }
 
+export function inRange(v: number, a: number, b: number): boolean {
+	return a <= v && v < b;
+}
+
 export function visible(map: Game.Crawl.Map,
                         observer: Game.Crawl.Location,
                         location: Game.Crawl.Location): boolean {
