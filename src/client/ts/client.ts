@@ -64,6 +64,11 @@ function init() {
 		let updates: Processable[] = log;
 
 		if (state !== undefined) {
+			(floorSign.children[1] as PIXI.Text).text = sprintf("%s\n%s%dF",
+			                                                    state.dungeon.name,
+			                                                    state.dungeon.direction === "down" ? "B" : "",
+			                                                    state.floor.number);
+			(floorSign.children[1] as PIXI.Text).style.align = "center";
 			player = state.self;
 			updates.push({ type: "done", move: move, state: state });
 		}
@@ -103,6 +108,25 @@ function init() {
 
 	floorSign = new PIXI.Container();
 	floorSign.alpha = 0;
+	gameContainer.addChild(floorSign);
+
+	let g = new PIXI.Graphics();
+	g.beginFill(0x000000);
+	g.drawRect(0, 0, window.innerWidth, window.innerHeight);
+	g.endFill();
+	floorSign.addChild(g);
+
+	let text = new PIXI.Text("Prototypical Forest\nB1F", {
+		font: "32px Aller-Light",
+		fill: 0xffffff,
+		align: "center"
+	});
+	text.anchor.x = .5;
+	text.anchor.y = .5;
+	text.x = window.innerWidth / 2;
+	text.y = window.innerHeight / 2;
+	text.resolution = window.devicePixelRatio;
+	floorSign.addChild(text);
 
 	tweenHandler = new TweenHandler();
 
@@ -142,34 +166,33 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 
 				case "move":
 					let mEvent = event as Game.Crawl.MoveLogEvent;
-					messageLog.push(sprintf("%s moves.", event.entity.name));
+					messageLog.push(sprintf("%s moved.", event.entity.name));
 					dungeonLayer.moveEntity(event.entity, mEvent.start, mEvent.end, "walk", mEvent.direction)
 						.then(() => dungeonLayer.setEntityAnimation(mEvent.entity.id, "idle"))
 						.then(resolve);
 					break;
 
 				case "attack":
-					messageLog.push(sprintf("%s attacks!", event.entity.name));
+					messageLog.push(sprintf("%s attacked!", event.entity.name));
 					resolve();
 					break;
 
 				case "stat":
-					messageLog.push(sprintf("%s does stat things!", event.entity.name));
+					messageLog.push(sprintf("%s did stat things!", event.entity.name));
 					resolve();
 					break;
 
 				case "stairs":
 					messageLog.push(sprintf("%s went up the stairs!", event.entity.name));
-					tweenHandler.tween(floorSign, "alpha", 1, .1)
+					new Promise((resolve, _) => setTimeout(resolve, 600))
+						.then(() => tweenHandler.tween(floorSign, "alpha", 1, .1))
 						.then(() => new Promise((resolve, reject) => {
 							minimap.clear();
 							dungeonLayer.clear();
-							console.log("wait for it...");
-
+							messageLog.clear();
 							setTimeout(resolve, 2400);
 						}))
 						.then(() => {
-							console.log("done with the wait.");
 							tweenHandler.tween(floorSign, "alpha", 0, .1);
 						})
 						.then(resolve);
@@ -602,8 +625,11 @@ class MessageLog extends PIXI.Container {
 	createMessage(message: string): PIXI.Container {
 		let ret = new PIXI.Container();
 
-		let text = new PIXI.Text(message, COMMAND_AREA_ACTIVE_STYLE);
-		text.style.align = "right";
+		let text = new PIXI.Text(message, {
+			font: "16px Aller-Light",
+			fill: 0xffffff,
+			align: "right"
+		});
 		text.anchor.x = 1;
 		text.anchor.y = 1;
 		text.resolution = window.devicePixelRatio;
@@ -618,6 +644,14 @@ class MessageLog extends PIXI.Container {
 		ret.addChild(text);
 
 		return ret;
+	}
+
+	clear() {
+		this.timeouts.forEach((timeout) => clearTimeout(timeout));
+
+		while (this.messages.length > 0) {
+			this.pop();
+		}
 	}
 }
 

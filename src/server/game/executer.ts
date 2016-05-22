@@ -54,15 +54,6 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 		let loc = newState.entities[i].location;
 
 		if (newState.floor.map.grid[loc.r][loc.c].stairs && newState.entities[i].advances) {
-			propagateLogEvent(newState, {
-				type: "stairs",
-				entity: {
-					id: newState.entities[i].id,
-					name: newState.entities[i].name,
-					graphics: newState.entities[i].graphics
-				}
-			});
-
 			newState.entities.forEach((entity) => entity.controller.wait());
 
 			let advancers = newState.entities.filter((entity) => entity.advances);

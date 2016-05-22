@@ -151,7 +151,18 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 
 		enemies.forEach((enemy) => placeEntities(state, enemy));
 
-		state.entities.forEach((entity) => entity.controller.updateState(getCensoredState(state, entity)));
+		state.entities.forEach((entity) => {
+			entity.controller.pushEvent({
+				type: "stairs",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				}
+			});
+			
+			entity.controller.updateState(getCensoredState(state, entity));
+		});
 
 		return state;
 	}
