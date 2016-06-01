@@ -23,6 +23,7 @@ declare namespace Game {
 		target: TargetSelector;
 		accuracy: number | "always";
 		power: number;
+		uses: MaxCurrentStat;
 		onHit: SecondaryEffect[];
 		// onMiss
 	}
@@ -404,6 +405,8 @@ declare namespace Game {
 			name: string;
 			graphics: Graphics.EntityGraphics;
 			id: string;
+			attacks: Attack[];
+			stats: EntityStats;
 			alignment: number;
 			advances: boolean;
 			bag: Bag;

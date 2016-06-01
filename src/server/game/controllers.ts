@@ -96,7 +96,7 @@ export class SocketController implements Game.Crawl.Controller {
 				if (executer.isValidAction(state, entity, action)) {
 					this.socket.removeAllListeners("action");
 
-					if (options.dash && action.type === "move") {
+					if (action.type === "move" && options.dash) {
 						this.dashPattern = pattern;
 						this.dashing = true;
 						this.dashDirection = (action as Game.Crawl.MoveAction).direction;

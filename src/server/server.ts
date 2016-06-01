@@ -19,10 +19,10 @@ export function start() {
 	sourcemap.install();
 	// Error.stackTraceLimit = Infinity;
 
+	nconf.argv().env();
+
 	const app: express.Express = express();
 	const PORT: number = nconf.get("port") || 6918;
-
-	nconf.argv().env();
 
 	app.use(express.static("client"));
 

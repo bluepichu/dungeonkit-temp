@@ -1,7 +1,9 @@
 "use strict";
 
-import * as log   from "beautiful-log";
-import * as utils from "./utils";
+import * as log     from "beautiful-log";
+
+import * as printer from "./printer";
+import * as utils   from "./utils";
 
 export function generateFloor(options: Game.Crawl.FeatureGeneratorOptions): Game.Crawl.Map {
 	let open = 0;
@@ -434,5 +436,5 @@ export function testGenerateFloor(): void {
 		cleanliness: .9
 	};
 
-	utils.printMap(generateFloor(options));
+	printer.printMap(generateFloor(options));
 }

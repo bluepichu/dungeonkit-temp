@@ -201,6 +201,10 @@ let tackle: Game.Attack = {
 		type: "front",
 		includeAllies: false
 	},
+	uses: {
+		max: 30,
+		current: 30
+	},
 	accuracy: 100,
 	power: 50,
 	onHit: []
@@ -213,6 +217,10 @@ let growl: Game.Attack = {
 		type: "room",
 		includeAllies: false,
 		includeSelf: false
+	},
+	uses: {
+		max: 30,
+		current: 30
 	},
 	accuracy: "always",
 	power: 0,
@@ -231,6 +239,10 @@ let waterGun: Game.Attack = {
 	target: {
 		type: "front",
 		includeAllies: false
+	},
+	uses: {
+		max: 30,
+		current: 30
 	},
 	accuracy: 40,
 	power: 100,
@@ -291,6 +303,17 @@ let mudkipGraphics: Game.Graphics.EntityGraphics = {
 						duration: 4
 					}
 				]
+			},
+			hurt: {
+				steps: [
+					{
+						frames: [
+							{ texture: "hurt-%(dir)d", anchor: { x: 12, y: 15 } },
+							{ texture: "shadow", anchor: { x: 12, y: 5 } }
+						],
+						duration: 10000
+					}
+				]
 			}
 		},
 		default: "idle"
@@ -304,7 +327,7 @@ let mudkipStats = {
 		current: 45
 	},
 	attack: {
-		base: 30,
+		base: 100,
 		modifier: 0
 	},
 	defense: {

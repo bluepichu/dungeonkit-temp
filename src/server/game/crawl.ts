@@ -3,6 +3,7 @@
 import * as controllers     from "./controllers";
 import * as executer        from "./executer";
 import * as generator       from "./generator";
+import * as printer         from "./printer";
 import * as utils           from "./utils";
 
 import * as log             from "beautiful-log";
@@ -28,6 +29,7 @@ export function startCrawl(dungeon: Game.Crawl.Dungeon,
 
 function step(state: Game.Crawl.InProgressCrawlState, done: (state: Game.Crawl.ConcludedCrawlState) => void): void {
 	let entity = nextEntity(state);
+	log.log(entity.id);
 	let censoredState = getCensoredState(state, entity);
 
 	if (entity.controller.wait) {
@@ -138,7 +140,12 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 						id: shortid.generate(),
 						name: enemyBlueprint.name,
 						graphics: enemyBlueprint.graphics,
-						stats: enemyBlueprint.stats,
+						stats: {
+							level: enemyBlueprint.stats.level,
+							hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
+							attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
+							defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 }
+						},
 						attacks: attacks,
 						controller: new controllers.AIController([]),
 						bag: { capacity: 1, items: [] },
@@ -164,7 +171,7 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 			entity.controller.updateState(getCensoredState(state, entity));
 		});
 
-		utils.printState(state);
+		printer.printState(state);
 
 		return state;
 	}
@@ -322,10 +329,10 @@ export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 			number: state.floor.number,
 			map: entity.map,
 			items: state.floor.items.filter((item: Game.Crawl.CrawlItem) =>
-				utils.visible(state.floor.map, entity.location, item.location))
+				utils.isVisible(state.floor.map, entity.location, item.location))
 		},
 		entities: state.entities.filter((ent: Game.Crawl.CrawlEntity) =>
-			utils.visible(state.floor.map, entity.location, ent.location)
+			utils.isVisible(state.floor.map, entity.location, ent.location)
 			|| entity.alignment !== 0
 			&& entity.alignment === ent.alignment).map(censorEntity)
 	};
@@ -346,6 +353,8 @@ function censorSelf(entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredSelfCraw
 	return {
 		id: entity.id,
 		name: entity.name,
+		stats: entity.stats,
+		attacks: entity.attacks,
 		location: entity.location,
 		graphics: entity.graphics,
 		alignment: entity.alignment,

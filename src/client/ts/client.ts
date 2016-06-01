@@ -182,8 +182,24 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 					break;
 
 				case "stat":
-					messageLog.push(sprintf("%s did stat things!", event.entity.name));
-					resolve();
+					let sEvent = event as Game.Crawl.StatLogEvent;
+
+					switch (sEvent.stat) {
+						case "hp":
+							messageLog.push(sprintf("%s took %d damage!", sEvent.entity.name, -sEvent.change));
+
+							dungeonLayer.setEntityAnimation(sEvent.entity.id, "hurt");
+
+							new Promise((resolve, _) => setTimeout(resolve, 1000))
+								.then(() => {
+									dungeonLayer.setEntityAnimation(sEvent.entity.id, "idle");
+								})
+								.then(resolve);
+							break;
+
+						default:
+							resolve();
+					}
 					break;
 
 				case "stairs":
@@ -223,6 +239,35 @@ function animate() {
 	}
 
 	if (awaitingMove) {
+		if (key.isPressed(82)) {
+			let dir = inputToDirection(((key.isPressed(37) ? 1 : 0) << 3)
+			                         | ((key.isPressed(38) ? 1 : 0) << 2)
+			                         | ((key.isPressed(39) ? 1 : 0) << 1)
+			                         | ((key.isPressed(40) ? 1 : 0) << 0));
+
+			if (dir !== undefined) {
+				dungeonLayer.setEntityAnimation(player.id, "idle", dir as number);
+			}
+
+			return;
+		}
+
+		if (key.shift) {
+			if (key.isPressed(49)) {
+				awaitingMove = false;
+
+				let action: Game.Crawl.AttackAction = {
+					type: "attack",
+					direction: dungeonLayer.getEntityDirection(player.id),
+					attack: player.attacks[0]
+				};
+
+				socket.emit("action", action);
+			}
+
+			return;
+		}
+
 		if (key.isPressed(37) || key.isPressed(38) || key.isPressed(39) || key.isPressed(40)) {
 			awaitingMove = false;
 			moveInput = 0;
@@ -250,54 +295,50 @@ function animate() {
 		inputTimer--;
 
 		if (inputTimer === 0) {
-			let dir = -1;
-
-			switch (moveInput) {
-				case 0b0010:
-					dir = 0;
-					break;
-
-				case 0b0110:
-					dir = 1;
-					break;
-
-				case 0b0100:
-					dir = 2;
-					break;
-
-				case 0b1100:
-					dir = 3;
-					break;
-
-				case 0b1000:
-					dir = 4;
-					break;
-
-				case 0b1001:
-					dir = 5;
-					break;
-
-				case 0b0001:
-					dir = 6;
-					break;
-
-				case 0b0011:
-					dir = 7;
-					break;
-			}
-
+			let dir = inputToDirection(moveInput);
 
 			let options: Game.Crawl.ClientActionOptions = {
 				dash: key.isPressed(66)
 			};
 
-			if (dir >= 0) {
-				let action: Game.Crawl.MoveAction = { type: "move", direction: dir };
+			if (dir !== undefined) {
+				let action: Game.Crawl.MoveAction = { type: "move", direction: dir as number };
 				socket.emit("action", action, options);
 			} else {
 				awaitingMove = true;
 			}
 		}
+	}
+}
+
+function inputToDirection(input: number): number | void {
+	switch (input) {
+		case 0b0010:
+			return 0;
+
+		case 0b0110:
+			return 1;
+
+		case 0b0100:
+			return 2;
+
+		case 0b1100:
+			return 3;
+
+		case 0b1000:
+			return 4;
+
+		case 0b1001:
+			return 5;
+
+		case 0b0001:
+			return 6;
+
+		case 0b0011:
+			return 7;
+
+		default:
+			return undefined;
 	}
 }
 
@@ -709,6 +750,10 @@ class DungeonLayer extends PIXI.Container {
 		this.entities.setEntityAnimation(entityId, animation, direction);
 	}
 
+	getEntityDirection(entityId: string): number {
+		return this.entities.spriteMap.get(entityId).direction;
+	}
+
 	clear(): void {
 		this.ground.clear();
 		this.entities.clear();
@@ -861,10 +906,12 @@ class AnimatedSprite extends PIXI.Container {
 	}
 
 	setAnimation(animation: string): void {
-		this.animation = animation;
-		this.step = 0;
-		this.frame = 0;
-		this.changed = true;
+		if (this.animation !== animation) {
+			this.animation = animation;
+			this.step = 0;
+			this.frame = 0;
+			this.changed = true;
+		}
 	}
 
 	prerender() {
@@ -917,11 +964,20 @@ class AnimatedSprite extends PIXI.Container {
 }
 
 class EntitySprite extends AnimatedSprite {
-	direction: number;
+	private _direction: number;
 
 	constructor(base: string, descriptor: Game.Graphics.AnimatedGraphicsObject) {
 		super(base, descriptor);
 		this.direction = 6;
+	}
+
+	get direction(): number {
+		return this._direction;
+	}
+
+	set direction(direction: number) {
+		this._direction = direction;
+		this.changed = true;
 	}
 
 	protected getTexture(frame: Game.Graphics.Frame): PIXI.Texture {

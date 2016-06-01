@@ -61,9 +61,7 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 		}
 	}
 
-	console.time("maps");
 	newState.entities.forEach((entity) => updateMap(newState, entity));
-	console.timeEnd("maps");
 
 	entity.controller.updateState(crawl.getCensoredState(newState, entity));
 
@@ -130,7 +128,19 @@ function executeAttack(state: Game.Crawl.InProgressCrawlState,
                        action: Game.Crawl.AttackAction): Game.Crawl.CrawlState {
 	let targets = getTargets(state, entity, action.direction, action.attack.target);
 
-	targets.forEach((target) => applyAttack(action.attack, entity, target));
+	propagateLogEvent(state, {
+		type: "attack",
+		entity: {
+			id: entity.id,
+			name: entity.name,
+			graphics: entity.graphics
+		},
+		location: entity.location,
+		direction: action.direction,
+		attack: action.attack
+	});
+
+	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
 
 	return state;
 }
@@ -151,7 +161,7 @@ function getTargets(state: Game.Crawl.InProgressCrawlState,
 		case "front":
 			let offset: [number, number] = utils.decodeDirection(direction);
 			let location = { r: attacker.location.r + offset[0], c: attacker.location.c + offset[1] };
-			return state.entities.filter((entity) => utils.isLocationEqual(entity.location, location));
+			return state.entities.filter((entity) => utils.areLocationsEqual(entity.location, location));
 
 		case "room":
 			let room = state.floor.map.grid[attacker.location.r][attacker.location.c].roomId;
@@ -170,9 +180,24 @@ function getTargets(state: Game.Crawl.InProgressCrawlState,
 	}
 }
 
-function applyAttack(attack: Game.Attack, attacker: Game.Crawl.CrawlEntity, defender: Game.Crawl.CrawlEntity): void {
-	let damage = computeDamage(attacker, defender, attack); // TODO accuracy, all of the stuff that isn't damage, logging
+function applyAttack(state: Game.Crawl.InProgressCrawlState,
+                     attack: Game.Attack,
+                     attacker: Game.Crawl.CrawlEntity,
+                     defender: Game.Crawl.CrawlEntity): void {
+	let damage = computeDamage(attacker, defender, attack); // TODO accuracy, all of the stuff that isn't damage
 	defender.stats.hp.current -= damage;
+
+	propagateLogEvent(state, {
+		type: "stat",
+		entity: {
+			id: defender.id,
+			name: defender.name,
+			graphics: defender.graphics
+		},
+		location: defender.location,
+		stat: "hp",
+		change: -damage
+	});
 }
 
 function computeDamage(attacker: Game.Entity, defender: Game.Entity, attack: Game.Attack): number {
@@ -209,7 +234,7 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 			let evt: Game.Crawl.Locatable = (event as any as Game.Crawl.Locatable);
 
 			state.entities.forEach((entity) => {
-				if (utils.visible(state.floor.map, entity.location, evt.location)) {
+				if (utils.isVisible(state.floor.map, entity.location, evt.location)) {
 					entity.controller.pushEvent(event);
 				}
 			});
@@ -221,8 +246,8 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 			let moveEvent = event as Game.Crawl.MoveLogEvent;
 
 			state.entities.forEach((entity) => {
-				if (utils.visible(state.floor.map, entity.location, moveEvent.start)
-				 || utils.visible(state.floor.map, entity.location, moveEvent.end)) {
+				if (utils.isVisible(state.floor.map, entity.location, moveEvent.start)
+				 || utils.isVisible(state.floor.map, entity.location, moveEvent.end)) {
 					entity.controller.pushEvent(event);
 				}
 			});

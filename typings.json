@@ -2,11 +2,12 @@
   "name": "dungeonkit",
   "version": false,
   "dependencies": {},
-  "ambientDependencies": {
+  "globalDependencies": {
     "express": "registry:dt/express#4.0.0+20160317120654",
     "express-serve-static-core": "registry:dt/express-serve-static-core#0.0.0+20160322035842",
     "keymaster": "registry:dt/keymaster#1.6.2+20160316155526",
     "mime": "registry:dt/mime#0.0.0+20160316155526",
+    "mocha": "registry:dt/mocha#2.2.5+20160317120654",
     "nconf": "registry:dt/nconf#0.0.0+20160316155526",
     "node": "registry:dt/node#4.0.0+20160412142033",
     "pixi.js": "registry:dt/pixi.js#3.0.9+20160404013751",
