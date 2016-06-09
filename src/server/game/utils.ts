@@ -168,7 +168,8 @@ export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
  * @returns Whether or not the location is in a room.
  */
 export function isLocationInRoom(map: Game.Crawl.Map, location: Game.Crawl.Location) {
-	return isLocationInMap(map, location) && map.grid[location.r][location.c].roomId > 0;
+	return isLocationInMap(map, location)
+	    && getTile(map, location).roomId !== undefined;
 }
 
 /**
@@ -229,4 +230,11 @@ export function isValidLocation(location: Game.Crawl.Location): boolean {
  */
 export function areAligned(a: Game.Crawl.CensoredCrawlEntity, b: Game.Crawl.CensoredCrawlEntity): boolean {
 	return a.alignment !== 0 && a.alignment === b.alignment;
+}
+
+export function getTile(map: Game.Crawl.Map, location: Game.Crawl.Location): Game.Crawl.DungeonTile {
+	if (isLocationInMap(map, location)) {
+		return map.grid[location.r][location.c];
+	}
+	return { type: Game.Crawl.DungeonTileType.UNKNOWN }; // defaulting to this prevents errors
 }

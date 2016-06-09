@@ -79,10 +79,10 @@ let testNumberGrid: number[][] = [
 
 let testFloorGrid: Game.Crawl.DungeonTile[][] = testNumberGrid.map((row) => row.map((cell) => {
 	if (cell === X) {
-		return { type: "wall" as "wall", roomId: -1, stairs: false };
+		return { type: Game.Crawl.DungeonTileType.WALL };
 	}
 
-	return { type: "open" as "open", roomId: cell, stairs: false };
+	return { type: Game.Crawl.DungeonTileType.FLOOR, roomId: cell === 0 ? undefined : cell };
 }));
 
 let testMap: Game.Crawl.Map = {

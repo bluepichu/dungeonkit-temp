@@ -14,11 +14,11 @@ export function printMap(map: Game.Crawl.Map): void {
 
 		for (let j = 0; j < map.width; j++) {
 			switch (map.grid[i][j].type) {
-				case "wall":
+				case Game.Crawl.DungeonTileType.WALL:
 					line += "<#262626>\u2591</>";
 					break;
 
-				case "open":
+				case Game.Crawl.DungeonTileType.FLOOR:
 					if (map.grid[i][j].stairs) {
 						line += "<#00afd7>\u25a3</>";
 					} else if (map.grid[i][j].roomId > 0) {
@@ -50,11 +50,11 @@ export function printState(state: Game.Crawl.CensoredInProgressCrawlState): void
 		for (let j = 0; j < state.floor.map.width; j++) {
 			if (utils.isLocationEmpty(state, { r: i, c: j })) {
 				switch (state.floor.map.grid[i][j].type) {
-					case "wall":
+					case Game.Crawl.DungeonTileType.WALL:
 						line += "<#262626>\u2591</>";
 						break;
 
-					case "open":
+					case Game.Crawl.DungeonTileType.FLOOR:
 						if (state.floor.map.grid[i][j].stairs) {
 							line += "<#00afd7>\u25a0</>";
 						} else if (state.floor.map.grid[i][j].roomId > 0) {

@@ -6,7 +6,7 @@ declare namespace Game {
 
 	interface Entity {
 		name: string;
-		graphics: Graphics.EntityGraphics;
+		graphics: string;
 		stats: EntityStats;
 		attacks: Attack[];
 	}
@@ -14,11 +14,12 @@ declare namespace Game {
 	interface Item {
 		name: string;
 		description: string;
-		graphics: Graphics.EntityGraphics;
+		// graphics: Graphics.EntityGraphics;
 	}
 
 	interface Attack {
 		name: string;
+		animation: string;
 		description: string;
 		target: TargetSelector;
 		accuracy: number | "always";
@@ -94,6 +95,8 @@ declare namespace Game {
 
 		type GraphicsObject = AnimatedGraphicsObject | StaticGraphicsObject;
 
+		type EntityGrpahicsCache = Map<string, EntityGraphics>;
+
 		interface EntityGraphics {
 			base: string;
 			object: AnimatedGraphicsObject;
@@ -122,6 +125,7 @@ declare namespace Game {
 		interface Frame {
 			texture: string;
 			anchor: Point;
+			offset?: number;
 		}
 
 		interface Point {
@@ -160,7 +164,7 @@ declare namespace Game {
 			items: CrawlItem[];
 		}
 
-		interface CrawlItem extends Item, Locatable {}
+		interface CrawlItem extends Item, Locatable { }
 
 		interface Map {
 			width: number;
@@ -170,11 +174,15 @@ declare namespace Game {
 
 		interface DungeonTile {
 			type: DungeonTileType;
-			roomId: number;
-			stairs: boolean;
+			roomId?: number;
+			stairs?: boolean;
 		}
 
-		type DungeonTileType = "open" | "wall" | "unknown";
+		const enum DungeonTileType {
+			UNKNOWN,
+			FLOOR,
+			WALL
+		}
 
 		interface Location {
 			r: number;
@@ -200,7 +208,7 @@ declare namespace Game {
 		interface CondensedEntity {
 			id: string;
 			name: string;
-			graphics: Game.Graphics.EntityGraphics;
+			graphics: string;
 		}
 
 		interface Bag {
@@ -209,16 +217,17 @@ declare namespace Game {
 		}
 
 		interface Controller {
+			await: boolean;
 			getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Promise<Action>;
 			updateState(state: CensoredEntityCrawlState): void;
 			pushEvent(event: LogEvent): void;
 			wait(): void;
-			init(entity: UnplacedCrawlEntity): void;
+			init(entity: UnplacedCrawlEntity, dungeon: Game.Crawl.CensoredDungeon): void;
 		}
 
 		interface CrawlItem extends Item, Locatable { }
 
-		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | StairsLogEvent;
+		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent | StartLogEvent;
 
 		interface WaitLogEvent {
 			type: "wait";
@@ -250,9 +259,25 @@ declare namespace Game {
 			change: number;
 		}
 
+		interface DefeatLogEvent {
+			type: "defeat";
+			entity: CondensedEntity;
+		}
+
 		interface StairsLogEvent {
 			type: "stairs";
 			entity: CondensedEntity;
+		}
+
+		interface StartLogEvent {
+			type: "start";
+			entity: CondensedEntity;
+			floorInformation: {
+				number: number;
+				width: number;
+				height: number;
+			};
+			self: CensoredSelfCrawlEntity;
 		}
 
 		interface SynchronizedMessage<T> {
@@ -276,7 +301,7 @@ declare namespace Game {
 		interface EntityBlueprint {
 			density: number;
 			name: string;
-			graphics: Graphics.EntityGraphics;
+			graphics: string;
 			stats: EntityStats;
 			attacks: AttackBlueprint[];
 		}
@@ -349,7 +374,7 @@ declare namespace Game {
 			grid: string[];
 		}
 
-		type Action = WaitAction | MoveAction | AttackAction | ItemAction; // TODO
+		type Action = WaitAction | MoveAction | AttackAction | ItemAction | StairsAction; // TODO
 
 		interface WaitAction {
 			type: "wait";
@@ -371,8 +396,8 @@ declare namespace Game {
 			// some other stuff...
 		}
 
-		interface ClientActionOptions {
-			dash?: boolean;
+		interface StairsAction {
+			type: "stairs";
 		}
 
 		interface CensoredInProgressCrawlState {
@@ -395,7 +420,7 @@ declare namespace Game {
 
 		interface CensoredCrawlEntity extends Locatable {
 			name: string;
-			graphics: Graphics.EntityGraphics;
+			graphics: string;
 			id: string;
 			alignment: number;
 			advances: boolean;
@@ -403,7 +428,7 @@ declare namespace Game {
 
 		interface CensoredSelfCrawlEntity extends Locatable {
 			name: string;
-			graphics: Graphics.EntityGraphics;
+			graphics: string;
 			id: string;
 			attacks: Attack[];
 			stats: EntityStats;
@@ -411,12 +436,6 @@ declare namespace Game {
 			advances: boolean;
 			bag: Bag;
 			map: Map;
-		}
-
-		interface ClientUpdate {
-			state: CensoredEntityCrawlState;
-			log: LogEvent[];
-			move: boolean;
 		}
 	}
 }

@@ -196,6 +196,7 @@ let features = {
 
 let tackle: Game.Attack = {
 	name: "Tackle",
+	animation: "tackle",
 	description: "Charges the foe with a full-body tackle.",
 	target: {
 		type: "front",
@@ -212,6 +213,7 @@ let tackle: Game.Attack = {
 
 let growl: Game.Attack = {
 	name: "Growl",
+	animation: "growl",
 	description: "Growls cutely to reduce the foe's ATTACK.",
 	target: {
 		type: "room",
@@ -235,6 +237,7 @@ let growl: Game.Attack = {
 
 let waterGun: Game.Attack = {
 	name: "Water Gun",
+	animation: "water-gun",
 	description: "Squirts water to attack the foe.",
 	target: {
 		type: "front",
@@ -247,77 +250,6 @@ let waterGun: Game.Attack = {
 	accuracy: 40,
 	power: 100,
 	onHit: []
-};
-
-let mudkipGraphics: Game.Graphics.EntityGraphics = {
-	base: "mudkip",
-	object: {
-		type: "animated",
-		animations: {
-			idle: {
-				steps: [
-					{
-						frames: [
-							{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 40
-					},
-					{
-						frames: [
-							{ texture: "walk-%(dir)db", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 8
-					},
-					{
-						frames: [
-							{ texture: "walk-%(dir)dc", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 8
-					}
-				]
-			},
-			walk: {
-				steps: [
-					{
-						frames: [
-							{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 4
-					},
-					{
-						frames: [
-							{ texture: "walk-%(dir)db", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 4
-					},
-					{
-						frames: [
-							{ texture: "walk-%(dir)dc", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 4
-					}
-				]
-			},
-			hurt: {
-				steps: [
-					{
-						frames: [
-							{ texture: "hurt-%(dir)d", anchor: { x: 12, y: 15 } },
-							{ texture: "shadow", anchor: { x: 12, y: 5 } }
-						],
-						duration: 10000
-					}
-				]
-			}
-		},
-		default: "idle"
-	}
 };
 
 let mudkipStats = {
@@ -346,7 +278,7 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 		controller: new controllers.SocketController(socket),
 		alignment: 1,
 		advances: true,
-		graphics: mudkipGraphics
+		graphics: "mudkip"
 	};
 }
 
@@ -380,7 +312,7 @@ export let dungeon: Game.Crawl.Dungeon = {
 					{
 						density: 50,
 						name: "Mudkip (enemy)",
-						graphics: mudkipGraphics,
+						graphics: "mudkip",
 						stats: mudkipStats,
 						attacks: [
 							{ attack: tackle, weight: 1 },

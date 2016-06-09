@@ -8,6 +8,7 @@
   "license": "ISC",
   "dependencies": {
     "beautiful-log": "^1.1.4",
+    "clone": "^1.0.2",
     "express": "^4.13.4",
     "gulp": "^3.9.1",
     "gulp-bower": "0.0.13",
@@ -35,7 +36,7 @@
     "spritesmith-texturepacker": "^1.0.0"
   },
   "scripts": {
-    "test": "cd build && istanbul cover _mocha",
+    "test": "cd build && mocha",
     "cover": "cd build && istanbul cover _mocha && remap-istanbul -i coverage/coverage.json -t html -o coverage/report && open coverage/report/index.html"
   }
 }

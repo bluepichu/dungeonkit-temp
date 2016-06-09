@@ -43,13 +43,19 @@ export function start() {
 		socket.on("start", () => {
 			log.logf("<cyan>S %s</cyan>", socket.id);
 
-			let waiting: { [id: string]: boolean } = io.sockets.adapter.rooms["waiting"].sockets;
+			let room = io.sockets.adapter.rooms["waiting"];
+
+			if (room === undefined) {
+				return;
+			}
+
+			let waiting: { [id: string]: boolean } = room.sockets;
 			let socketIds: string[] = Object.keys(waiting).filter((id) => waiting[id]);
 			let sockets: SocketIO.Socket[] = socketIds.map((id) => io.sockets.connected[id]);
 			let players: Game.Crawl.UnplacedCrawlEntity[] = sockets.map(generatePlayer);
 
 			sockets.forEach((socket) => socket.leave("waiting"));
-			players.forEach((player) => player.controller.init(player));
+			players.forEach((player) => player.controller.init(player, dungeon));
 
 			crawl.startCrawl(dungeon, players)
 				.then(() => log.logf("<blue>* %s</blue>", socket.id))

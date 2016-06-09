@@ -5,7 +5,7 @@ const GRID_SIZE = 24 * SCALE;
 
 const WALK_SPEED = 4;
 
-type Processable = Game.Crawl.LogEvent | { type: "done", move: boolean, state: Game.Crawl.CensoredEntityCrawlState };
+type Processable = Game.Crawl.LogEvent | { type: "done", move: boolean, state: Game.Client.StateUpdate };
 type Thenable = PromiseLike<any>;
 
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
@@ -19,11 +19,12 @@ let minimap: MiniMap = undefined;
 let commandArea: CommandArea = undefined;
 let dungeonLayer: DungeonLayer = undefined;
 let messageLog: MessageLog = undefined;
-let player: Game.Crawl.CensoredSelfCrawlEntity = undefined;
 let tweenHandler: TweenHandler = undefined;
 let processChain: Thenable = Promise.resolve();
 let prerender: (() => any)[] = [];
 let floorSign: PIXI.Container = undefined;
+let state: Game.Client.CensoredClientCrawlState = undefined;
+let entityGraphicsCache: Game.Graphics.EntityGrpahicsCache = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
 	PIXI.loader
@@ -51,8 +52,23 @@ function removePrerender(f: () => any): void {
 function init() {
 	socket = io();
 
-	socket.on("init", (id: string) => {
+	socket.on("init", (dungeon: Game.Crawl.CensoredDungeon) => {
 		console.log("init");
+
+		state = {
+			dungeon,
+			floor: {
+				number: 0,
+				map: {
+					width: 0,
+					height: 0,
+					grid: []
+				},
+				items: []
+			},
+			entities: [],
+			self: undefined
+		};
 	});
 
 	socket.on("invalid", () => {
@@ -60,17 +76,26 @@ function init() {
 		awaitingMove = true;
 	});
 
-	socket.on("update", ({state, log, move}: Game.Crawl.ClientUpdate) => {
+	socket.on("graphics", (key: string, graphics: Game.Graphics.EntityGraphics) => {
+		entityGraphicsCache.set(key, graphics);
+	});
+
+	socket.on("update", ({stateUpdate, log, move}: Game.Client.UpdateMessage) => {
 		let updates: Processable[] = log;
 
-		if (state !== undefined) {
+		console.log("update");
+
+		if (stateUpdate !== undefined) {
 			(floorSign.children[1] as PIXI.Text).text = sprintf("%s\n%s%dF",
 			                                                    state.dungeon.name,
 			                                                    state.dungeon.direction === "down" ? "B" : "",
-			                                                    state.floor.number);
+			                                                    stateUpdate.floor.number);
 			(floorSign.children[1] as PIXI.Text).style.align = "center";
-			player = state.self;
-			updates.push({ type: "done", move: move, state: state });
+			updates.push({ type: "done", move, state: stateUpdate });
+
+			if (state.self === undefined) {
+				state.self = stateUpdate.self; // required for the very first step
+			}
 		}
 
 		processAll(updates);
@@ -147,14 +172,18 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 	return (value: any) => new Promise<void>((resolve, reject) => {
 		console.log(proc);
 		if (proc.type === "done") {
-			let p = proc as { type: "done", move: boolean, state: Game.Crawl.CensoredEntityCrawlState };
+			let p = proc as { type: "done", move: boolean, state: Game.Client.StateUpdate };
 
-			console.log("start update");
+			p.state.floor.mapUpdates.forEach((update) => {
+				state.floor.map.grid[update.location.r][update.location.c] = update.tile;
+				dungeonLayer.groundLayer.update(state, update.location);
+			});
 
-			minimap.update(p.state);
-			dungeonLayer.update(p.state);
+			state.entities = p.state.entities;
+			state.self = p.state.self;
 
-			console.log("end update", Math.random());
+			dungeonLayer.entityLayer.update(state);
+			minimap.update();
 
 			awaitingMove = p.move;
 
@@ -163,43 +192,66 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 			let event = proc as Game.Crawl.LogEvent;
 
 			switch (event.type) {
+				case "start":
+					let startEvent = event as Game.Crawl.StartLogEvent;
+					state.floor.number = startEvent.floorInformation.number;
+					state.floor.map.width = startEvent.floorInformation.width;
+					state.floor.map.height = startEvent.floorInformation.height;
+					state.floor.map.grid =
+						tabulate((row) =>
+							tabulate((col) =>
+								({ type: Game.Crawl.DungeonTileType.UNKNOWN }),
+							startEvent.floorInformation.width),
+						startEvent.floorInformation.height);
+					state.self = startEvent.self;
+					dungeonLayer.init(state);
+					resolve();
+					break;
+
 				case "wait":
 					messageLog.push(sprintf("%s waits.", event.entity.name));
 					resolve();
 					break;
 
 				case "move":
-					let mEvent = event as Game.Crawl.MoveLogEvent;
-					messageLog.push(sprintf("%s moved.", event.entity.name));
-					dungeonLayer.moveEntity(event.entity, mEvent.start, mEvent.end, "walk", mEvent.direction)
-						.then(() => dungeonLayer.setEntityAnimation(mEvent.entity.id, "idle"))
+					let moveEvent = event as Game.Crawl.MoveLogEvent;
+					dungeonLayer.moveEntity(event.entity, moveEvent.start, moveEvent.end, "walk", moveEvent.direction)
+						.then(() => dungeonLayer.entityLayer.setEntityAnimation(moveEvent.entity.id, "idle"))
 						.then(resolve);
 					break;
 
 				case "attack":
+					let attackEvent = event as Game.Crawl.AttackLogEvent;
 					messageLog.push(sprintf("%s attacked!", event.entity.name));
-					resolve();
+					dungeonLayer.showAnimationOnce(event.entity.id, attackEvent.attack.animation, attackEvent.direction)
+						.then(() => dungeonLayer.entityLayer.setEntityAnimation(attackEvent.entity.id, "idle"))
+						.then(resolve);
 					break;
 
 				case "stat":
-					let sEvent = event as Game.Crawl.StatLogEvent;
+					let statEvent = event as Game.Crawl.StatLogEvent;
 
-					switch (sEvent.stat) {
+					switch (statEvent.stat) {
 						case "hp":
-							messageLog.push(sprintf("%s took %d damage!", sEvent.entity.name, -sEvent.change));
+							messageLog.push(sprintf("%s took %d damage!", statEvent.entity.name, -statEvent.change));
 
-							dungeonLayer.setEntityAnimation(sEvent.entity.id, "hurt");
+							dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => {
-									dungeonLayer.setEntityAnimation(sEvent.entity.id, "idle");
-								})
+								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
 								.then(resolve);
 							break;
 
 						default:
 							resolve();
 					}
+					break;
+
+				case "defeat":
+					messageLog.push(sprintf("%s was defeated!", event.entity.name));
+					dungeonLayer.entityLayer.setEntityAnimation(event.entity.id, "defeat");
+					new Promise((resolve, _) => setTimeout(resolve, 500))
+						.then(() => resolve());
 					break;
 
 				case "stairs":
@@ -239,30 +291,15 @@ function animate() {
 	}
 
 	if (awaitingMove) {
-		if (key.isPressed(82)) {
-			let dir = inputToDirection(((key.isPressed(37) ? 1 : 0) << 3)
-			                         | ((key.isPressed(38) ? 1 : 0) << 2)
-			                         | ((key.isPressed(39) ? 1 : 0) << 1)
-			                         | ((key.isPressed(40) ? 1 : 0) << 0));
-
-			if (dir !== undefined) {
-				dungeonLayer.setEntityAnimation(player.id, "idle", dir as number);
-			}
-
-			return;
-		}
-
 		if (key.shift) {
 			if (key.isPressed(49)) {
 				awaitingMove = false;
 
-				let action: Game.Crawl.AttackAction = {
+				sendAction({
 					type: "attack",
-					direction: dungeonLayer.getEntityDirection(player.id),
-					attack: player.attacks[0]
-				};
-
-				socket.emit("action", action);
+					direction: dungeonLayer.getEntityDirection(state.self.id),
+					attack: state.self.attacks[0]
+				});
 			}
 
 			return;
@@ -276,39 +313,53 @@ function animate() {
 	}
 
 	if (inputTimer > 0) {
+		if (key.isPressed(82)) {
+			moveInput |= 0b10000;
+		}
+
 		if (key.isPressed(37)) {
-			moveInput |= 0b1000;
+			moveInput |= 0b01000;
 		}
 
 		if (key.isPressed(38)) {
-			moveInput |= 0b0100;
+			moveInput |= 0b00100;
 		}
 
 		if (key.isPressed(39)) {
-			moveInput |= 0b0010;
+			moveInput |= 0b00010;
 		}
 
 		if (key.isPressed(40)) {
-			moveInput |= 0b0001;
+			moveInput |= 0b00001;
 		}
 
 		inputTimer--;
 
 		if (inputTimer === 0) {
-			let dir = inputToDirection(moveInput);
-
-			let options: Game.Crawl.ClientActionOptions = {
-				dash: key.isPressed(66)
-			};
+			let rot = (moveInput & 0b10000) > 0;
+			let dir = inputToDirection(moveInput & 0b1111);
 
 			if (dir !== undefined) {
-				let action: Game.Crawl.MoveAction = { type: "move", direction: dir as number };
-				socket.emit("action", action, options);
+				dungeonLayer.entityLayer.setEntityAnimation(state.self.id, "idle", dir as number);
+				if (rot) {
+					awaitingMove = true;
+				} else {
+					sendAction({
+						type: "move",
+						direction: dir as number
+					}, {
+						dash: key.isPressed(66)
+					});
+				}
 			} else {
 				awaitingMove = true;
 			}
 		}
 	}
+}
+
+function sendAction(action: Game.Crawl.Action, options?: Game.Client.ActionOptions) {
+	socket.emit("action", action, options);
 }
 
 function inputToDirection(input: number): number | void {
@@ -407,19 +458,14 @@ class MiniMap extends PIXI.Container {
 		}
 	}
 
-	update(state: Game.Crawl.CensoredEntityCrawlState) {
-		this.mapContent.clear();
-
-		this.mapContent.beginFill(0x2d2d2d);
-		this.mapContent.drawRect(- state.floor.map.width * this.gridSize,
-		                         - state.floor.map.height * this.gridSize,
-								 3 * state.floor.map.width * this.gridSize,
-								 3 * state.floor.map.height * this.gridSize);
+	update(): void {
+		this.clear();
 
 		for (let i = 0; i < state.floor.map.height; i++) {
 			for (let j = 0; j < state.floor.map.width; j++) {
-				if (state.floor.map.grid[i][j].type === "open") {
-					this.mapContent.beginFill(state.floor.map.grid[i][j].roomId === 0 ? 0x666666 : 0x888888);
+
+				if (getTile(state.floor.map, { r: i, c: j }).type === Game.Crawl.DungeonTileType.FLOOR) {
+					this.mapContent.beginFill(state.floor.map.grid[i][j].roomId === undefined ? 0x303030 : 0x505050);
 
 					this.mapContent.drawRect(this.gridSize * j,
 					                         this.gridSize * i,
@@ -428,30 +474,34 @@ class MiniMap extends PIXI.Container {
 
 					this.mapContent.endFill();
 
-					this.mapContent.beginFill(0x444444);
+					this.mapContent.beginFill(0x202020);
 
-					if (0 <= i - 1 && state.floor.map.grid[i - 1][j].type === "unknown") {
+					if (0 <= i - 1
+					 && getTile(state.floor.map, { r: i - 1, c: j }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * j,
 						                         this.gridSize * i,
 												 this.gridSize,
 												 this.gridSize * .25);
 					}
 
-					if (0 <= j - 1 && state.floor.map.grid[i][j - 1].type === "unknown") {
+					if (0 <= j - 1
+					 && getTile(state.floor.map, { r: i, c: j - 1 }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * j,
 						                         this.gridSize * i,
 												 this.gridSize * .25,
 												 this.gridSize);
 					}
 
-					if (i + 1 < state.floor.map.height && state.floor.map.grid[i + 1][j].type === "unknown") {
+					if (i + 1 < state.floor.map.height
+					 && getTile(state.floor.map, { r: i + 1, c: j }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * j,
 							                     this.gridSize * (i + .75),
 												 this.gridSize,
 												 this.gridSize * .25);
 					}
 
-					if (j + 1 < state.floor.map.width && state.floor.map.grid[i][j + 1].type === "unknown") {
+					if (j + 1 < state.floor.map.width
+					 && getTile(state.floor.map, { r: i, c: j + 1 }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * (j + .75),
 						                         this.gridSize * i,
 												 this.gridSize * .25,
@@ -461,7 +511,7 @@ class MiniMap extends PIXI.Container {
 					this.mapContent.endFill();
 
 					if (state.floor.map.grid[i][j].stairs) {
-						this.mapContent.lineStyle(1, 0x00aaff);
+						this.mapContent.lineStyle(1, 0x6a9fb5);
 
 						this.mapContent.drawRect(this.gridSize * j + 1,
 						                         this.gridSize * i + 1,
@@ -475,7 +525,7 @@ class MiniMap extends PIXI.Container {
 		}
 
 		state.entities.forEach((entity: Game.Crawl.CensoredCrawlEntity) => {
-			this.mapContent.beginFill(entity.id === player.id ? 0xffcc66 : 0xea777a);
+			this.mapContent.beginFill(entity.id === state.self.id ? 0xf4bf75 : 0xac4142);
 
 			this.mapContent.drawCircle((entity.location.c + .5) * this.gridSize,
 			                           (entity.location.r + .5) * this.gridSize,
@@ -483,7 +533,7 @@ class MiniMap extends PIXI.Container {
 
 			this.mapContent.endFill();
 
-			if (entity.id === player.id) {
+			if (entity.id === state.self.id) {
 				this.mapContent.x = this.maskWidth / 2 - (entity.location.c + .5) * this.gridSize;
 				this.mapContent.y = this.maskHeight / 2 - (entity.location.r + .5) * this.gridSize;
 			}
@@ -492,6 +542,12 @@ class MiniMap extends PIXI.Container {
 
 	clear() {
 		this.mapContent.clear();
+
+		this.mapContent.beginFill(0x151515);
+		this.mapContent.drawRect(- state.floor.map.width * this.gridSize,
+			- state.floor.map.height * this.gridSize,
+			3 * state.floor.map.width * this.gridSize,
+			3 * state.floor.map.height * this.gridSize);
 	}
 }
 
@@ -595,9 +651,17 @@ class CommandArea extends PIXI.Container {
 	enter(): void {
 		let command = this.buffer;
 
-		if (command === "start") {
-			socket.emit("start");
-			return;
+		switch (command) {
+			case "start":
+				socket.emit("start");
+				break;
+
+			case "s":
+			case "stairs":
+				sendAction({
+					type: "stairs"
+				});
+				break;
 		}
 	}
 
@@ -701,34 +765,24 @@ class MessageLog extends PIXI.Container {
 }
 
 class DungeonLayer extends PIXI.Container {
-	private ground: GroundLayer;
-	private entities: EntityLayer;
+	groundLayer: GroundLayer;
+	entityLayer: EntityLayer;
 
 	constructor() {
 		super();
 
-		this.ground = new GroundLayer();
-		this.entities = new EntityLayer();
+		this.groundLayer = new GroundLayer();
+		this.entityLayer = new EntityLayer();
 
-		this.addChild(this.ground);
-		this.addChild(this.entities);
+		this.addChild(this.groundLayer);
+		this.addChild(this.entityLayer);
 	}
 
-	update(state: Game.Crawl.CensoredEntityCrawlState) {
-		this.ground.update(state);
-		this.entities.update(state);
+	init(state: Game.Client.CensoredClientCrawlState): void {
+		let [offsetX, offsetY] = locationToCoordinates(state.self.location, GRID_SIZE);
 
-		state.entities.forEach((entity) => {
-			if (entity.id === player.id) {
-				let [ex, ey] = locationToCoordinates(entity.location, GRID_SIZE);
-
-				this.ground.x = -ex;
-				this.ground.y = -ey;
-
-				this.entities.x = -ex;
-				this.entities.y = -ey;
-			}
-		});
+		[this.groundLayer.x, this.groundLayer.y] = [-offsetX, -offsetY];
+		[this.entityLayer.x, this.entityLayer.y] = [-offsetX, -offsetY];
 	}
 
 	moveEntity(entity: Game.Crawl.CondensedEntity,
@@ -736,27 +790,28 @@ class DungeonLayer extends PIXI.Container {
 	           to: Game.Crawl.Location,
 	           animation?: string,
 	           direction?: number): Thenable {
-		let prm = this.entities.moveEntity(entity, from, to);
-		this.setEntityAnimation(entity.id, animation, direction);
+		let prm = this.entityLayer.moveEntity(entity, from, to);
+		this.entityLayer.setEntityAnimation(entity.id, animation, direction);
 
-		if (entity.id === player.id) {
-			return Promise.all([prm, this.ground.moveTo(to), this.entities.moveTo(to)]);
+		if (entity.id === state.self.id) {
+			return Promise.all([prm, this.groundLayer.moveTo(to), this.entityLayer.moveTo(to)]);
 		}
 
 		return prm;
 	}
 
-	setEntityAnimation(entityId: string, animation: string, direction?: number): void {
-		this.entities.setEntityAnimation(entityId, animation, direction);
+	showAnimationOnce(entityId: string, animation: string, direction?: number): Thenable {
+		this.entityLayer.setEntityAnimation(entityId, animation, direction);
+		return new Promise((resolve, _) => this.entityLayer.setAnimationEndListener(entityId, resolve));
 	}
 
 	getEntityDirection(entityId: string): number {
-		return this.entities.spriteMap.get(entityId).direction;
+		return this.entityLayer.spriteMap.get(entityId).direction;
 	}
 
 	clear(): void {
-		this.ground.clear();
-		this.entities.clear();
+		this.groundLayer.clear();
+		this.entityLayer.clear();
 	}
 }
 
@@ -765,11 +820,13 @@ class GroundLayer extends PIXI.Container {
 		super();
 	}
 
-	update(state: Game.Crawl.CensoredEntityCrawlState) {
-		this.removeChildren();
+	update(state: Game.Client.CensoredClientCrawlState, location: Game.Crawl.Location) {
+		for (let i = location.r - 1; i <= location.r + 1; i++) {
+			for (let j = location.c - 1; j <= location.c + 1; j++) {
+				if (i < 0 || i >= state.floor.map.height || j < 0 || j >= state.floor.map.width) {
+					continue;
+				}
 
-		for (let i = 0; i < state.floor.map.height; i++) {
-			for (let j = 0; j < state.floor.map.width; j++) {
 				let tile = this.getFloorTile(state.floor.map, { r: i, c: j }, state.dungeon.graphics);
 
 				if (tile === undefined) {
@@ -798,7 +855,7 @@ class GroundLayer extends PIXI.Container {
 	private getFloorTile(map: Game.Crawl.Map,
 	             loc: Game.Crawl.Location,
 	             graphics: Game.Graphics.DungeonGraphics): PIXI.DisplayObject | void {
-		if (map.grid[loc.r][loc.c].type === "unknown") {
+		if (getTile(map, loc).type === Game.Crawl.DungeonTileType.UNKNOWN) {
 			return undefined;
 		}
 
@@ -811,10 +868,12 @@ class GroundLayer extends PIXI.Container {
 			let [r, c] = [loc.r + dr, loc.c + dc];
 
 			if (0 <= r && r < map.height && 0 <= c && c < map.width) {
-				if (map.grid[r][c].type === "unknown") {
-					return undefined;
-				} else if (map.grid[r][c].type === "wall") {
-					pattern |= 1;
+				switch (getTile(map, {r, c}).type) {
+					case Game.Crawl.DungeonTileType.UNKNOWN:
+						return undefined;
+
+					case Game.Crawl.DungeonTileType.WALL:
+						pattern |= 1;
 				}
 			} else {
 				pattern |= 1;
@@ -825,7 +884,7 @@ class GroundLayer extends PIXI.Container {
 			return generateGraphicsObject(graphics.base, graphics.stairs);
 		}
 
-		if (map.grid[loc.r][loc.c].type === "open") {
+		if (getTile(map, loc).type === Game.Crawl.DungeonTileType.FLOOR) {
 			return generateGraphicsObject(graphics.base, graphics.open);
 		}
 
@@ -872,6 +931,7 @@ class AnimatedSprite extends PIXI.Container {
 	base: string;
 	changed: boolean;
 	sprites: PIXI.Sprite[];
+	animationEndListeners: (() => any)[];
 
 	constructor(base: string, descriptor: Game.Graphics.AnimatedGraphicsObject) {
 		super();
@@ -883,6 +943,7 @@ class AnimatedSprite extends PIXI.Container {
 		this.scale.x = SCALE;
 		this.scale.y = SCALE;
 		this.changed = true;
+		this.animationEndListeners = [];
 
 		let spriteCount = 0;
 
@@ -905,6 +966,10 @@ class AnimatedSprite extends PIXI.Container {
 		addPrerender(this.prerender.bind(this));
 	}
 
+	addAnimationEndListener(f: () => any) {
+		this.animationEndListeners.push(f);
+	}
+
 	setAnimation(animation: string): void {
 		if (this.animation !== animation) {
 			this.animation = animation;
@@ -912,6 +977,12 @@ class AnimatedSprite extends PIXI.Container {
 			this.frame = 0;
 			this.changed = true;
 		}
+	}
+
+	protected handleOffset(sprite: PIXI.Sprite, amount: number): void {}
+
+	protected getTexture(frame: Game.Graphics.Frame): PIXI.Texture {
+		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, frame.texture));
 	}
 
 	prerender() {
@@ -922,6 +993,11 @@ class AnimatedSprite extends PIXI.Container {
 			this.step++;
 			this.step %= this.descriptor.animations[this.animation].steps.length;
 			this.changed = true;
+		}
+
+		if (this.frame === 0 && this.step === 0) {
+			this.animationEndListeners.forEach((f) => f());
+			this.animationEndListeners = [];
 		}
 
 		if (!this.changed) {
@@ -942,14 +1018,14 @@ class AnimatedSprite extends PIXI.Container {
 
 				this.sprites[i].x = -frames[i].anchor.x;
 				this.sprites[i].y = -frames[i].anchor.y;
+
+				if (frames[i].offset !== undefined) {
+					this.handleOffset(this.sprites[i], frames[i].offset);
+				}
 			}
 		}
 
 		this.changed = false;
-	}
-
-	protected getTexture(frame: Game.Graphics.Frame): PIXI.Texture {
-		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, frame.texture));
 	}
 
 	renderCanvas(renderer: PIXI.CanvasRenderer): void {
@@ -969,6 +1045,16 @@ class EntitySprite extends AnimatedSprite {
 	constructor(base: string, descriptor: Game.Graphics.AnimatedGraphicsObject) {
 		super(base, descriptor);
 		this.direction = 6;
+	}
+
+	protected handleOffset(sprite: PIXI.Sprite, amount: number): void {
+		let [dy, dx] = decodeDirection(this.direction);
+
+		dx *= amount * GRID_SIZE;
+		dy *= amount * GRID_SIZE;
+
+		sprite.x += dx;
+		sprite.y += dy;
 	}
 
 	get direction(): number {
@@ -994,7 +1080,7 @@ class EntityLayer extends PIXI.Container {
 		this.spriteMap = new Map();
 	}
 
-	update(state: Game.Crawl.CensoredEntityCrawlState) {
+	update(state: Game.Client.CensoredClientCrawlState) {
 		let keys: Set<string> = new Set(this.spriteMap.keys());
 
 		state.entities.forEach((entity) => {
@@ -1024,7 +1110,8 @@ class EntityLayer extends PIXI.Container {
 		this.spriteMap.set(entity.id, entitySprite);
 	}
 
-	getEntitySprite(entityGraphics: Game.Graphics.EntityGraphics): EntitySprite {
+	getEntitySprite(entityGraphicsKey: string): EntitySprite {
+		let entityGraphics = entityGraphicsCache.get(entityGraphicsKey);
 		return new EntitySprite(entityGraphics.base, entityGraphics.object);
 	}
 
@@ -1058,9 +1145,27 @@ class EntityLayer extends PIXI.Container {
 		}
 	}
 
+	setAnimationEndListener(entityId: string, f: () => any) {
+		this.spriteMap.get(entityId).addAnimationEndListener(f);
+	}
+
 	clear(): void {
 		this.removeChildren();
 		this.spriteMap.clear();
+	}
+
+	prerender(): void {
+		this.children.sort((a: EntitySprite, b: EntitySprite) => a.y - b.y);
+	}
+
+	renderCanvas(renderer: PIXI.CanvasRenderer): void {
+		this.prerender();
+		super.renderCanvas(renderer);
+	}
+
+	renderWebGL(renderer: PIXI.WebGLRenderer): void {
+		this.prerender();
+		super.renderWebGL(renderer);
 	}
 }
 
@@ -1143,4 +1248,26 @@ class Tween {
 
 function locationToCoordinates(location: Game.Crawl.Location, gridSize: number): [number, number] {
 	return [location.c * gridSize, location.r * gridSize];
+}
+
+function getTile(map: Game.Crawl.Map, location: Game.Crawl.Location): Game.Crawl.DungeonTile {
+	return map.grid[location.r][location.c];
+}
+
+/**
+ * Constructs a new list with the given length using the given function to produce each element.
+ * @param fn - The function used to produce the elements of the list, which must take a single parameter - the index.
+ * @param length - The length of the resulting list (rounded down and set to 0 if negative).
+ * @returns The list.
+ */
+function tabulate<T>(fn: (i: number) => T, length: number): T[] {
+	let ret: T[] = [];
+
+	length = Math.floor(length);
+
+	for (let i = 0; i < length; i++) {
+		ret.push(fn(i));
+	}
+
+	return ret;
 }

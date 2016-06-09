@@ -13,26 +13,24 @@ import {sprintf}            from "sprintf-js";
 export function startCrawl(dungeon: Game.Crawl.Dungeon,
                            entities: Game.Crawl.UnplacedCrawlEntity[]): Promise<Game.Crawl.ConcludedCrawlState> {
 	if (validateDungeonBlueprint(dungeon)) {
-		let state = advanceToFloor(dungeon, 1, entities);
-
-		if (utils.isCrawlOver(state)) {
-			return Promise.resolve(state);
-		} else {
-			return new Promise((done, _) => {
-				step(state as Game.Crawl.InProgressCrawlState, done);
+		return advanceToFloor(dungeon, 1, entities)
+			.then((state) => {
+				if (utils.isCrawlOver(state)) {
+					return Promise.resolve(state);
+				} else {
+					return step(state as Game.Crawl.InProgressCrawlState);
+				}
 			});
-		}
 	} else {
 		throw new Error(sprintf("[Code 1] Dungeon blueprint for dungeon '%s' failed validation.", dungeon.name));
 	}
 }
 
-function step(state: Game.Crawl.InProgressCrawlState, done: (state: Game.Crawl.ConcludedCrawlState) => void): void {
+function step(state: Game.Crawl.InProgressCrawlState): Promise<Game.Crawl.ConcludedCrawlState> {
 	let entity = nextEntity(state);
-	log.log(entity.id);
 	let censoredState = getCensoredState(state, entity);
 
-	if (entity.controller.wait) {
+	if (entity.controller.await) {
 		state.entities.forEach((ent) => {
 			if (ent !== entity) {
 				ent.controller.wait();
@@ -40,15 +38,16 @@ function step(state: Game.Crawl.InProgressCrawlState, done: (state: Game.Crawl.C
 		});
 	}
 
-	entity.controller.getAction(censoredState, entity)
+	return entity.controller.getAction(censoredState, entity)
 		.then((action: Game.Crawl.Action) => {
-			let newState = executer.execute(state, entity, action);
-
-			if (utils.isCrawlOver(newState)) {
-				done(newState);
-			} else {
-				step(newState, done);
-			}
+			return executer.execute(state, entity, action)
+				.then((newState) => {
+					if (utils.isCrawlOver(newState)) {
+						return Promise.resolve(newState);
+					} else {
+						return step(newState);
+					}
+				});
 		})
 		.catch((err: Error) => {
 			log.error(err.stack);
@@ -87,93 +86,97 @@ function validateDungeonBlueprint(dungeon: Game.Crawl.Dungeon): boolean {
 
 export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
                                floor: number,
-                               entities: Game.Crawl.UnplacedCrawlEntity[]): Game.Crawl.CrawlState {
+                               entities: Game.Crawl.UnplacedCrawlEntity[]): Promise<Game.Crawl.CrawlState> {
 	if (floor > dungeon.blueprint[dungeon.blueprint.length - 1].range[1]) {
-		return {
+		return Promise.resolve({
 			dungeon: dungeon,
 			success: true,
 			floor: floor
-		};
+		});
 	} else {
 		let blueprint = getFloorBlueprint(dungeon, floor);
 		let options = blueprint.generatorOptions.options as Game.Crawl.FeatureGeneratorOptions;
-		let floorplan = generator.generateFloor(options);
+		return generator.generateFloor(options)
+			.then((floorplan) => {
+				let state: Game.Crawl.InProgressCrawlState = {
+					dungeon: dungeon,
+					floor: {
+						number: floor,
+						map: floorplan,
+						items: []
+					},
+					entities: []
+				};
 
-		let state: Game.Crawl.InProgressCrawlState = {
-			dungeon: dungeon,
-			floor: {
-				number: floor,
-				map: floorplan,
-				items: []
-			},
-			entities: []
-		};
+				placeEntities(state, ...entities);
 
-		placeEntities(state, ...entities);
+				placeStairs(state);
 
-		placeStairs(state);
+				let enemies: Game.Crawl.UnplacedCrawlEntity[] = [];
 
-		let enemies: Game.Crawl.UnplacedCrawlEntity[] = [];
+				blueprint.enemies.forEach((enemyBlueprint) => {
+					for (let i = 0; i < enemyBlueprint.density; i++) {
+						if (Math.random() < .1) {
+							let attacks: Game.Attack[] = [];
+							let options = enemyBlueprint.attacks.slice();
+							let sum = enemyBlueprint.attacks.map((atk) => atk.weight).reduce((a, b) => a + b, 0);
 
-		blueprint.enemies.forEach((enemyBlueprint) => {
-			for (let i = 0; i < enemyBlueprint.density; i++) {
-				if (Math.random() < .1) {
-					let attacks: Game.Attack[] = [];
-					let options = enemyBlueprint.attacks.slice();
-					let sum = enemyBlueprint.attacks.map((atk) => atk.weight).reduce((a, b) => a + b, 0);
+							while (options.length > 0 && attacks.length < 4) {
+								let choice = Math.random() * sum;
 
-					while (options.length > 0 && attacks.length < 4) {
-						let choice = Math.random() * sum;
+								for (let j = 0; j < options.length; j++) {
+									choice -= options[j].weight;
 
-						for (let j = 0; j < options.length; j++) {
-							choice -= options[j].weight;
-
-							if (choice <= 0) {
-								attacks.push(options[j].attack);
-								options.splice(j, 1);
-								break;
+									if (choice <= 0) {
+										attacks.push(options[j].attack);
+										options.splice(j, 1);
+										break;
+									}
+								}
 							}
+
+							enemies.push({
+								id: shortid.generate(),
+								name: enemyBlueprint.name,
+								graphics: enemyBlueprint.graphics,
+								stats: {
+									level: enemyBlueprint.stats.level,
+									hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
+									attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
+									defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 }
+								},
+								attacks: attacks,
+								controller: new controllers.AIController([]),
+								bag: { capacity: 1, items: [] },
+								alignment: 0,
+								advances: false
+							});
 						}
 					}
+				});
 
-					enemies.push({
-						id: shortid.generate(),
-						name: enemyBlueprint.name,
-						graphics: enemyBlueprint.graphics,
-						stats: {
-							level: enemyBlueprint.stats.level,
-							hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
-							attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
-							defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 }
+				enemies.forEach((enemy) => placeEntities(state, enemy));
+
+				state.entities.forEach((entity) => {
+					entity.controller.pushEvent({
+						type: "start",
+						entity: {
+							name: entity.name,
+							graphics: entity.graphics,
+							id: entity.id
 						},
-						attacks: attacks,
-						controller: new controllers.AIController([]),
-						bag: { capacity: 1, items: [] },
-						alignment: 0,
-						advances: false
+						floorInformation: {
+							number: floor,
+							width: state.floor.map.width,
+							height: state.floor.map.height
+						},
+						self: censorSelf(entity)
 					});
-				}
-			}
-		});
+					entity.controller.updateState(getCensoredState(state, entity));
+				});
 
-		enemies.forEach((enemy) => placeEntities(state, enemy));
-
-		state.entities.forEach((entity) => {
-			entity.controller.pushEvent({
-				type: "stairs",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				}
+				return state;
 			});
-
-			entity.controller.updateState(getCensoredState(state, entity));
-		});
-
-		printer.printState(state);
-
-		return state;
 	}
 }
 
@@ -194,13 +197,14 @@ function placeStairs(state: Game.Crawl.InProgressCrawlState): void {
 }
 
 function placeEntities(state: Game.Crawl.InProgressCrawlState, ...entities: Game.Crawl.UnplacedCrawlEntity[]): void {
-	let map = {
+	let map: Game.Crawl.Map = {
 		width: state.floor.map.width,
 		height: state.floor.map.height,
 		grid: utils.tabulate((row) =>
 				utils.tabulate((col) =>
-					({ type: "unknown" as "unknown", roomId: 0, stairs: false }),
-					state.floor.map.width), state.floor.map.height)
+					({ type: Game.Crawl.DungeonTileType.UNKNOWN }),
+				state.floor.map.width),
+			state.floor.map.height)
 	};
 
 	let loc: Game.Crawl.Location = {
@@ -274,19 +278,10 @@ function placeEntities(state: Game.Crawl.InProgressCrawlState, ...entities: Game
 function createPlacedEntity(unplacedEntity: Game.Crawl.UnplacedCrawlEntity,
 	                        location: Game.Crawl.Location,
 	                        map: Game.Crawl.Map): Game.Crawl.CrawlEntity {
-	return {
-		id: unplacedEntity.id,
-		name: unplacedEntity.name,
-		graphics: unplacedEntity.graphics,
-		stats: unplacedEntity.stats,
-		attacks: unplacedEntity.attacks,
-		alignment: unplacedEntity.alignment,
-		controller: unplacedEntity.controller,
-		bag: unplacedEntity.bag,
-		advances: unplacedEntity.advances,
-		location: location,
-		map: map
-	};
+	let ret = unplacedEntity as Game.Crawl.CrawlEntity;
+	ret.location = location;
+	ret.map = map;
+	return ret;
 }
 
 function getFloorBlueprint(dungeon: Game.Crawl.Dungeon, floor: number): Game.Crawl.FloorBlueprint {
@@ -316,7 +311,7 @@ function getFloorBlueprint(dungeon: Game.Crawl.Dungeon, floor: number): Game.Cra
 
 export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
                                  entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredEntityCrawlState {
-	return {
+	let censored: Game.Crawl.CensoredEntityCrawlState = {
 		self: censorSelf(entity),
 		dungeon: {
 			name: state.dungeon.name,
@@ -336,6 +331,8 @@ export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 			|| entity.alignment !== 0
 			&& entity.alignment === ent.alignment).map(censorEntity)
 	};
+
+	return JSON.parse(JSON.stringify(censored)); // ewwwww (clone won't build for me)
 }
 
 function censorEntity(entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredCrawlEntity {

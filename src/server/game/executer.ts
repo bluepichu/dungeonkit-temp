@@ -20,13 +20,16 @@ export function isValidAction(state: Game.Crawl.CensoredInProgressCrawlState,
 
 		case "item":
 			return true; // TODO
+
+		case "stairs":
+			return state.floor.map.grid[entity.location.r][entity.location.c].stairs;
 	}
 }
 
 export function execute(state: Game.Crawl.InProgressCrawlState,
                         entity: Game.Crawl.CrawlEntity,
-                        action: Game.Crawl.Action): Game.Crawl.CrawlState {
-	let result: Game.Crawl.CrawlState = state;
+                        action: Game.Crawl.Action): Promise<Game.Crawl.CrawlState> {
+	let result: Promise<Game.Crawl.CrawlState> = undefined;
 
 	switch (action.type) {
 		case "move":
@@ -40,26 +43,39 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 		case "item":
 			result = executeItem(state, entity, action as Game.Crawl.ItemAction);
 			break;
+
+		case "stairs":
+			result = executeStairs(state, entity, action as Game.Crawl.StairsAction);
+			break;
+
+		default:
+			result = Promise.resolve(state);
+			break;
 	}
 
-	if (utils.isCrawlOver(result)) {
-		return result;
+	return result.then((newState) => postExecute(newState, entity));
+}
+
+function postExecute(state: Game.Crawl.CrawlState,
+                     entity: Game.Crawl.CrawlEntity): Game.Crawl.CrawlState {
+	if (utils.isCrawlOver(state)) {
+		return state;
 	}
 
-	let newState = result as Game.Crawl.InProgressCrawlState;
+	let newState = state as Game.Crawl.InProgressCrawlState;
+
+	newState.entities.filter((entity) => entity.stats.hp.current <= 0).forEach((entity: Game.Crawl.CrawlEntity) => {
+		propagateLogEvent(newState, {
+			type: "defeat",
+			entity: {
+				id: entity.id,
+				name: entity.name,
+				graphics: entity.graphics
+			}
+		});
+	});
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0); // this needs work
-
-	for (let i = 0; i < newState.entities.length; i++) {
-		let loc = newState.entities[i].location;
-
-		if (newState.floor.map.grid[loc.r][loc.c].stairs && newState.entities[i].advances) {
-			newState.entities.forEach((entity) => entity.controller.wait());
-
-			let advancers = newState.entities.filter((entity) => entity.advances);
-			return crawl.advanceToFloor(newState.dungeon, newState.floor.number + 1, advancers);
-		}
-	}
 
 	newState.entities.forEach((entity) => updateMap(newState, entity));
 
@@ -70,7 +86,7 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 
 function executeMove(state: Game.Crawl.InProgressCrawlState,
                      entity: Game.Crawl.CrawlEntity,
-                     action: Game.Crawl.MoveAction): Game.Crawl.CrawlState {
+                     action: Game.Crawl.MoveAction): Promise<Game.Crawl.CrawlState> {
 	let start = entity.location;
 
 	if (isValidMove(state, entity, action.direction)) {
@@ -92,7 +108,7 @@ function executeMove(state: Game.Crawl.InProgressCrawlState,
 		direction: action.direction
 	});
 
-	return state;
+	return Promise.resolve(state);
 }
 
 function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
@@ -109,12 +125,12 @@ function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
 		return false;
 	}
 
-	if (state.floor.map.grid[location.r][location.c].type === "wall") {
+	if (state.floor.map.grid[location.r][location.c].type === Game.Crawl.DungeonTileType.WALL) {
 		return false;
 	}
 
-	let startInCooridor = state.floor.map.grid[entity.location.r][entity.location.c].roomId === 0;
-	let endInCooridor = state.floor.map.grid[location.r][location.c].roomId === 0;
+	let startInCooridor = !utils.isLocationInRoom(state.floor.map, entity.location);
+	let endInCooridor = !utils.isLocationInRoom(state.floor.map, location);
 
 	if (direction % 2 === 1 && (startInCooridor || endInCooridor)) {
 		return false;
@@ -125,7 +141,7 @@ function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
 
 function executeAttack(state: Game.Crawl.InProgressCrawlState,
                        entity: Game.Crawl.CrawlEntity,
-                       action: Game.Crawl.AttackAction): Game.Crawl.CrawlState {
+                       action: Game.Crawl.AttackAction): Promise<Game.Crawl.CrawlState> {
 	let targets = getTargets(state, entity, action.direction, action.attack.target);
 
 	propagateLogEvent(state, {
@@ -142,7 +158,7 @@ function executeAttack(state: Game.Crawl.InProgressCrawlState,
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
 
-	return state;
+	return Promise.resolve(state);
 }
 
 function getTargets(state: Game.Crawl.InProgressCrawlState,
@@ -168,7 +184,7 @@ function getTargets(state: Game.Crawl.InProgressCrawlState,
 			let rts = selector as Game.RoomTargetSelector;
 			let selection = state.entities;
 
-			if (room === 0) {
+			if (room === undefined) {
 				selection = selection.filter((entity) => utils.distance(attacker.location, entity.location) <= 2);
 			} else {
 				return state.entities.filter((entity) => utils.inSameRoom(state.floor.map, attacker.location, entity.location));
@@ -220,10 +236,34 @@ function getModifiedStat(stat: Game.BaseModifierStat): number {
 	return stat.base * multiplier;
 }
 
-export function executeItem(state: Game.Crawl.InProgressCrawlState,
-                            entity: Game.Crawl.CrawlEntity,
-                            action: Game.Crawl.ItemAction): Game.Crawl.CrawlState {
-	return state; // TODO
+function executeItem(state: Game.Crawl.InProgressCrawlState,
+                     entity: Game.Crawl.CrawlEntity,
+                     action: Game.Crawl.ItemAction): Promise<Game.Crawl.CrawlState> {
+	return Promise.resolve(state); // TODO
+}
+
+function executeStairs(state: Game.Crawl.InProgressCrawlState,
+                       entity: Game.Crawl.CrawlEntity,
+                       action: Game.Crawl.StairsAction): Promise<Game.Crawl.CrawlState> {
+	if (state.floor.map.grid[entity.location.r][entity.location.c].stairs) {
+		propagateLogEvent(state, {
+			type: "stairs",
+			entity: {
+				name: entity.name,
+				id: entity.id,
+				graphics: entity.graphics
+			}
+		});
+
+		state.entities.forEach((entity) => entity.controller.wait());
+
+		let advancers = state.entities.filter((entity) => entity.advances);
+		return crawl.advanceToFloor(state.dungeon, state.floor.number + 1, advancers).then((newState) => {
+			return newState;
+		});
+	}
+
+	return Promise.resolve(state);
 }
 
 function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.Crawl.LogEvent): void {
@@ -255,6 +295,7 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 			break;
 
 		case "stairs":
+		case "defeat":
 			state.entities.forEach((entity) => entity.controller.pushEvent(event));
 			break;
 	}
