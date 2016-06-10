@@ -221,7 +221,9 @@ function computeDamage(attacker: Game.Entity, defender: Game.Entity, attack: Gam
 	let b = attacker.stats.level;
 	let c = getModifiedStat(defender.stats.defense);
 	let d = ((a - c) / 8) + (b * 43690 / 65536);
-	return Math.round((((d * 2) - c) + 10) + ((d * d) * 3276 / 65536));
+	let baseDamage = (((d * 2) - c) + 10) + ((d * d) * 3276 / 65536);
+	let multiplier = (Math.random() * 2 + 7) / 8;
+	return Math.round(baseDamage * multiplier);
 }
 
 function getModifiedStat(stat: Game.BaseModifierStat): number {

@@ -311,7 +311,7 @@ export let dungeon: Game.Crawl.Dungeon = {
 				enemies: [
 					{
 						density: 50,
-						name: "Mudkip (enemy)",
+						name: "Mudkip",
 						graphics: "mudkip",
 						stats: mudkipStats,
 						attacks: [

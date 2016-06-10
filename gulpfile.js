@@ -2,11 +2,10 @@
 
 let gulp          = require("gulp");
 let path          = require("path");
+let merge         = require("merge-stream");
 let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
-// let psd           = require("gulp-psd");
-// let texturePacker = require('spritesmith-texturepacker');
 
-let clientProject = $.typescript.createProject("src/client/tsconfig.json");
+let clientProject = $.typescript.createProject("src/client/tsconfig.json", { outFile: "client.ts" });
 let serverProject = $.typescript.createProject("src/server/tsconfig.json");
 let testProject   = $.typescript.createProject("src/test/tsconfig.json");
 
@@ -19,9 +18,10 @@ gulp.task("watch", ["default", "watch-server", "watch-client", "watch-test"]);
 gulp.task("default", ["client", "server", "test"]);
 
 gulp.task("watch-client", () => {
-	gulp.watch(src("client/**/*.ts", "types/**/*.*"), ["client-ts"]);
+	gulp.watch(src("client/*.ts", "types/**/*.*"), ["client-ts"]);
 	gulp.watch(src("client/index.html"), ["client-html"]);
 	gulp.watch(src("client/assets/**/*.*"), ["client-assets"]);
+	gulp.watch(src("client/lib/*.js"), ["client-lib"]);
 });
 
 gulp.task("client", ["client-html", "client-assets", "client-ts", "client-lib"]);
@@ -42,9 +42,10 @@ gulp.task("client-ts", () =>
 	    .pipe(gulp.dest(build("client/js"))));
 
 gulp.task("client-lib", () =>
-	gulp.src($.mainBowerFiles())
-	    // .pipe($.uglify())
-	    .pipe(gulp.dest(build("client/lib"))));
+	merge(gulp.src($.mainBowerFiles())
+	          .pipe(gulp.dest(build("client/lib"))),
+	      gulp.src(src("client/lib/*.js"))
+	          .pipe(gulp.dest(build("client/lib")))));
 
 gulp.task("watch-server", () => {
 	gulp.watch(src("server/**/*.ts", "index.ts", "types/**/*.*"), ["server"])
