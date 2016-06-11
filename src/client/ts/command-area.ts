@@ -6,7 +6,7 @@ import {MessageLog} from "./message-log";
 
 const COMMAND_AREA_INACTIVE_STYLE = {
 	font: "300 16px Hind Siliguri",
-	fill: Colors.MID_GRAY
+	fill: Colors.GRAY_4
 };
 
 const COMMAND_AREA_ACTIVE_STYLE = {

@@ -10,6 +10,7 @@ import {EntityLayer}    from "./entity-layer";
 import {EntitySprite}   from "./graphics/entity-sprite";
 import {GameSocket}     from "./game-socket";
 import {GroundLayer}    from "./ground-layer";
+import {InputHandler}   from "./input-handler";
 import {MessageLog}     from "./message-log";
 import {MiniMap}        from "./minimap";
 import {TweenHandler}   from "./tween-handler";
@@ -18,9 +19,6 @@ import * as utils       from "./utils";
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
 let gameContainer: PIXI.Container = undefined;
 let socket: GameSocket = undefined;
-let awaitingMove = false;
-let inputTimer = 0;
-let moveInput = 0;
 let minimap: MiniMap = undefined;
 let commandArea: CommandArea = undefined;
 let dungeonLayer: DungeonLayer = undefined;
@@ -30,6 +28,7 @@ let processChain: Thenable = Promise.resolve();
 let floorSign: PIXI.Container = undefined;
 let state: Game.Client.CensoredClientCrawlState = undefined;
 let attackOverlay: AttackOverlay = undefined;
+let inputHandler: InputHandler = undefined;
 
 document.addEventListener("DOMContentLoaded", () => {
 	WebFont.load({
@@ -73,7 +72,7 @@ function init() {
 
 	socket.onInvalid(() => {
 		console.log("invalid");
-		awaitingMove = true;
+		inputHandler.awaitingMove = true;
 	});
 
 	socket.onGraphics((key: string, graphics: Game.Graphics.EntityGraphics) => {
@@ -156,6 +155,8 @@ function init() {
 
 	requestAnimationFrame(animate);
 
+	inputHandler = new InputHandler(socket, minimap, dungeonLayer);
+
 	messageLog.push("Welcome to <item>DungeonKit</item>!  Enter the command <command>start</command> to start.", 10000);
 	messageLog.push("You can enter the command <command>help</command> at any time for an explanation of the controls.", 10000);
 }
@@ -183,7 +184,7 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 			dungeonLayer.entityLayer.update(state);
 			minimap.update(state);
 
-			awaitingMove = p.move;
+			inputHandler.awaitingMove = inputHandler.awaitingMove || p.move;
 
 			resolve();
 		} else {
@@ -289,111 +290,8 @@ function getResolutionPromise(proc: Processable): (value: any) => Promise<void> 
 }
 
 function animate() {
-	if (key.isPressed(77)) {
-		minimap.resize(600, 600);
-	} else {
-		minimap.resize(300, 200);
-	}
-
-	if (awaitingMove) {
-		if (key.shift) {
-			if (key.isPressed(49)) {
-				awaitingMove = false;
-
-				socket.sendAction({
-					type: "attack",
-					direction: dungeonLayer.getEntityDirection(state.self.id),
-					attack: state.self.attacks[0]
-				});
-			}
-
-			return;
-		}
-
-		if (key.isPressed(37) || key.isPressed(38) || key.isPressed(39) || key.isPressed(40)) {
-			awaitingMove = false;
-			moveInput = 0;
-			inputTimer = 4;
-		}
-	}
-
-	if (inputTimer > 0) {
-		if (key.isPressed(82)) {
-			moveInput |= 0b10000;
-		}
-
-		if (key.isPressed(37)) {
-			moveInput |= 0b01000;
-		}
-
-		if (key.isPressed(38)) {
-			moveInput |= 0b00100;
-		}
-
-		if (key.isPressed(39)) {
-			moveInput |= 0b00010;
-		}
-
-		if (key.isPressed(40)) {
-			moveInput |= 0b00001;
-		}
-
-		inputTimer--;
-
-		if (inputTimer === 0) {
-			let rot = (moveInput & 0b10000) > 0;
-			let dir = inputToDirection(moveInput & 0b1111);
-
-			if (dir !== undefined) {
-				dungeonLayer.entityLayer.setEntityAnimation(state.self.id, "idle", dir as number);
-				if (rot) {
-					awaitingMove = true;
-				} else {
-					socket.sendAction({
-						type: "move",
-						direction: dir as number
-					}, {
-						dash: key.isPressed(66)
-					});
-				}
-			} else {
-				awaitingMove = true;
-			}
-		}
-	}
-
+	inputHandler.handleInput(state);
 	tweenHandler.step();
 	renderer.render(gameContainer);
 	requestAnimationFrame(animate);
-}
-
-function inputToDirection(input: number): number | void {
-	switch (input) {
-		case 0b0010:
-			return 0;
-
-		case 0b0110:
-			return 1;
-
-		case 0b0100:
-			return 2;
-
-		case 0b1100:
-			return 3;
-
-		case 0b1000:
-			return 4;
-
-		case 0b1001:
-			return 5;
-
-		case 0b0001:
-			return 6;
-
-		case 0b0011:
-			return 7;
-
-		default:
-			return undefined;
-	}
 }

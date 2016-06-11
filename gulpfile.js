@@ -46,11 +46,11 @@ gulp.task("client-ts", () =>
 			rollup({
 				entry: path.join(dir, "client.js")
 			})
-				.then(function (bundle) {
-				return bundle.write({
-					dest: path.join(dir, "out/client.js"),
-					sourceMap: true
-				});
+				.then((bundle) =>
+					bundle.write({
+						dest: path.join(dir, "out/client.js"),
+						sourceMap: true
+					});
 			})
 				.then(() => sorcery.load(path.join(dir, "out/client.js")))
 				.then((chain) => chain.write(path.join(dir, "out/client.js")))

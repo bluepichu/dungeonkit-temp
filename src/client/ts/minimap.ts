@@ -66,7 +66,7 @@ export class MiniMap extends PIXI.Container {
 		for (let i = 0; i < state.floor.map.height; i++) {
 			for (let j = 0; j < state.floor.map.width; j++) {
 				if (utils.getTile(state.floor.map, { r: i, c: j }).type === Game.Crawl.DungeonTileType.FLOOR) {
-					this.mapContent.beginFill(state.floor.map.grid[i][j].roomId === undefined ? Colors.DARK_GRAY : Colors.MID_GRAY);
+					this.mapContent.beginFill(state.floor.map.grid[i][j].roomId === undefined ? Colors.GRAY_2 : Colors.GRAY_3);
 
 					this.mapContent.drawRect(this.gridSize * j,
 					                         this.gridSize * i,
@@ -75,7 +75,7 @@ export class MiniMap extends PIXI.Container {
 
 					this.mapContent.endFill();
 
-					this.mapContent.beginFill(Colors.DARK_GRAY);
+					this.mapContent.beginFill(Colors.GRAY_1);
 
 					if (0 <= i - 1
 					 && utils.getTile(state.floor.map, { r: i - 1, c: j }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
