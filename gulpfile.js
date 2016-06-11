@@ -50,8 +50,7 @@ gulp.task("client-ts", () =>
 					bundle.write({
 						dest: path.join(dir, "out/client.js"),
 						sourceMap: true
-					});
-			})
+			}))
 				.then(() => sorcery.load(path.join(dir, "out/client.js")))
 				.then((chain) => chain.write(path.join(dir, "out/client.js")))
 				.then(() => cb());
