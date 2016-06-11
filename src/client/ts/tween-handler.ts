@@ -22,12 +22,12 @@ export class TweenHandler {
 type TweenType = "linear" | "smooth";
 
 class Tween {
-	object: any;
-	key: string;
-	target: number;
-	velocity: number;
-	type: TweenType;
-	onComplete: Function;
+	public object: any;
+	public key: string;
+	public target: number;
+	public velocity: number;
+	public type: TweenType;
+	public onComplete: Function;
 
 	constructor(obj: any, key: string, target: number, velocity: number, type?: TweenType, onComplete?: Function) {
 		this.object = obj;

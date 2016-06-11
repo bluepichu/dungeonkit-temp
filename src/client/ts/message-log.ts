@@ -42,12 +42,12 @@ const MESSAGE_LOG_STYLES: { [key: string]: PIXI.TextStyle } = {
 };
 
 export class MessageLog extends PIXI.Container {
-	messages: PIXI.Container[];
-	timeouts: number[];
-	keepTime: number;
-	spacing: number;
-	maximumHeight: number;
-	tweenHandler: TweenHandler;
+	private messages: PIXI.Container[];
+	private timeouts: number[];
+	private keepTime: number;
+	private spacing: number;
+	private maximumHeight: number;
+	private tweenHandler: TweenHandler;
 
 	constructor(tweenHandler: TweenHandler) {
 		super();

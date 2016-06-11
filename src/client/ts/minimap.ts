@@ -4,57 +4,59 @@ import * as Colors from "./colors";
 import * as utils  from "./utils";
 
 export class MiniMap extends PIXI.Container {
-	mask: PIXI.Graphics;
-	background: PIXI.Graphics;
-	content: PIXI.Graphics;
-	maskWidth: number;
-	maskHeight: number;
-	gridSize: number;
+	private mapMask: PIXI.Graphics;
+	private mapBackground: PIXI.Graphics;
+	private mapContent: PIXI.Graphics;
+	private mapMaskWidth: number;
+	private mapMaskHeight: number;
+	private gridSize: number;
 
 	constructor(width: number, height: number) {
 		super();
 
-		this.maskWidth = width;
-		this.maskHeight = height;
+		this.mapMaskWidth = width;
+		this.mapMaskHeight = height;
 
-		this.mask = new PIXI.Graphics();
-		this.mask.beginFill(0x000000);
-		this.mask.drawRect(0, 0, width, height);
-		this.mask.endFill();
+		this.mapMask = new PIXI.Graphics();
+		this.mapMask.beginFill(0x000000);
+		this.mapMask.drawRect(0, 0, width, height);
+		this.mapMask.endFill();
 
-		this.background = new PIXI.Graphics();
-		this.background.mask = this.mask;
-		this.drawBackground();
+		this.mapBackground = new PIXI.Graphics();
+		this.mapBackground.mask = this.mapMask;
+		this.drawBackground(width, height);
 
-		this.content = new PIXI.Graphics();
-		this.content.mask = this.mask;
+		this.mapContent = new PIXI.Graphics();
+		this.mapContent.mask = this.mapMask;
 
-		this.addChild(this.mask);
-		this.addChild(this.content);
+		this.addChild(this.mapMask);
+		this.addChild(this.mapBackground);
+		this.addChild(this.mapContent);
 
 		this.gridSize = 8;
 	}
 
-	private drawBackground(): void {
-		this.background.clear();
-		this.background.beginFill(Colors.BLACK);
-		this.background.drawRect(0, 0, this.mask.width, this.mask.height);
+	private drawBackground(width: number, height: number): void {
+		this.mapBackground.clear();
+		this.mapBackground.beginFill(Colors.BLACK);
+		this.mapBackground.drawRect(0, 0, width, height);
+		this.mapBackground.endFill();
 	}
 
 	resize(width: number, height: number): void {
-		if (this.maskWidth !== width || this.height !== height) {
-			this.mask.clear();
-			this.mask.beginFill(0x000000);
-			this.mask.drawRect(0, 0, width, height);
-			this.mask.endFill();
+		if (this.mapMaskWidth !== width || this.height !== height) {
+			this.mapMask.clear();
+			this.mapMask.beginFill(0x000000);
+			this.mapMask.drawRect(0, 0, width, height);
+			this.mapMask.endFill();
 
-			this.drawBackground();
+			this.drawBackground(width, height);
 
-			this.content.x += (width - this.maskWidth) / 2;
-			this.content.y += (height - this.maskHeight) / 2;
+			this.mapContent.x += (width - this.mapMaskWidth) / 2;
+			this.mapContent.y += (height - this.mapMaskHeight) / 2;
 
-			this.maskWidth = width;
-			this.maskHeight = height;
+			this.mapMaskWidth = width;
+			this.mapMaskHeight = height;
 		}
 	}
 
@@ -64,20 +66,20 @@ export class MiniMap extends PIXI.Container {
 		for (let i = 0; i < state.floor.map.height; i++) {
 			for (let j = 0; j < state.floor.map.width; j++) {
 				if (utils.getTile(state.floor.map, { r: i, c: j }).type === Game.Crawl.DungeonTileType.FLOOR) {
-					this.content.beginFill(state.floor.map.grid[i][j].roomId === undefined ? Colors.DARK_GRAY : Colors.MID_GRAY);
+					this.mapContent.beginFill(state.floor.map.grid[i][j].roomId === undefined ? Colors.DARK_GRAY : Colors.MID_GRAY);
 
-					this.content.drawRect(this.gridSize * j,
+					this.mapContent.drawRect(this.gridSize * j,
 					                         this.gridSize * i,
 											 this.gridSize,
 											 this.gridSize);
 
-					this.content.endFill();
+					this.mapContent.endFill();
 
-					this.content.beginFill(0x202020);
+					this.mapContent.beginFill(Colors.DARK_GRAY);
 
 					if (0 <= i - 1
 					 && utils.getTile(state.floor.map, { r: i - 1, c: j }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
-						this.content.drawRect(this.gridSize * j,
+						this.mapContent.drawRect(this.gridSize * j,
 						                         this.gridSize * i,
 												 this.gridSize,
 												 this.gridSize * .25);
@@ -85,7 +87,7 @@ export class MiniMap extends PIXI.Container {
 
 					if (0 <= j - 1
 					 && utils.getTile(state.floor.map, { r: i, c: j - 1 }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
-						this.content.drawRect(this.gridSize * j,
+						this.mapContent.drawRect(this.gridSize * j,
 						                         this.gridSize * i,
 												 this.gridSize * .25,
 												 this.gridSize);
@@ -93,7 +95,7 @@ export class MiniMap extends PIXI.Container {
 
 					if (i + 1 < state.floor.map.height
 					 && utils.getTile(state.floor.map, { r: i + 1, c: j }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
-						this.content.drawRect(this.gridSize * j,
+						this.mapContent.drawRect(this.gridSize * j,
 							                     this.gridSize * (i + .75),
 												 this.gridSize,
 												 this.gridSize * .25);
@@ -101,49 +103,49 @@ export class MiniMap extends PIXI.Container {
 
 					if (j + 1 < state.floor.map.width
 					 && utils.getTile(state.floor.map, { r: i, c: j + 1 }).type === Game.Crawl.DungeonTileType.UNKNOWN) {
-						this.content.drawRect(this.gridSize * (j + .75),
+						this.mapContent.drawRect(this.gridSize * (j + .75),
 						                         this.gridSize * i,
 												 this.gridSize * .25,
 												 this.gridSize);
 					}
 
-					this.content.endFill();
+					this.mapContent.endFill();
 
 					if (state.floor.map.grid[i][j].stairs) {
-						this.content.lineStyle(1, 0x6a9fb5);
+						this.mapContent.lineStyle(1, 0x6a9fb5);
 
-						this.content.drawRect(this.gridSize * j + 1,
+						this.mapContent.drawRect(this.gridSize * j + 1,
 						                         this.gridSize * i + 1,
 												 this.gridSize - 2,
 						                         this.gridSize - 2);
 
-						this.content.lineStyle(0);
+						this.mapContent.lineStyle(0);
 					}
 				}
 			}
 		}
 
 		state.entities.forEach((entity: Game.Crawl.CensoredCrawlEntity) => {
-			this.content.beginFill(entity.id === state.self.id
-				? Colors.WHITE
+			this.mapContent.beginFill(entity.id === state.self.id
+				? Colors.YELLOW
 				: (entity.alignment === state.self.alignment
-					? Colors.YELLOW
+					? Colors.ORANGE
 					: Colors.RED));
 
-			this.content.drawCircle((entity.location.c + .5) * this.gridSize,
+			this.mapContent.drawCircle((entity.location.c + .5) * this.gridSize,
 			                           (entity.location.r + .5) * this.gridSize,
 			                           this.gridSize / 2 - 1);
 
-			this.content.endFill();
+			this.mapContent.endFill();
 
 			if (entity.id === state.self.id) {
-				this.content.x = this.maskWidth / 2 - (entity.location.c + .5) * this.gridSize;
-				this.content.y = this.maskHeight / 2 - (entity.location.r + .5) * this.gridSize;
+				this.mapContent.x = this.mapMaskWidth / 2 - (entity.location.c + .5) * this.gridSize;
+				this.mapContent.y = this.mapMaskHeight / 2 - (entity.location.r + .5) * this.gridSize;
 			}
 		});
 	}
 
 	clear(): void {
-		this.content.clear();
+		this.mapContent.clear();
 	}
 }

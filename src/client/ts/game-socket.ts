@@ -1,18 +1,19 @@
 "use strict";
 
 export class GameSocket {
-	listeners: Map<string, ((...args: any[]) => void)[]>;
-	socket: SocketIOClient.Socket;
+	private listeners: Map<string, ((...args: any[]) => void)[]>;
+	private socket: SocketIOClient.Socket;
 
 	constructor() {
 		this.socket = io();
+		this.listeners = new Map();
 
 		this.socket.on("init", (dungeon: Game.Crawl.CensoredDungeon) =>
 			this.execute("init", dungeon));
 		this.socket.on("invalid", () =>
 			this.execute("invalid"));
 		this.socket.on("graphics", (key: string, graphics: Game.Graphics.EntityGraphics) =>
-			this.execute("init", key, graphics));
+			this.execute("graphics", key, graphics));
 		this.socket.on("update", (message: Game.Client.UpdateMessage) =>
 			this.execute("update", message));
 	}

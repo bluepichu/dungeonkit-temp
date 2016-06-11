@@ -10,6 +10,6 @@ export const PURPLE = 0x9B59B6;
 export const BROWN = 0xBE643C;
 export const BLACK = 0x222222;
 export const DARK_GRAY = 0x585858;
-export const MID_GRAY = 0x999999;
+export const MID_GRAY = 0x777777;
 export const LIGHT_GRAY = 0xB2B2B2;
 export const WHITE = 0xF5F5F5;

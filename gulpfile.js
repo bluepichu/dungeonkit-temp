@@ -3,9 +3,12 @@
 let gulp          = require("gulp");
 let path          = require("path");
 let merge         = require("merge-stream");
+var rollup        = require("rollup").rollup;
+var sorcery       = require("sorcery");
+
 let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
 
-let clientProject = $.typescript.createProject("src/client/tsconfig.json", { outFile: "client.ts" });
+let clientProject = $.typescript.createProject("src/client/tsconfig.json");
 let serverProject = $.typescript.createProject("src/server/tsconfig.json");
 let testProject   = $.typescript.createProject("src/test/tsconfig.json");
 
@@ -13,12 +16,12 @@ let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
 let build   = (dir) => path.join("build", dir);
 let map     = "map";
 
-gulp.task("watch", ["default", "watch-server", "watch-client", "watch-test"]);
-
 gulp.task("default", ["client", "server", "test"]);
 
+gulp.task("watch", ["default", "watch-server", "watch-client", "watch-test"]);
+
 gulp.task("watch-client", () => {
-	gulp.watch(src("client/*.ts", "types/**/*.*"), ["client-ts"]);
+	gulp.watch(src("client/**/*.ts", "types/**/*.*"), ["client-ts"]);
 	gulp.watch(src("client/index.html"), ["client-html"]);
 	gulp.watch(src("client/assets/**/*.*"), ["client-assets"]);
 	gulp.watch(src("client/lib/*.js"), ["client-lib"]);
@@ -35,10 +38,24 @@ gulp.task("client-html", () =>
 	    .pipe(gulp.dest(build("client"))));
 
 gulp.task("client-ts", () =>
-	gulp.src(src("client/ts/*.ts"))
+	gulp.src(src("client/ts/**/*.ts"))
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(clientProject))
 	    .pipe($.sourcemaps.write(map))
+	    .pipe($.intermediate({ output: "out" }, (dir, cb) => {
+			rollup({
+				entry: path.join(dir, "client.js")
+			})
+				.then(function (bundle) {
+				return bundle.write({
+					dest: path.join(dir, "out/client.js"),
+					sourceMap: true
+				});
+			})
+				.then(() => sorcery.load(path.join(dir, "out/client.js")))
+				.then((chain) => chain.write(path.join(dir, "out/client.js")))
+				.then(() => cb());
+		}))
 	    .pipe(gulp.dest(build("client/js"))));
 
 gulp.task("client-lib", () =>

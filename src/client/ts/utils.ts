@@ -25,3 +25,26 @@ export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
 
 	return ret;
 }
+
+export function decodeDirection(direction: number): [number, number] {
+	switch (direction % 8) {
+		case 0:
+			return [0, 1];
+		case 1:
+			return [-1, 1];
+		case 2:
+			return [-1, 0];
+		case 3:
+			return [-1, -1];
+		case 4:
+			return [0, -1];
+		case 5:
+			return [1, -1];
+		case 6:
+			return [1, 0];
+		case 7:
+			return [1, 1];
+		default:
+			throw new Error(sprintf("[Code 4] %d is not a valid direction.", direction));
+	}
+}
