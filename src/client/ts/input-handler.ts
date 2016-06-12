@@ -36,27 +36,34 @@ export class InputHandler {
 				[Hammer.Swipe, { event: "swipe", pointers: 1 }],
 				[Hammer.Swipe, { event: "double-swipe", pointers: 2 }],
 				[Hammer.Tap, { event: "triple-tap", pointers: 3 }],
-				[Hammer.Rotate, { event: "rotate", enable: true, threshold: 90 }]
+				[Hammer.Rotate, { event: "rotate", enable: true, threshold: 90 }],
+				[Hammer.Press, { event: "press", time: 1000 }]
 			]
 		});
 
-		this.hammer.on("swipe double-swipe triple-tap", (event) => console.log(event));
+		this.hammer.on("swipe double-swipe triple-tap press", (event) => console.log(event));
 
-		this.hammer.on("swipe", (event) =>
-			this.socket.sendAction({
-				type: "move",
-				direction: (8 - Math.round(event.angle / 45)) % 8
-			}, {
-				dash: false
-			}));
+		this.hammer.on("swipe", (event) => {
+			if (this.awaitingMove) {
+				this.socket.sendAction({
+					type: "move",
+					direction: (8 - Math.round(event.angle / 45)) % 8
+				}, {
+						dash: false
+					});
+			};
+		});
 
-		this.hammer.on("double-swipe", (event) =>
-			this.socket.sendAction({
-				type: "move",
-				direction: (8 - Math.round(event.angle / 45)) % 8
-			}, {
-				dash: true
-			}));
+		this.hammer.on("double-swipe", (event) => {
+			if (this.awaitingMove) {
+				this.socket.sendAction({
+					type: "move",
+					direction: (8 - Math.round(event.angle / 45)) % 8
+				}, {
+						dash: true
+					});
+			}
+		});
 
 		this.hammer.on("triple-tap", (event) =>
 			this.socket.emitTempSignal("start"));
@@ -72,6 +79,14 @@ export class InputHandler {
 		this.hammer.on("rotatemove", (event) =>
 			this.dungeonLayer.entityLayer.setEntityAnimation(state.getState().self.id, "idle",
 				(entityBaseDirection + 8 - Math.round((event.rotation - startRotationAngle) / 11.25)) % 8));
+
+		this.hammer.on("press", (event) => {
+			if (this.awaitingMove) {
+				this.socket.sendAction({
+					type: "stairs"
+				});
+			}
+		});
 	}
 
 	public handleInput(): void {
