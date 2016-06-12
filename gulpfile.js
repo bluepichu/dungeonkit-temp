@@ -1,10 +1,11 @@
 "use strict";
 
+let es2015        = require("babel-preset-es2015");
 let gulp          = require("gulp");
 let path          = require("path");
 let merge         = require("merge-stream");
-var rollup        = require("rollup").rollup;
-var sorcery       = require("sorcery");
+let rollup        = require("rollup").rollup;
+let sorcery       = require("sorcery");
 
 let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
 
@@ -55,6 +56,10 @@ gulp.task("client-ts", () =>
 				.then((chain) => chain.write(path.join(dir, "out/client.js")))
 				.then(() => cb());
 		}))
+		.pipe($.ignore.exclude("*.map"))
+		.pipe($.sourcemaps.init({ loadMaps: true }))
+		.pipe($.babel({ presets: [es2015] }))
+		.pipe($.sourcemaps.write(map))
 	    .pipe(gulp.dest(build("client/js"))));
 
 gulp.task("client-lib", () =>

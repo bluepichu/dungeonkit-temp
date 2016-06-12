@@ -48,3 +48,7 @@ export function decodeDirection(direction: number): [number, number] {
 			throw new Error(sprintf("[Code 4] %d is not a valid direction.", direction));
 	}
 }
+
+export function isMobile(): boolean {
+	return window.location.pathname === "/mobile";
+}

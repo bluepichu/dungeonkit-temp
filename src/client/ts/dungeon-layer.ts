@@ -1,8 +1,9 @@
 "use strict";
 
 import * as Constants from "./constants";
-import {GroundLayer}  from "./ground-layer";
 import {EntityLayer}  from "./entity-layer";
+import {GroundLayer}  from "./ground-layer";
+import * as state     from "./state";
 import {TweenHandler} from "./tween-handler";
 import * as utils     from "./utils";
 
@@ -20,8 +21,8 @@ export class DungeonLayer extends PIXI.Container {
 		this.addChild(this.entityLayer);
 	}
 
-	init(state: Game.Client.CensoredClientCrawlState): void {
-		let [offsetX, offsetY] = utils.locationToCoordinates(state.self.location, Constants.GRID_SIZE);
+	init(): void {
+		let [offsetX, offsetY] = utils.locationToCoordinates(state.getState().self.location, Constants.GRID_SIZE);
 
 		[this.groundLayer.x, this.groundLayer.y] = [-offsetX, -offsetY];
 		[this.entityLayer.x, this.entityLayer.y] = [-offsetX, -offsetY];

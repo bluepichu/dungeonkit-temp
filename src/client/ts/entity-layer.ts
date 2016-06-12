@@ -2,6 +2,7 @@
 
 import * as Constants from "./constants";
 import {EntitySprite} from "./graphics/entity-sprite";
+import * as state     from "./state";
 import {TweenHandler} from "./tween-handler";
 import * as utils     from "./utils";
 
@@ -16,10 +17,10 @@ export class EntityLayer extends PIXI.Container {
 		this.tweenHandler = tweenHandler;
 	}
 
-	update(state: Game.Client.CensoredClientCrawlState) {
+	update() {
 		let keys: Set<string> = new Set(this.spriteMap.keys());
 
-		state.entities.forEach((entity) => {
+		state.getState().entities.forEach((entity) => {
 			keys.delete(entity.id);
 
 			if (this.spriteMap.has(entity.id)) {

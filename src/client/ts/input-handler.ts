@@ -1,8 +1,10 @@
 "use strict";
 
-import {MiniMap}      from "./minimap";
-import {GameSocket}   from "./game-socket";
 import {DungeonLayer} from "./dungeon-layer";
+import {GameSocket}   from "./game-socket";
+import {MiniMap}      from "./minimap";
+import * as state     from "./state";
+import * as utils     from "./utils";
 
 export class InputHandler {
 	public awaitingMove: boolean;
@@ -12,86 +14,138 @@ export class InputHandler {
 	private moveInput: number;
 	private socket: GameSocket;
 	private dungeonLayer: DungeonLayer;
+	private hammer: HammerManager;
 
-	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer) {
+	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer, rootElem: HTMLElement) {
 		this.awaitingMove = false;
 		this.inputTimer = 0;
 		this.moveInput = 0;
 		this.minimap = minimap;
 		this.dungeonLayer = dungeonLayer;
 		this.socket = socket;
+
+		if (utils.isMobile()) {
+			this.setTouchListeners(rootElem);
+		}
 	}
 
-	public handleInput(state: Game.Client.CensoredClientCrawlState): void {
-		if (key.isPressed(77)) {
-			this.minimap.resize(600, 600);
-		} else {
-			this.minimap.resize(300, 200);
-		}
+	private setTouchListeners(rootElem: HTMLElement): void {
+		this.hammer = new Hammer(rootElem, {
+			preventDefault: true,
+			recognizers: [
+				[Hammer.Swipe, { event: "swipe", pointers: 1 }],
+				[Hammer.Swipe, { event: "double-swipe", pointers: 2 }],
+				[Hammer.Tap, { event: "triple-tap", pointers: 3 }],
+				[Hammer.Rotate, { event: "rotate", enable: true, threshold: 90 }]
+			]
+		});
 
-		if (this.awaitingMove) {
-			if (key.shift) {
-				if (key.isPressed(49)) {
-					this.awaitingMove = false;
+		this.hammer.on("swipe double-swipe triple-tap", (event) => console.log(event));
 
-					this.socket.sendAction({
-						type: "attack",
-						direction: this.dungeonLayer.getEntityDirection(state.self.id),
-						attack: state.self.attacks[0]
-					});
-				}
+		this.hammer.on("swipe", (event) =>
+			this.socket.sendAction({
+				type: "move",
+				direction: (8 - Math.round(event.angle / 45)) % 8
+			}, {
+				dash: false
+			}));
 
-				return;
+		this.hammer.on("double-swipe", (event) =>
+			this.socket.sendAction({
+				type: "move",
+				direction: (8 - Math.round(event.angle / 45)) % 8
+			}, {
+				dash: true
+			}));
+
+		this.hammer.on("triple-tap", (event) =>
+			this.socket.emitTempSignal("start"));
+
+		let entityBaseDirection = 0;
+		let startRotationAngle = 0;
+
+		this.hammer.on("rotatestart", (event) => {
+			entityBaseDirection = this.dungeonLayer.getEntityDirection(state.getState().self.id);
+			startRotationAngle = event.rotation;
+		});
+
+		this.hammer.on("rotatemove", (event) =>
+			this.dungeonLayer.entityLayer.setEntityAnimation(state.getState().self.id, "idle",
+				(entityBaseDirection + 8 - Math.round((event.rotation - startRotationAngle) / 11.25)) % 8));
+	}
+
+	public handleInput(): void {
+		if (this.hammer === undefined) {
+			if (key.isPressed(77)) {
+				this.minimap.resize(600, 600);
+			} else {
+				this.minimap.resize(300, 200);
 			}
 
-			if (key.isPressed(37) || key.isPressed(38) || key.isPressed(39) || key.isPressed(40)) {
-				this.awaitingMove = false;
-				this.moveInput = 0;
-				this.inputTimer = 4;
-			}
-		}
+			if (this.awaitingMove) {
+				if (key.shift) {
+					if (key.isPressed(49)) {
+						this.awaitingMove = false;
 
-		if (this.inputTimer > 0) {
-			if (key.isPressed(82)) {
-				this.moveInput |= 0b10000;
-			}
-
-			if (key.isPressed(37)) {
-				this.moveInput |= 0b01000;
-			}
-
-			if (key.isPressed(38)) {
-				this.moveInput |= 0b00100;
-			}
-
-			if (key.isPressed(39)) {
-				this.moveInput |= 0b00010;
-			}
-
-			if (key.isPressed(40)) {
-				this.moveInput |= 0b00001;
-			}
-
-			this.inputTimer--;
-
-			if (this.inputTimer === 0) {
-				let rot = (this.moveInput & 0b10000) > 0;
-				let dir = this.inputToDirection(this.moveInput & 0b1111);
-
-				if (dir !== undefined) {
-					this.dungeonLayer.entityLayer.setEntityAnimation(state.self.id, "idle", dir as number);
-					if (rot) {
-						this.awaitingMove = true;
-					} else {
 						this.socket.sendAction({
-							type: "move",
-							direction: dir as number
-						}, {
-							dash: key.isPressed(66)
+							type: "attack",
+							direction: this.dungeonLayer.getEntityDirection(state.getState().self.id),
+							attack: state.getState().self.attacks[0]
 						});
 					}
-				} else {
-					this.awaitingMove = true;
+
+					return;
+				}
+
+				if (key.isPressed(37) || key.isPressed(38) || key.isPressed(39) || key.isPressed(40)) {
+					this.awaitingMove = false;
+					this.moveInput = 0;
+					this.inputTimer = 4;
+				}
+			}
+
+			if (this.inputTimer > 0) {
+				if (key.isPressed(82)) {
+					this.moveInput |= 0b10000;
+				}
+
+				if (key.isPressed(37)) {
+					this.moveInput |= 0b01000;
+				}
+
+				if (key.isPressed(38)) {
+					this.moveInput |= 0b00100;
+				}
+
+				if (key.isPressed(39)) {
+					this.moveInput |= 0b00010;
+				}
+
+				if (key.isPressed(40)) {
+					this.moveInput |= 0b00001;
+				}
+
+				this.inputTimer--;
+
+				if (this.inputTimer === 0) {
+					let rot = (this.moveInput & 0b10000) > 0;
+					let dir = this.inputToDirection(this.moveInput & 0b1111);
+
+					if (dir !== undefined) {
+						this.dungeonLayer.entityLayer.setEntityAnimation(state.getState().self.id, "idle", dir as number);
+						if (rot) {
+							this.awaitingMove = true;
+						} else {
+							this.socket.sendAction({
+								type: "move",
+								direction: dir as number
+							}, {
+									dash: key.isPressed(66)
+								});
+						}
+					} else {
+						this.awaitingMove = true;
+					}
 				}
 			}
 		}

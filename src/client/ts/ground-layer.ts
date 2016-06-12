@@ -2,6 +2,7 @@
 
 import {AnimatedSprite} from "./graphics/animated-sprite";
 import * as Constants   from "./constants";
+import * as state       from "./state";
 import {TweenHandler}   from "./tween-handler";
 import * as utils       from "./utils";
 
@@ -14,14 +15,14 @@ export class GroundLayer extends PIXI.Container {
 		this.tweenHandler = tweenHandler;
 	}
 
-	update(state: Game.Client.CensoredClientCrawlState, location: Game.Crawl.Location) {
+	update(location: Game.Crawl.Location) {
 		for (let i = location.r - 1; i <= location.r + 1; i++) {
 			for (let j = location.c - 1; j <= location.c + 1; j++) {
-				if (i < 0 || i >= state.floor.map.height || j < 0 || j >= state.floor.map.width) {
+				if (i < 0 || i >= state.getState().floor.map.height || j < 0 || j >= state.getState().floor.map.width) {
 					continue;
 				}
 
-				let tile = this.getFloorTile(state.floor.map, { r: i, c: j }, state.dungeon.graphics);
+				let tile = this.getFloorTile(state.getState().floor.map, { r: i, c: j }, state.getState().dungeon.graphics);
 
 				if (tile === undefined) {
 					continue;
