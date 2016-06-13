@@ -60,7 +60,11 @@ gulp.task("client-ts", () =>
 		.pipe($.sourcemaps.init({ loadMaps: true }))
 		.pipe($.babel({ presets: [es2015] }))
 		.pipe($.sourcemaps.write(map))
-		.pipe($.notify("The client build is done."))
+		.pipe($.notify({
+			title: "Build Notice",
+			message: "The client is ready!",
+			icon: path.join(__dirname, "icon.png")
+		}))
 	    .pipe(gulp.dest(build("client/js"))))
 
 gulp.task("client-lib", () =>

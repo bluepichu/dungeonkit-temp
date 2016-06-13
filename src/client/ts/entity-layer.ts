@@ -57,10 +57,13 @@ export class EntityLayer extends PIXI.Container {
 			this.addEntity(entity, from);
 		}
 
+		let entitySprite = this.spriteMap.get(entity.id);
+		[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(from, Constants.GRID_SIZE);
+
 		let [xTarget, yTarget] = utils.locationToCoordinates(to, Constants.GRID_SIZE);
 
-		let xPrm = this.tweenHandler.tween(this.spriteMap.get(entity.id), "x", xTarget, Constants.WALK_SPEED);
-		let yPrm = this.tweenHandler.tween(this.spriteMap.get(entity.id), "y", yTarget, Constants.WALK_SPEED);
+		let xPrm = this.tweenHandler.tween(entitySprite, "x", xTarget, Constants.WALK_SPEED);
+		let yPrm = this.tweenHandler.tween(entitySprite, "y", yTarget, Constants.WALK_SPEED);
 
 		return Promise.all([xPrm, yPrm]);
 	}

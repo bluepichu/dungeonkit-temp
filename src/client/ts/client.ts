@@ -28,6 +28,7 @@ let messageLog: MessageLog = undefined;
 let tweenHandler: TweenHandler = undefined;
 let processChain: Thenable = Promise.resolve();
 let floorSign: PIXI.Container = undefined;
+let floorSignText: PIXI.Text = undefined;
 let attackOverlay: AttackOverlay = undefined;
 let inputHandler: InputHandler = undefined;
 
@@ -138,17 +139,17 @@ function init() {
 	g.endFill();
 	floorSign.addChild(g);
 
-	let text = new PIXI.Text("", {
+	floorSignText = new PIXI.Text("", {
 		font: "300 32px Hind Siliguri",
 		fill: Colors.WHITE,
 		align: "center"
 	});
-	text.anchor.x = .5;
-	text.anchor.y = .5;
-	text.x = window.innerWidth / 2;
-	text.y = window.innerHeight / 2;
-	text.resolution = window.devicePixelRatio;
-	floorSign.addChild(text);
+	floorSignText.anchor.x = .5;
+	floorSignText.anchor.y = .5;
+	floorSignText.x = window.innerWidth / 2;
+	floorSignText.y = window.innerHeight / 2;
+	floorSignText.resolution = window.devicePixelRatio;
+	floorSign.addChild(floorSignText);
 
 	requestAnimationFrame(animate);
 
@@ -179,6 +180,9 @@ function handleWindowResize(): void {
 	messageLog.y = window.innerHeight;
 
 	commandArea.x = window.innerWidth - 350;
+
+	floorSignText.x = window.innerWidth / 2;
+	floorSignText.y = window.innerHeight / 2;
 
 	dungeonLayer.x = window.innerWidth / 2;
 	dungeonLayer.y = window.innerHeight / 2;
@@ -241,7 +245,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.getState().self = startEvent.self;
 
-				(floorSign.children[1] as PIXI.Text).text = sprintf("%s\n%s%dF",
+				floorSignText.text = sprintf("%s\n%s%dF",
 					state.getState().dungeon.name,
 					state.getState().dungeon.direction === "down" ? "B" : "",
 					state.getState().floor.number);
