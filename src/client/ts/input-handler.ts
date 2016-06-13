@@ -2,6 +2,8 @@
 
 import {DungeonLayer} from "./dungeon-layer";
 import {GameSocket}   from "./game-socket";
+import * as Messages  from "./messages";
+import {MessageLog}   from "./message-log";
 import {MiniMap}      from "./minimap";
 import * as state     from "./state";
 import * as utils     from "./utils";
@@ -15,14 +17,16 @@ export class InputHandler {
 	private socket: GameSocket;
 	private dungeonLayer: DungeonLayer;
 	private hammer: HammerManager;
+	private messageLog: MessageLog;
 
-	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer, rootElem: HTMLElement) {
+	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer, messageLog: MessageLog, rootElem: HTMLElement) {
 		this.awaitingMove = false;
 		this.inputTimer = 0;
 		this.moveInput = 0;
 		this.minimap = minimap;
 		this.dungeonLayer = dungeonLayer;
 		this.socket = socket;
+		this.messageLog = messageLog;
 
 		if (utils.isMobile()) {
 			this.setTouchListeners(rootElem);
@@ -36,12 +40,13 @@ export class InputHandler {
 				[Hammer.Swipe, { event: "swipe", pointers: 1 }],
 				[Hammer.Swipe, { event: "double-swipe", pointers: 2 }],
 				[Hammer.Tap, { event: "triple-tap", pointers: 3 }],
-				[Hammer.Rotate, { event: "rotate", enable: true, threshold: 90 }],
+				[Hammer.Tap, { event: "quadruple-tap", pointers: 4 }],
+				[Hammer.Rotate, { event: "rotate", threshold: 120 }],
 				[Hammer.Press, { event: "press", time: 1000 }]
 			]
 		});
 
-		this.hammer.on("swipe double-swipe triple-tap press", (event) => console.log(event));
+		this.hammer.on("swipe double-swipe triple-tap quadruple-tap press", (event) => console.log(event));
 
 		this.hammer.on("swipe", (event) => {
 			if (this.awaitingMove) {
@@ -67,6 +72,9 @@ export class InputHandler {
 
 		this.hammer.on("triple-tap", (event) =>
 			this.socket.emitTempSignal("start"));
+
+		this.hammer.on("quadruple-tap", (event) =>
+			this.messageLog.push(Messages.CONTROLS, 15000));
 
 		let entityBaseDirection = 0;
 		let startRotationAngle = 0;

@@ -48,6 +48,8 @@ export class SocketController implements Game.Crawl.Controller {
 	socket: SocketIO.Socket;
 	log: Game.Crawl.LogEvent[];
 	lastState: Game.Crawl.CensoredEntityCrawlState;
+	currentState: Game.Crawl.CensoredEntityCrawlState;
+	flushTimeout: NodeJS.Timer;
 	dashing: boolean;
 	dashPattern: number;
 	dashDirection: number;
@@ -57,6 +59,8 @@ export class SocketController implements Game.Crawl.Controller {
 		this.socket = socket;
 		this.log = [];
 		this.lastState = undefined;
+		this.currentState = undefined;
+		this.flushTimeout = undefined;
 		this.dashing = false;
 		this.dashPattern = 0;
 		this.dashDirection = 0;
@@ -87,6 +91,7 @@ export class SocketController implements Game.Crawl.Controller {
 		}
 
 		if (this.dashing && this.dashPattern === pattern) {
+			this.flushLog(false);
 			return new Promise((resolve, _) => setTimeout(resolve, 0))
 				.then(() => ({ type: "move" as "move", direction: this.dashDirection }));
 		}
@@ -94,7 +99,8 @@ export class SocketController implements Game.Crawl.Controller {
 		this.dashing = false;
 
 		return new Promise((resolve, reject) => {
-			this.flushLog(true, state);
+			this.currentState = state;
+			this.flushLog(true);
 			this.socket.on("action", (action: Game.Crawl.Action, options: Game.Client.ActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
 				if (executer.isValidAction(state, entity, action)) {
@@ -129,16 +135,21 @@ export class SocketController implements Game.Crawl.Controller {
 	}
 
 	updateState(state: Game.Crawl.CensoredEntityCrawlState): void {
-		this.flushLog(false, state);
+		this.currentState = state;
+		this.flushTimeout = setTimeout(() => this.flushLog(false), 50);
 	}
 
 	wait(): void {
 		this.flushLog(false);
 	}
 
-	flushLog(move: boolean, state?: Game.Crawl.CensoredEntityCrawlState): void {
-		let mapUpdates: Game.Client.MapUpdate[] = state === undefined ? undefined :
-			state.floor.map.grid
+	flushLog(move: boolean): void {
+		if (this.flushTimeout !== undefined) {
+			clearTimeout(this.flushTimeout);
+		}
+
+		let mapUpdates: Game.Client.MapUpdate[] =
+			this.currentState.floor.map.grid
 				.map((row, r) =>
 					row.map((tile, c) => {
 						if (this.lastState === undefined) {
@@ -155,25 +166,26 @@ export class SocketController implements Game.Crawl.Controller {
 				.reduce((acc, row) => acc.concat(row), [])
 				.filter((update) => update !== undefined);
 
-		this.lastState = state;
+		this.lastState = this.currentState;
+		log.ok("Sent %d map updates!", mapUpdates.length);
 
-		let stateUpdate: Game.Client.StateUpdate = state === undefined ? undefined : {
-			entities: state.entities,
+		let stateUpdate: Game.Client.StateUpdate = {
+			entities: this.currentState.entities,
 			floor: {
-				number: state.floor.number,
-				items: state.floor.items,
+				number: this.currentState.floor.number,
+				items: this.currentState.floor.items,
 				mapUpdates
 			},
 			self: {
-				name: state.self.name,
-				location: state.self.location,
-				graphics: state.self.graphics,
-				id: state.self.id,
-				attacks: state.self.attacks,
-				stats: state.self.stats,
-				alignment: state.self.alignment,
-				advances: state.self.advances,
-				bag: state.self.bag
+				name: this.currentState.self.name,
+				location: this.currentState.self.location,
+				graphics: this.currentState.self.graphics,
+				id: this.currentState.self.id,
+				attacks: this.currentState.self.attacks,
+				stats: this.currentState.self.stats,
+				alignment: this.currentState.self.alignment,
+				advances: this.currentState.self.advances,
+				bag: this.currentState.self.bag
 			}
 		};
 

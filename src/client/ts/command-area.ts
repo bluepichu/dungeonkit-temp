@@ -1,8 +1,9 @@
 "use strict";
 
-import * as Colors  from "./colors";
-import {GameSocket} from "./game-socket";
-import {MessageLog} from "./message-log";
+import * as Colors   from "./colors";
+import {GameSocket}  from "./game-socket";
+import * as Messages from "./messages";
+import {MessageLog}  from "./message-log";
 
 const COMMAND_AREA_INACTIVE_STYLE = {
 	font: "300 16px Hind Siliguri",
@@ -15,14 +16,6 @@ const COMMAND_AREA_ACTIVE_STYLE = {
 };
 
 const COMMAND_AREA_DEFAULT_TEXT = "Press space to input a command...";
-
-const CONTROLS_MESSAGE = "Here are the controls:\n"
-	+ "Use the <command>start</command> command to start!\n"
-	+ "Use the <self>arrow keys</self> to move!\n"
-	+ "Hold <self>B</self> when moving to dash!\n"
-	+ "Hold <self>R</self> when moving to rotate without stepping!\n"
-	+ "Press <self>shift</self> and a number to use an attack!\n"
-	+ "Use the <command>stairs</command> (or <command>s</command>) command to go up the stairs!";
 
 const INVALID_COMMAND = "<command>%s</command> is not a valid command.";
 
@@ -131,7 +124,7 @@ export class CommandArea extends PIXI.Container {
 				break;
 
 			case "help":
-				this.messageLog.push(CONTROLS_MESSAGE, 15000);
+				this.messageLog.push(Messages.CONTROLS, 15000);
 				break;
 
 			default:

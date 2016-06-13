@@ -60,7 +60,8 @@ gulp.task("client-ts", () =>
 		.pipe($.sourcemaps.init({ loadMaps: true }))
 		.pipe($.babel({ presets: [es2015] }))
 		.pipe($.sourcemaps.write(map))
-	    .pipe(gulp.dest(build("client/js"))));
+		.pipe($.notify("The client build is done."))
+	    .pipe(gulp.dest(build("client/js"))))
 
 gulp.task("client-lib", () =>
 	merge(gulp.src($.mainBowerFiles())

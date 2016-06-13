@@ -121,9 +121,6 @@ export class MessageLog extends PIXI.Container {
 	createMessage(message: string): PIXI.Container {
 		let ret = new PIXI.Container();
 
-		console.log(message);
-		console.log(MESSAGE_LOG_STYLES);
-
 		let text = new PIXI.MultiStyleText(message, MESSAGE_LOG_STYLES);
 		text.anchor.x = 1;
 		text.anchor.y = 1;

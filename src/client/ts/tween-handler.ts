@@ -8,6 +8,9 @@ export class TweenHandler {
 	}
 
 	tween(obj: any, key: string, target: number, velocity: number, type?: "linear" | "smooth"): Thenable {
+		this.tweens
+			.filter((tween) => tween.object === obj && tween.key === key && tween.onComplete !== undefined)
+			.forEach((tween) => tween.onComplete());
 		this.tweens = this.tweens.filter((tween) => tween.object !== obj || tween.key !== key);
 		return new Promise((resolve, reject) => {
 			this.tweens.push(new Tween(obj, key, target, velocity, type, resolve));

@@ -6,6 +6,7 @@ import * as Colors      from "./colors";
 import {CommandArea}    from "./command-area";
 import * as Constants   from "./constants";
 import {DungeonLayer}   from "./dungeon-layer";
+import * as Messages    from "./messages";
 import {EntityLayer}    from "./entity-layer";
 import {EntitySprite}   from "./graphics/entity-sprite";
 import {GameSocket}     from "./game-socket";
@@ -52,7 +53,7 @@ function init() {
 	socket = new GameSocket();
 
 	socket.onInit((dungeon: Game.Crawl.CensoredDungeon) => {
-		console.log("init");
+		console.info("init");
 
 		state.setState({
 			dungeon,
@@ -71,7 +72,7 @@ function init() {
 	});
 
 	socket.onInvalid(() => {
-		console.log("invalid");
+		console.info("invalid");
 		inputHandler.awaitingMove = true;
 	});
 
@@ -82,7 +83,7 @@ function init() {
 	socket.onUpdate(({stateUpdate, log, move}: Game.Client.UpdateMessage) => {
 		let updates: Processable[] = log;
 
-		console.log("update");
+		console.info("update");
 
 		if (stateUpdate !== undefined) {
 			updates.push({ type: "done", move, state: stateUpdate });
@@ -137,7 +138,7 @@ function init() {
 	g.endFill();
 	floorSign.addChild(g);
 
-	let text = new PIXI.Text("Prototypical Forest\nB1F", {
+	let text = new PIXI.Text("", {
 		font: "300 32px Hind Siliguri",
 		fill: Colors.WHITE,
 		align: "center"
@@ -151,143 +152,209 @@ function init() {
 
 	requestAnimationFrame(animate);
 
-	inputHandler = new InputHandler(socket, minimap, dungeonLayer, main);
+	inputHandler = new InputHandler(socket, minimap, dungeonLayer, messageLog, main);
+
+	commandArea = new CommandArea(300, 36, socket, messageLog);
+	commandArea.x = window.innerWidth - 350;
+	commandArea.y = 50;
 
 	if (!utils.isMobile()) {
-		commandArea = new CommandArea(300, 36, socket, messageLog);
-		commandArea.x = window.innerWidth - 350;
-		commandArea.y = 50;
 		gameContainer.addChild(commandArea);
 	}
 
-	messageLog.push("Welcome to <item>DungeonKit</item>!  Enter the command <command>start</command> to start.", 10000);
-	messageLog.push("You can enter the command <command>help</command> at any time for an explanation of the controls.", 10000);
+	window.addEventListener("orientationchange", handleWindowResize);
+	window.addEventListener("resize", handleWindowResize);
+
+	messageLog.push(Messages.WELCOME, 10000);
+	messageLog.push(Messages.START_HELP, 10000);
+}
+
+function handleWindowResize(): void {
+	renderer.view.style.width = window.innerWidth + "px";
+	renderer.view.style.height = window.innerHeight + "px";
+
+	renderer.resize(window.innerWidth, window.innerHeight);
+
+	messageLog.x = window.innerWidth;
+	messageLog.y = window.innerHeight;
+
+	commandArea.x = window.innerWidth - 350;
+
+	dungeonLayer.x = window.innerWidth / 2;
+	dungeonLayer.y = window.innerHeight / 2;
 }
 
 function processAll(updates: Processable[]): void {
-	while (updates.length > 0) {
-		processChain = processChain.then(getResolutionPromise(updates.shift()));
-	}
+	processChain = processChain
+		.then(() => console.warn("starting chain", updates))
+		.then(() => getResolutionPromise(updates))
+		.then(() => console.warn("finished chain"));
 }
 
-function getResolutionPromise(proc: Processable): (value: any) => Promise<void> {
-	return (value: any) => new Promise<void>((resolve, reject) => {
-		console.log(proc);
-		if (proc.type === "done") {
-			let p = proc as { type: "done", move: boolean, state: Game.Client.StateUpdate };
+function getResolutionPromise(processes: Processable[]): Promise<void> {
+	console.log(processes.map(p => p.type));
 
-			p.state.floor.mapUpdates.forEach((update) => {
-				state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
-				dungeonLayer.groundLayer.update(update.location);
-			});
-
-			state.getState().entities = p.state.entities;
-			state.getState().self = p.state.self;
-
-			dungeonLayer.entityLayer.update();
-			minimap.update();
-
-			inputHandler.awaitingMove = inputHandler.awaitingMove || p.move;
-
+	return new Promise<void>((resolve, reject) => {
+		if (processes.length === 0) {
 			resolve();
-		} else {
-			let event = proc as Game.Crawl.LogEvent;
+			return;
+		}
 
-			switch (event.type) {
-				case "start":
-					let startEvent = event as Game.Crawl.StartLogEvent;
-					state.getState().floor.number = startEvent.floorInformation.number;
-					state.getState().floor.map.width = startEvent.floorInformation.width;
-					state.getState().floor.map.height = startEvent.floorInformation.height;
-					state.getState().floor.map.grid =
-						utils.tabulate((row) =>
-							utils.tabulate((col) =>
-								({ type: Game.Crawl.DungeonTileType.UNKNOWN }),
-								startEvent.floorInformation.width),
-							startEvent.floorInformation.height);
-					state.getState().self = startEvent.self;
-					(floorSign.children[1] as PIXI.Text).text = sprintf("%s\n%s%dF",
-						state.getState().dungeon.name,
-						state.getState().dungeon.direction === "down" ? "B" : "",
-						state.getState().floor.number);
-					dungeonLayer.init();
-					new Promise((resolve, _) => setTimeout(resolve, 2000))
-						.then(() => {
-							resolve();
-							setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
-						});
-					break;
+		let proc = processes.shift();
 
-				case "wait":
-					messageLog.push(sprintf("<%1$s>%2$s</%1$s> waits.",
-						event.entity.id === state.getState().self.id ? "self" : "enemy",
-							event.entity.name));
-					resolve();
-					break;
+		let done = () =>
+			resolve(getResolutionPromise(processes));
 
-				case "move":
-					let moveEvent = event as Game.Crawl.MoveLogEvent;
-					dungeonLayer.moveEntity(event.entity, moveEvent.start, moveEvent.end, event.entity.id === state.getState().self.id, "walk", moveEvent.direction)
-						.then(() => dungeonLayer.entityLayer.setEntityAnimation(moveEvent.entity.id, "idle"))
-						.then(resolve);
-					break;
+		switch (proc.type) {
+			case "done":
+				console.log("done");
+				let doneEvent = proc as { type: "done", move: boolean, state: Game.Client.StateUpdate };
 
-				case "attack":
-					let attackEvent = event as Game.Crawl.AttackLogEvent;
-					messageLog.push(sprintf("<%1$s>%2$s</%1$s> used <attack>%3$s</attack>!",
-						event.entity.id === state.getState().self.id ? "self" : "enemy",
-							event.entity.name,
-							attackEvent.attack.name));
-					dungeonLayer.showAnimationOnce(event.entity.id, attackEvent.attack.animation, attackEvent.direction)
-						.then(() => dungeonLayer.entityLayer.setEntityAnimation(attackEvent.entity.id, "idle"))
-						.then(resolve);
-					break;
+				doneEvent.state.floor.mapUpdates.forEach((update) => {
+					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
+					dungeonLayer.groundLayer.update(update.location);
+				});
 
-				case "stat":
-					let statEvent = event as Game.Crawl.StatLogEvent;
+				state.getState().entities = doneEvent.state.entities;
+				state.getState().self = doneEvent.state.self;
 
-					switch (statEvent.stat) {
-						case "hp":
-							messageLog.push(sprintf("<%1$s>%2$s</%1$s> took %3$d damage!",
-								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
-									statEvent.entity.name,
-									-statEvent.change));
+				dungeonLayer.entityLayer.update();
+				minimap.update();
 
-							dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
+				inputHandler.awaitingMove = inputHandler.awaitingMove || doneEvent.move;
 
-							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
-								.then(resolve);
-							break;
+				return done();
 
-						default:
-							resolve();
+			case "start":
+				let startEvent = proc as Game.Crawl.StartLogEvent;
+
+				state.getState().floor.number = startEvent.floorInformation.number;
+				state.getState().floor.map.width = startEvent.floorInformation.width;
+				state.getState().floor.map.height = startEvent.floorInformation.height;
+
+				state.getState().floor.map.grid =
+					utils.tabulate((row) =>
+						utils.tabulate((col) =>
+							({ type: Game.Crawl.DungeonTileType.UNKNOWN }),
+							startEvent.floorInformation.width),
+						startEvent.floorInformation.height);
+
+				state.getState().self = startEvent.self;
+
+				(floorSign.children[1] as PIXI.Text).text = sprintf("%s\n%s%dF",
+					state.getState().dungeon.name,
+					state.getState().dungeon.direction === "down" ? "B" : "",
+					state.getState().floor.number);
+
+				dungeonLayer.init();
+
+				new Promise((resolve, _) => setTimeout(resolve, 2000))
+					.then(() => {
+						done();
+						setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
+					});
+
+				break;
+
+			case "wait":
+				setTimeout(done, 200);
+				break;
+
+			case "move":
+				let getMovePromise = (evt: Game.Crawl.MoveLogEvent) =>
+					dungeonLayer.moveEntity(
+						evt.entity,
+						evt.start,
+						evt.end,
+						evt.entity.id === state.getState().self.id,
+						"walk",
+						evt.direction)
+						.then(() => dungeonLayer.entityLayer.setEntityAnimation(evt.entity.id, "idle"));
+
+				let movePromises: Thenable[] = [];
+				let deferred: Processable[] = [];
+
+				processes.unshift(proc);
+
+				while (processes.length > 0) {
+					if (processes[0].type === "move") {
+						movePromises.push(getMovePromise(processes.shift() as Game.Crawl.MoveLogEvent));
+					} else if (processes[0].type === "done") {
+						deferred.push(processes.shift());
+					} else {
+						break;
 					}
-					break;
+				}
 
-				case "defeat":
-					messageLog.push(sprintf("<%1$s>%2$s</%1$s> was defeated!",
-						event.entity.id === state.getState().self.id ? "self" : "enemy",
-							event.entity.name));
-					dungeonLayer.entityLayer.setEntityAnimation(event.entity.id, "defeat");
-					new Promise((resolve, _) => setTimeout(resolve, 500))
-						.then(() => resolve());
-					break;
+				processes = deferred.concat(processes);
 
-				case "stairs":
-					messageLog.push(sprintf("<%1$s>%2$s</%1$s> went up the stairs!",
-						event.entity.id === state.getState().self.id ? "self" : "enemy",
-							event.entity.name));
-					new Promise((resolve, _) => setTimeout(resolve, 600))
-						.then(() => tweenHandler.tween(floorSign, "alpha", 1, .1))
-						.then(() => {
-							minimap.clear();
-							dungeonLayer.clear();
-							messageLog.clear();
-							setTimeout(resolve, 1000);
-						});
-					break;
-			}
+				Promise.all(movePromises).then(done);
+				break;
+
+			case "attack":
+				let attackEvent = proc as Game.Crawl.AttackLogEvent;
+
+				messageLog.push(sprintf("<%1$s>%2$s</%1$s> used <attack>%3$s</attack>!",
+					attackEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+					attackEvent.entity.name,
+					attackEvent.attack.name));
+
+				dungeonLayer.showAnimationOnce(attackEvent.entity.id, attackEvent.attack.animation, attackEvent.direction)
+					.then(() => dungeonLayer.entityLayer.setEntityAnimation(attackEvent.entity.id, "idle"))
+					.then(done);
+
+				break;
+
+			case "stat":
+				let statEvent = proc as Game.Crawl.StatLogEvent;
+
+				switch (statEvent.stat) {
+					case "hp":
+						messageLog.push(sprintf("<%1$s>%2$s</%1$s> took %3$d damage!",
+							statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+							statEvent.entity.name,
+							-statEvent.change));
+
+						dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
+
+						new Promise((resolve, _) => setTimeout(resolve, 1000))
+							.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
+							.then(done);
+						break;
+
+					default:
+						done();
+						break;
+				}
+				break;
+
+			case "defeat":
+				let defeatEvent = proc as Game.Crawl.DefeatLogEvent;
+
+				messageLog.push(sprintf("<%1$s>%2$s</%1$s> was defeated!",
+					defeatEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+					defeatEvent.entity.name));
+				dungeonLayer.entityLayer.setEntityAnimation(defeatEvent.entity.id, "defeat");
+				new Promise((resolve, _) => setTimeout(resolve, 500))
+					.then(done);
+				break;
+
+			case "stairs":
+				let stairsEvent = proc as Game.Crawl.StairsLogEvent;
+
+				messageLog.push(sprintf("<%1$s>%2$s</%1$s> went up the stairs!",
+					stairsEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+					stairsEvent.entity.name));
+				new Promise((resolve, _) => setTimeout(resolve, 600))
+					.then(() => tweenHandler.tween(floorSign, "alpha", 1, .1))
+					.then(() => {
+						minimap.clear();
+						dungeonLayer.clear();
+						messageLog.clear();
+						setTimeout(done, 1000);
+					});
+
+				break;
 		}
 	});
 }
