@@ -167,7 +167,6 @@ export class SocketController implements Game.Crawl.Controller {
 				.filter((update) => update !== undefined);
 
 		this.lastState = this.currentState;
-		log.ok("Sent %d map updates!", mapUpdates.length);
 
 		let stateUpdate: Game.Client.StateUpdate = {
 			entities: this.currentState.entities,

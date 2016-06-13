@@ -161,6 +161,13 @@ function init() {
 
 	if (!utils.isMobile()) {
 		gameContainer.addChild(commandArea);
+		if (window.location.pathname !== "/") {
+			socket.emitTempSignal("join", window.location.pathname.substring(1));
+		}
+	} else {
+		if (window.location.pathname !== "/mobile") {
+			socket.emitTempSignal("join", window.location.pathname.substring(7));
+		}
 	}
 
 	window.addEventListener("orientationchange", handleWindowResize);

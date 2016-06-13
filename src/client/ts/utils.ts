@@ -50,5 +50,5 @@ export function decodeDirection(direction: number): [number, number] {
 }
 
 export function isMobile(): boolean {
-	return window.location.pathname === "/mobile";
+	return window.location.pathname.substring(0, 7) === "/mobile";
 }

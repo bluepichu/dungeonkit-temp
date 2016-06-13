@@ -327,9 +327,8 @@ export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 				utils.isVisible(state.floor.map, entity.location, item.location))
 		},
 		entities: state.entities.filter((ent: Game.Crawl.CrawlEntity) =>
-			utils.isVisible(state.floor.map, entity.location, ent.location)
-			|| entity.alignment !== 0
-			&& entity.alignment === ent.alignment).map(censorEntity)
+				utils.isVisible(state.floor.map, entity.location, ent.location)
+			).map(censorEntity)
 	};
 
 	return JSON.parse(JSON.stringify(censored)); // ewwwww (clone won't build for me)

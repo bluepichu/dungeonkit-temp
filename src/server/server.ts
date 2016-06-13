@@ -6,7 +6,7 @@ import * as fs                   from "fs";
 import * as http                 from "http";
 import * as nconf                from "nconf";
 import * as path                 from "path";
-import * as shortid              from "shortid";
+import {generate as shortid}     from "shortid";
 import * as socketio             from "socket.io";
 import * as sourcemap            from "source-map-support";
 import {sprintf}                 from "sprintf-js";
@@ -26,37 +26,50 @@ export function start() {
 
 	app.use(express.static("client"));
 
-	app.get("/mobile", (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
+	app.get(/.*/, (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
 
 	const server: http.Server = app.listen(PORT, function() {
 		log.info("Listening on *:" + PORT);
 	});
 
 	const io: SocketIO.Server = socketio(server);
+	let games: Map<string, string> = new Map();
 
 	io.on("connection", (socket: SocketIO.Socket) => {
 		log.logf("<green>+ %s</green>", socket.id);
-		socket.join("waiting");
+		games.set(socket.id, shortid());
 
-		socket.on("disconnect", () => log.logf("<red>- %s</red>", socket.id));
+		socket.on("disconnect", () => {
+			log.logf("<red>- %s</red>", socket.id)
+			games.delete(socket.id);
+		});
 
 		socket.on("error", (err: Error) => log.error(err.stack));
+
+		socket.on("join", (game: string) => {
+			games.set(socket.id, game);
+			log.logf("<blue>%s --> %s</blue>", socket.id, game);
+		});
 
 		socket.on("start", () => {
 			log.logf("<cyan>S %s</cyan>", socket.id);
 
-			let room = io.sockets.adapter.rooms["waiting"];
-
-			if (room === undefined) {
+			if (!games.has(socket.id)) {
 				return;
 			}
 
-			let waiting: { [id: string]: boolean } = room.sockets;
-			let socketIds: string[] = Object.keys(waiting).filter((id) => waiting[id]);
+			let game = games.get(socket.id);
+			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) => games.get(socket) === game);
+			log.log(io.sockets.sockets, games, socketIds);
+
+			if (socketIds.length === 0) {
+				return;
+			}
+
 			let sockets: SocketIO.Socket[] = socketIds.map((id) => io.sockets.connected[id]);
 			let players: Game.Crawl.UnplacedCrawlEntity[] = sockets.map(generatePlayer);
 
-			sockets.forEach((socket) => socket.leave("waiting"));
+			socketIds.forEach((socket) => games.delete(socket));
 			players.forEach((player) => player.controller.init(player, dungeon));
 
 			crawl.startCrawl(dungeon, players)

@@ -16,6 +16,11 @@ let testProject   = $.typescript.createProject("src/test/tsconfig.json");
 let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
 let build   = (dir) => path.join("build", dir);
 let map     = "map";
+let notify  = (message) => $.notify({
+			title: "Dungeonkit Build Notice",
+			message: message,
+			icon: path.join(__dirname, "icon.png")
+		});
 
 gulp.task("default", ["client", "server", "test"]);
 
@@ -60,11 +65,7 @@ gulp.task("client-ts", () =>
 		.pipe($.sourcemaps.init({ loadMaps: true }))
 		.pipe($.babel({ presets: [es2015] }))
 		.pipe($.sourcemaps.write(map))
-		.pipe($.notify({
-			title: "Build Notice",
-			message: "The client is ready!",
-			icon: path.join(__dirname, "icon.png")
-		}))
+		.pipe(notify("The client is ready!"))
 	    .pipe(gulp.dest(build("client/js"))))
 
 gulp.task("client-lib", () =>
@@ -82,6 +83,7 @@ gulp.task("server", () =>
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(serverProject))
 	    .pipe($.sourcemaps.write(map))
+	    .pipe(notify("The server is ready!"))
 	    .pipe(gulp.dest(build(""))));
 
 gulp.task("watch-test", () => {

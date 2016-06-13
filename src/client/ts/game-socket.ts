@@ -18,8 +18,8 @@ export class GameSocket {
 			this.execute("update", message));
 	}
 
-	emitTempSignal(hook: string): void {
-		this.socket.emit(hook);
+	emitTempSignal(hook: string, ...args: any[]): void {
+		this.socket.emit(hook, ...args);
 	}
 
 	sendAction(action: Game.Crawl.Action, options?: Game.Client.ActionOptions) {
