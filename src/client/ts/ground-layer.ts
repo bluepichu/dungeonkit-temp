@@ -31,8 +31,6 @@ export class GroundLayer extends PIXI.Container {
 				let dtile = tile as PIXI.DisplayObject;
 
 				[dtile.x, dtile.y] = utils.locationToCoordinates({ r: i, c: j }, Constants.GRID_SIZE);
-				dtile.scale.x = Constants.SCALE;
-				dtile.scale.y = Constants.SCALE;
 				this.addChild(dtile);
 			}
 		}
@@ -41,8 +39,8 @@ export class GroundLayer extends PIXI.Container {
 	moveTo(loc: Game.Crawl.Location): Thenable {
 		let [x, y] = utils.locationToCoordinates(loc, Constants.GRID_SIZE);
 
-		let xPrm = this.tweenHandler.tween(this, "x", -x, Constants.WALK_SPEED);
-		let yPrm = this.tweenHandler.tween(this, "y", -y, Constants.WALK_SPEED);
+		let xPrm = this.tweenHandler.tween(this, "x", -x, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		let yPrm = this.tweenHandler.tween(this, "y", -y, Constants.VIEW_MOVE_VELOCITY, "smooth");
 
 		return Promise.all([xPrm, yPrm]);
 	}

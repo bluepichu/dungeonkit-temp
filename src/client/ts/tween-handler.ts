@@ -63,7 +63,7 @@ class Tween {
 		}
 
 		if (this.type === "smooth") {
-			if (Math.abs(this.object[this.key] - this.target) < .1) {
+			if (Math.abs(this.object[this.key] - this.target) < .001) {
 				this.object[this.key] = this.target;
 
 				if (this.onComplete) {

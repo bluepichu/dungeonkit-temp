@@ -10,6 +10,8 @@ import * as utils     from "./utils";
 export class DungeonLayer extends PIXI.Container {
 	public groundLayer: GroundLayer;
 	public entityLayer: EntityLayer;
+	public nextView: { r: [number, number], c: [number, number] };
+	public tweenHandler: TweenHandler;
 
 	constructor(tweenHandler: TweenHandler) {
 		super();
@@ -19,6 +21,8 @@ export class DungeonLayer extends PIXI.Container {
 
 		this.addChild(this.groundLayer);
 		this.addChild(this.entityLayer);
+
+		this.tweenHandler = tweenHandler;
 	}
 
 	init(): void {
@@ -38,7 +42,17 @@ export class DungeonLayer extends PIXI.Container {
 		this.entityLayer.setEntityAnimation(entity.id, animation, direction);
 
 		if (isSelf) {
-			return Promise.all([prm, this.groundLayer.moveTo(to), this.entityLayer.moveTo(to)]);
+			let center = {
+				r: (this.nextView.r[0] + this.nextView.r[1]) / 2,
+				c: (this.nextView.c[0] + this.nextView.c[1]) / 2
+			};
+			let newScale = Math.min(window.innerHeight / (this.nextView.r[1] - this.nextView.r[0]),
+				window.innerWidth / (this.nextView.c[1] - this.nextView.c[0])) * .6 / Constants.GRID_SIZE;
+
+			this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
+			this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
+			this.groundLayer.moveTo(center);
+			this.entityLayer.moveTo(center);
 		}
 
 		return prm;

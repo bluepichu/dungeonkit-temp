@@ -40,7 +40,7 @@ export function start() {
 		games.set(socket.id, shortid());
 
 		socket.on("disconnect", () => {
-			log.logf("<red>- %s</red>", socket.id)
+			log.logf("<red>- %s</red>", socket.id);
 			games.delete(socket.id);
 		});
 

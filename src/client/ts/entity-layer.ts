@@ -71,8 +71,8 @@ export class EntityLayer extends PIXI.Container {
 	moveTo(location: Game.Crawl.Location): Thenable {
 		let [xTarget, yTarget] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
 
-		let xPrm = this.tweenHandler.tween(this, "x", -xTarget, Constants.WALK_SPEED);
-		let yPrm = this.tweenHandler.tween(this, "y", -yTarget, Constants.WALK_SPEED);
+		let xPrm = this.tweenHandler.tween(this, "x", -xTarget, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		let yPrm = this.tweenHandler.tween(this, "y", -yTarget, Constants.VIEW_MOVE_VELOCITY, "smooth");
 
 		return Promise.all([xPrm, yPrm]);
 	}

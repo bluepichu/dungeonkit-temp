@@ -19,8 +19,6 @@ export class AnimatedSprite extends PIXI.Container {
 		this.step = 0;
 		this.frame = 0;
 		this.base = base;
-		this.scale.x = Constants.SCALE;
-		this.scale.y = Constants.SCALE;
 		this.changed = true;
 		this.animationEndListeners = [];
 

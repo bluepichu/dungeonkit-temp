@@ -1,22 +1,22 @@
 "use strict";
 
-import {AnimatedSprite} from "./graphics/animated-sprite";
-import {AttackOverlay}  from "./attack-overlay";
-import * as Colors      from "./colors";
-import {CommandArea}    from "./command-area";
-import * as Constants   from "./constants";
-import {DungeonLayer}   from "./dungeon-layer";
-import * as Messages    from "./messages";
-import {EntityLayer}    from "./entity-layer";
-import {EntitySprite}   from "./graphics/entity-sprite";
-import {GameSocket}     from "./game-socket";
-import {GroundLayer}    from "./ground-layer";
-import {InputHandler}   from "./input-handler";
-import {MessageLog}     from "./message-log";
-import {MiniMap}        from "./minimap";
-import * as state       from "./state";
-import {TweenHandler}   from "./tween-handler";
-import * as utils       from "./utils";
+import {AnimatedSprite}                                        from "./graphics/animated-sprite";
+import {AttackOverlay}                                         from "./attack-overlay";
+import * as Colors                                             from "./colors";
+import {CommandArea}                                           from "./command-area";
+import * as Constants                                          from "./constants";
+import {DungeonLayer}                                          from "./dungeon-layer";
+import * as Messages                                           from "./messages";
+import {EntityLayer}                                           from "./entity-layer";
+import {EntitySprite}                                          from "./graphics/entity-sprite";
+import {GameSocket}                                            from "./game-socket";
+import {GroundLayer}                                           from "./ground-layer";
+import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
+import {MessageLog}                                            from "./message-log";
+import {MiniMap}                                               from "./minimap";
+import * as state                                              from "./state";
+import {TweenHandler}                                          from "./tween-handler";
+import * as utils                                              from "./utils";
 
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
 let gameContainer: PIXI.Container = undefined;
@@ -81,10 +81,11 @@ function init() {
 		EntityLayer.entityGraphicsCache.set(key, graphics);
 	});
 
-	socket.onUpdate(({stateUpdate, log, move}: Game.Client.UpdateMessage) => {
+	socket.onUpdate(({stateUpdate, log, move, view}: Game.Client.UpdateMessage) => {
 		let updates: Processable[] = log;
 
 		console.info("update");
+		dungeonLayer.nextView = view;
 
 		if (stateUpdate !== undefined) {
 			updates.push({ type: "done", move, state: stateUpdate });
@@ -153,18 +154,18 @@ function init() {
 
 	requestAnimationFrame(animate);
 
-	inputHandler = new InputHandler(socket, minimap, dungeonLayer, messageLog, main);
-
 	commandArea = new CommandArea(300, 36, socket, messageLog);
 	commandArea.x = window.innerWidth - 350;
 	commandArea.y = 50;
 
 	if (!utils.isMobile()) {
+		inputHandler = new KeyboardInputHandler(socket, minimap, dungeonLayer);
 		gameContainer.addChild(commandArea);
 		if (window.location.pathname !== "/") {
 			socket.emitTempSignal("join", window.location.pathname.substring(1));
 		}
 	} else {
+		inputHandler = new TouchInputHandler(socket, dungeonLayer, messageLog, main, gameContainer);
 		if (window.location.pathname !== "/mobile") {
 			socket.emitTempSignal("join", window.location.pathname.substring(7));
 		}

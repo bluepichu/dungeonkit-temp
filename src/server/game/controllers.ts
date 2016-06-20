@@ -148,6 +148,9 @@ export class SocketController implements Game.Crawl.Controller {
 			clearTimeout(this.flushTimeout);
 		}
 
+		let rView: [number, number] = [this.currentState.self.location.r, this.currentState.self.location.r];
+		let cView: [number, number] = [this.currentState.self.location.c, this.currentState.self.location.c];
+
 		let mapUpdates: Game.Client.MapUpdate[] =
 			this.currentState.floor.map.grid
 				.map((row, r) =>
@@ -165,6 +168,34 @@ export class SocketController implements Game.Crawl.Controller {
 					}))
 				.reduce((acc, row) => acc.concat(row), [])
 				.filter((update) => update !== undefined);
+
+		this.currentState.floor.map.grid
+			.forEach((row, r) =>
+				row.forEach((tile, c) => {
+					if (r > 0
+						&& c > 0
+						&& r < this.currentState.floor.map.grid.length - 1
+						&& c < row.length - 1
+						&& this.currentState.floor.map.grid[r - 1][c].type !== Game.Crawl.DungeonTileType.UNKNOWN
+						&& this.currentState.floor.map.grid[r + 1][c].type !== Game.Crawl.DungeonTileType.UNKNOWN
+						&& this.currentState.floor.map.grid[r][c - 1].type !== Game.Crawl.DungeonTileType.UNKNOWN
+						&& this.currentState.floor.map.grid[r][c + 1].type !== Game.Crawl.DungeonTileType.UNKNOWN
+						&& this.currentState.floor.map.grid[r][c].type === Game.Crawl.DungeonTileType.FLOOR
+						&& utils.isVisible(this.currentState.floor.map, this.currentState.self.location, { r, c })) {
+						rView = [Math.min(rView[0], r), Math.max(rView[1], r)];
+						cView = [Math.min(cView[0], c), Math.max(cView[1], c)];
+					}
+				}));
+
+		if (rView[1] - rView[0] < 4) {
+			rView[0] = Math.min(rView[0], this.currentState.self.location.r - 2);
+			rView[1] = Math.max(rView[1], this.currentState.self.location.r + 2);
+		}
+
+		if (cView[1] - cView[0] < 4) {
+			cView[0] = Math.min(cView[0], this.currentState.self.location.c - 2);
+			cView[1] = Math.max(cView[1], this.currentState.self.location.c + 2);
+		}
 
 		this.lastState = this.currentState;
 
@@ -191,7 +222,11 @@ export class SocketController implements Game.Crawl.Controller {
 		let update: Game.Client.UpdateMessage = {
 			stateUpdate,
 			log: this.log,
-			move
+			move,
+			view: {
+				r: rView,
+				c: cView
+			}
 		};
 
 		this.socket.emit("update", update);

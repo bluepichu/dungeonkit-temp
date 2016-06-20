@@ -4,6 +4,10 @@ declare namespace Game {
 			stateUpdate: StateUpdate;
 			log: Game.Crawl.LogEvent[];
 			move: boolean;
+			view: {
+				r: [number, number],
+				c: [number, number]
+			};
 		}
 
 		interface StateUpdate {
