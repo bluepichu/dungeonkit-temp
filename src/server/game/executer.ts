@@ -308,54 +308,19 @@ export function updateMap(state: Game.Crawl.InProgressCrawlState, entity: Game.C
 
 	let {r, c} = entity.location;
 
-	for (let i = 0; i < 8; i++) {
-		let [dr, dc] = utils.decodeDirection(i);
-
-		if (utils.inRange(r + dr, 0, state.floor.map.height)
-		    && utils.inRange(c + dc, 0, state.floor.map.width)
-		    && entity.map.grid[r + dr][c + dc] !== state.floor.map.grid[r + dr][c + dc]) {
-			entity.map.grid[r + dr][c + dc] = state.floor.map.grid[r + dr][c + dc];
+	utils.withinNSteps(2, entity.location, (loc) => {
+		if (utils.isLocationInMap(state.floor.map, loc)
+			&& utils.getTile(state.floor.map, loc) !== utils.getTile(entity.map, loc)) {
+			entity.map.grid[loc.r][loc.c] = state.floor.map.grid[loc.r][loc.c];
 			changed = true;
 		}
-
-		for (let j = 0; j < 8; j++) {
-			let [ddr, ddc] = utils.decodeDirection(j);
-
-			if (utils.inRange(r + dr + ddr, 0, state.floor.map.height)
-			    && utils.inRange(c + dc + ddc, 0, state.floor.map.width)
-			    && entity.map.grid[r + dr + ddr][c + dc + ddc] !== state.floor.map.grid[r + dr + ddr][c + dc + ddc]) {
-				entity.map.grid[r + dr + ddr][c + dc + ddc] = state.floor.map.grid[r + dr + ddr][c + dc + ddc];
-				changed = true;
-			}
-		}
-	}
+	});
 
 	if (utils.isLocationInRoom(state.floor.map, entity.location) && changed) {
 		for (let i = 0; i < state.floor.map.height; i++) {
 			for (let j = 0; j < state.floor.map.width; j++) {
-				if (utils.inSameRoom(state.floor.map, entity.location, { r: i, c: j })) {
+				if (utils.isVisible(state.floor.map, entity.location, { r: i, c: j })) {
 					entity.map.grid[i][j] = state.floor.map.grid[i][j];
-				} else {
-					for (let k = 0; k < 8; k++) {
-						let [di1, dj1] = utils.decodeDirection(k);
-
-						if (utils.isLocationInMap(state.floor.map, { r: i + di1, c: j + dj1 })
-						    && utils.inSameRoom(state.floor.map, entity.location, { r: i + di1, c: j + dj1 })) {
-							entity.map.grid[i][j] = state.floor.map.grid[i][j];
-							break;
-						}
-
-						for (let l = 0; l < 8; l++) {
-							let [di2, dj2] = utils.decodeDirection(l);
-							let [di, dj] = [di1 + di2, dj1 + dj2];
-
-							if (utils.isLocationInMap(state.floor.map, { r: i + di, c: j + dj })
-								&& utils.inSameRoom(state.floor.map, entity.location, { r: i + di, c: j + dj })) {
-								entity.map.grid[i][j] = state.floor.map.grid[i][j];
-								break;
-							}
-						}
-					}
 				}
 			}
 		}

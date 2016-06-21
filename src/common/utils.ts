@@ -132,13 +132,13 @@ export function randint(min: number, max: number): number {
 }
 
 /**
- * Returns the (Manhattan) distance between two locations.
+ * Returns the minimum distance between two locations, allowing diagonal moves.
  * @param a - The first location.
  * @param b - The second location.
- * @returns The (Manhattan) distance between the two locations.
+ * @returns The distance between the two locations.
  */
 export function distance(a: Game.Crawl.Location, b: Game.Crawl.Location): number {
-	return Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+	return Math.max(Math.abs(a.r - b.r), Math.abs(a.c - b.c));
 }
 
 /**
@@ -205,10 +205,23 @@ export function inRange(v: number, min: number, max: number): boolean {
 export function isVisible(map: Game.Crawl.Map,
 	observer: Game.Crawl.Location,
 	location: Game.Crawl.Location): boolean {
-	return isValidLocation(observer)
-	       && isValidLocation(location)
-	       && ((isLocationInRoom(map, observer) && inSameRoom(map, observer, location))
-			|| distance(observer, location) <= 2);
+	if (!isValidLocation(observer) || !isValidLocation(location)) {
+		return false;
+	}
+
+	if (isLocationInRoom(map, observer)) {
+		let inRange = false;
+
+		withinNSteps(2, location, (loc) => {
+			inRange = inRange || inSameRoom(map, observer, loc);
+		});
+
+		if (inRange) {
+			return true;
+		}
+	}
+
+	return distance(observer, location) <= 2;
 }
 
 /**
@@ -239,4 +252,14 @@ export function getTile(map: Game.Crawl.Map, location: Game.Crawl.Location): Gam
 
 export function locationToCoordinates(location: Game.Crawl.Location, gridSize: number): [number, number] {
 	return [location.c * gridSize, location.r * gridSize];
+}
+
+export function withinNSteps(steps: number,
+	location: Game.Crawl.Location,
+	fn: (location: Game.Crawl.Location) => any): void {
+	for (let r = location.r - steps; r <= location.r + steps; r++) {
+		for (let c = location.c - steps; c <= location.c + steps; c++) {
+			fn({ r, c });
+		}
+	}
 }

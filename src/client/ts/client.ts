@@ -82,11 +82,10 @@ function init() {
 		EntityLayer.entityGraphicsCache.set(key, graphics);
 	});
 
-	socket.onUpdate(({stateUpdate, log, move, view}: Game.Client.UpdateMessage) => {
+	socket.onUpdate(({stateUpdate, log, move}: Game.Client.UpdateMessage) => {
 		let updates: Processable[] = log;
 
 		console.info("update");
-		dungeonLayer.nextView = view;
 
 		if (stateUpdate !== undefined) {
 			updates.push({ type: "done", move, state: stateUpdate });
@@ -231,6 +230,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				state.getState().entities = doneEvent.state.entities;
 				state.getState().self = doneEvent.state.self;
 
+				dungeonLayer.updatePosition(state.getState().self.location);
 				dungeonLayer.entityLayer.update();
 				minimap.update();
 

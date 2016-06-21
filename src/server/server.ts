@@ -60,7 +60,6 @@ export function start() {
 
 			let game = games.get(socket.id);
 			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) => games.get(socket) === game);
-			log.log(io.sockets.sockets, games, socketIds);
 
 			if (socketIds.length === 0) {
 				return;

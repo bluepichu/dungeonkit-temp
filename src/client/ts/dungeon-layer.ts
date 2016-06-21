@@ -10,7 +10,6 @@ import * as utils     from "../../common/utils";
 export class DungeonLayer extends PIXI.Container {
 	public groundLayer: GroundLayer;
 	public entityLayer: EntityLayer;
-	public nextView: { r: [number, number], c: [number, number] };
 	public tweenHandler: TweenHandler;
 
 	constructor(tweenHandler: TweenHandler) {
@@ -42,20 +41,48 @@ export class DungeonLayer extends PIXI.Container {
 		this.entityLayer.setEntityAnimation(entity.id, animation, direction);
 
 		if (isSelf) {
-			let center = {
-				r: (this.nextView.r[0] + this.nextView.r[1]) / 2,
-				c: (this.nextView.c[0] + this.nextView.c[1]) / 2
-			};
-			let newScale = Math.min(window.innerHeight / (this.nextView.r[1] - this.nextView.r[0]),
-				window.innerWidth / (this.nextView.c[1] - this.nextView.c[0])) * .6 / Constants.GRID_SIZE;
-
-			this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
-			this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
-			this.groundLayer.moveTo(center);
-			this.entityLayer.moveTo(center);
+			this.updatePosition(to);
 		}
 
 		return prm;
+	}
+
+	updatePosition(entityLocation: Game.Crawl.Location): void {
+		let nextView = {
+			r: [entityLocation.r, entityLocation.r],
+			c: [entityLocation.c, entityLocation.c]
+		};
+
+		let inRoom = utils.getTile(state.getState().floor.map, entityLocation).roomId > 0;
+
+		for (let i = 0; i < state.getState().floor.map.height; i++) {
+			for (let j = 0; j < state.getState().floor.map.width; j++) {
+				if (utils.isVisible(state.getState().floor.map, entityLocation, { r: i, c: j })) {
+					console.log(i, j, inRoom);
+					nextView.r[0] = Math.min(nextView.r[0], i);
+					nextView.r[1] = Math.max(nextView.r[1], i);
+					nextView.c[0] = Math.min(nextView.c[0], j);
+					nextView.c[1] = Math.max(nextView.c[1], j);
+				}
+			}
+		}
+
+		console.log(nextView.r, nextView.c);
+
+		let center = {
+			r: (nextView.r[0] + nextView.r[1]) / 2,
+			c: (nextView.c[0] + nextView.c[1]) / 2
+		};
+
+		let newScale = Math.min(window.innerHeight / (nextView.r[1] - nextView.r[0]),
+			window.innerWidth / (nextView.c[1] - nextView.c[0])) * .8 / Constants.GRID_SIZE;
+
+		newScale = Math.min(newScale, 4);
+
+		this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		this.groundLayer.moveTo(center);
+		this.entityLayer.moveTo(center);
 	}
 
 	showAnimationOnce(entityId: string, animation: string, direction?: number): Thenable {
