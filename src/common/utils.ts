@@ -1,7 +1,5 @@
 "use strict";
 
-import {sprintf} from "sprintf-js";
-
 /**
  * Converts a direction number into a number tuple that describes the direction.
  * @param direction - The number of the direction to decode.
@@ -48,12 +46,12 @@ export function areLocationsEqual(a: Game.Crawl.Location, b: Game.Crawl.Location
  * @returns The entity at the given location in the given state, or undefined if no entity occupies that location.
  */
 export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
-	                                location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void;
+	location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void;
 export function getEntityAtLocation(state: Game.Crawl.CensoredInProgressCrawlState,
-                                    location: Game.Crawl.Location): Game.Crawl.CensoredCrawlEntity | void;
+	location: Game.Crawl.Location): Game.Crawl.CensoredCrawlEntity | void;
 
 export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
-                                    location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void {
+	location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void {
 	for (let i = 0; i < state.entities.length; i++) {
 		if (areLocationsEqual(location, state.entities[i].location)) {
 			return state.entities[i];
@@ -70,7 +68,7 @@ export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
  * @returns Whether or not the location is empty in the given state.
  */
 export function isLocationEmpty(state: Game.Crawl.CensoredInProgressCrawlState,
-                                location: Game.Crawl.Location): boolean {
+	location: Game.Crawl.Location): boolean {
 	return (getEntityAtLocation(state, location) === undefined);
 }
 
@@ -169,7 +167,7 @@ export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
  */
 export function isLocationInRoom(map: Game.Crawl.Map, location: Game.Crawl.Location) {
 	return isLocationInMap(map, location)
-	    && getTile(map, location).roomId !== undefined;
+		&& getTile(map, location).roomId !== undefined;
 }
 
 /**
@@ -181,8 +179,8 @@ export function isLocationInRoom(map: Game.Crawl.Map, location: Game.Crawl.Locat
  */
 export function inSameRoom(map: Game.Crawl.Map, a: Game.Crawl.Location, b: Game.Crawl.Location): boolean {
 	return isLocationInRoom(map, a)
-	    && isLocationInRoom(map, b)
-	    && map.grid[a.r][a.c].roomId === map.grid[b.r][b.c].roomId;
+		&& isLocationInRoom(map, b)
+		&& map.grid[a.r][a.c].roomId === map.grid[b.r][b.c].roomId;
 }
 
 /**
@@ -205,12 +203,12 @@ export function inRange(v: number, min: number, max: number): boolean {
  * @param location - The location to check.
  */
 export function isVisible(map: Game.Crawl.Map,
-                          observer: Game.Crawl.Location,
-                          location: Game.Crawl.Location): boolean {
+	observer: Game.Crawl.Location,
+	location: Game.Crawl.Location): boolean {
 	return isValidLocation(observer)
 	       && isValidLocation(location)
 	       && ((isLocationInRoom(map, observer) && inSameRoom(map, observer, location))
-	          || distance(observer, location) <= 2);
+			|| distance(observer, location) <= 2);
 }
 
 /**
@@ -237,4 +235,8 @@ export function getTile(map: Game.Crawl.Map, location: Game.Crawl.Location): Gam
 		return map.grid[location.r][location.c];
 	}
 	return { type: Game.Crawl.DungeonTileType.UNKNOWN }; // defaulting to this prevents errors
+}
+
+export function locationToCoordinates(location: Game.Crawl.Location, gridSize: number): [number, number] {
+	return [location.c * gridSize, location.r * gridSize];
 }

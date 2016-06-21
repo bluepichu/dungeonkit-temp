@@ -2,11 +2,12 @@
 
 import {DungeonLayer} from "./dungeon-layer";
 import {GameSocket}   from "./game-socket";
+import {isMobile}     from "./is-mobile";
 import * as Messages  from "./messages";
 import {MessageLog}   from "./message-log";
 import {MiniMap}      from "./minimap";
 import * as state     from "./state";
-import * as utils     from "./utils";
+import * as utils     from "../../common/utils";
 
 export interface InputHandler {
 	awaitingMove: boolean;
@@ -133,7 +134,7 @@ export class TouchInputHandler implements InputHandler {
 
 		gameContainer.addChild(this.touchIndicator);
 
-		if (utils.isMobile()) {
+		if (isMobile()) {
 			this.setTouchListeners(rootElem);
 		}
 	}

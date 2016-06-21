@@ -2,7 +2,7 @@
 
 import {AnimatedSprite} from "./animated-sprite";
 import * as Constants   from "../constants";
-import * as utils       from "../utils";
+import * as utils       from "../../../common/utils";
 
 export class EntitySprite extends AnimatedSprite {
 	private _direction: number;

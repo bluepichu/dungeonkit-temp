@@ -2,7 +2,7 @@
 
 import * as log   from "beautiful-log";
 
-import * as utils from "./utils";
+import * as utils from "../../common/utils";
 
 /**
  * Pretty-prints a map to the console.

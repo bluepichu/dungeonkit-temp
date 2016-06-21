@@ -27,7 +27,7 @@ gulp.task("default", ["client", "server", "test"]);
 gulp.task("watch", ["default", "watch-server", "watch-client", "watch-test"]);
 
 gulp.task("watch-client", () => {
-	gulp.watch(src("client/**/*.ts", "types/**/*.*"), ["client-ts"]);
+	gulp.watch(src("client/**/*.ts", "types/**/*.*", "common/**/*.*"), ["client-ts"]);
 	gulp.watch(src("client/index.html"), ["client-html"]);
 	gulp.watch(src("client/assets/**/*.*"), ["client-assets"]);
 	gulp.watch(src("client/lib/*.js"), ["client-lib"]);
@@ -44,13 +44,13 @@ gulp.task("client-html", () =>
 	    .pipe(gulp.dest(build("client"))));
 
 gulp.task("client-ts", () =>
-	gulp.src(src("client/ts/**/*.ts"))
+	gulp.src(src("{client/ts/**/*.ts,common/**/*.ts}"))
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(clientProject))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe($.intermediate({ output: "out" }, (dir, cb) => {
 			rollup({
-				entry: path.join(dir, "client.js")
+				entry: path.join(dir, "client/ts/client.js")
 			})
 				.then((bundle) =>
 					bundle.write({
@@ -59,7 +59,8 @@ gulp.task("client-ts", () =>
 			}))
 				.then(() => sorcery.load(path.join(dir, "out/client.js")))
 				.then((chain) => chain.write(path.join(dir, "out/client.js")))
-				.then(() => cb());
+				.then(() => cb())
+				.catch((e) => console.error(dir, "\n", e));
 		}))
 		.pipe($.ignore.exclude("*.map"))
 		.pipe($.sourcemaps.init({ loadMaps: true }))
@@ -75,11 +76,11 @@ gulp.task("client-lib", () =>
 	          .pipe(gulp.dest(build("client/lib")))));
 
 gulp.task("watch-server", () => {
-	gulp.watch(src("server/**/*.ts", "index.ts", "types/**/*.*"), ["server"])
+	gulp.watch(src("server/**/*.ts", "index.ts", "types/**/*.*", "common/**/*.*"), ["server"])
 });
 
 gulp.task("server", () =>
-	gulp.src(src("{server/**/*.ts,index.ts}"))
+	gulp.src(src("{server/**/*.ts,index.ts,common/**/*.*}"))
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(serverProject))
 	    .pipe($.sourcemaps.write(map))

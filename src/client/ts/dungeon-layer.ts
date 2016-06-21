@@ -5,7 +5,7 @@ import {EntityLayer}  from "./entity-layer";
 import {GroundLayer}  from "./ground-layer";
 import * as state     from "./state";
 import {TweenHandler} from "./tween-handler";
-import * as utils     from "./utils";
+import * as utils     from "../../common/utils";
 
 export class DungeonLayer extends PIXI.Container {
 	public groundLayer: GroundLayer;

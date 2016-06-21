@@ -7,7 +7,7 @@ import * as ai       from "./ai";
 import * as crawl    from "./crawl";
 import * as executer from "./executer";
 import { graphics }  from "./graphics";
-import * as utils    from "./utils";
+import * as utils    from "../../common/utils";
 
 export class AIController implements Game.Crawl.Controller {
 	await: boolean = false;

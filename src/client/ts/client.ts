@@ -12,11 +12,12 @@ import {EntitySprite}                                          from "./graphics/
 import {GameSocket}                                            from "./game-socket";
 import {GroundLayer}                                           from "./ground-layer";
 import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
+import {isMobile}                                              from "./is-mobile";
 import {MessageLog}                                            from "./message-log";
 import {MiniMap}                                               from "./minimap";
 import * as state                                              from "./state";
 import {TweenHandler}                                          from "./tween-handler";
-import * as utils                                              from "./utils";
+import * as utils                                              from "../../common/utils";
 
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
 let gameContainer: PIXI.Container = undefined;
@@ -158,7 +159,7 @@ function init() {
 	commandArea.x = window.innerWidth - 350;
 	commandArea.y = 50;
 
-	if (!utils.isMobile()) {
+	if (!isMobile()) {
 		inputHandler = new KeyboardInputHandler(socket, minimap, dungeonLayer);
 		gameContainer.addChild(commandArea);
 		if (window.location.pathname !== "/") {

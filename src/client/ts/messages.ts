@@ -1,6 +1,6 @@
 "use strict";
 
-import {isMobile} from "./utils";
+import {isMobile} from "./is-mobile";
 
 export const WELCOME = "Welcome to <item>DungeonKit</item>!";
 

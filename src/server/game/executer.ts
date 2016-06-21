@@ -3,7 +3,7 @@
 import * as log   from "beautiful-log";
 
 import * as crawl from "./crawl";
-import * as utils from "./utils";
+import * as utils from "../../common/utils";
 
 export function isValidAction(state: Game.Crawl.CensoredInProgressCrawlState,
                               entity: Game.Crawl.CrawlEntity,

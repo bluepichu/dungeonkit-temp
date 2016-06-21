@@ -4,7 +4,7 @@ import {AnimatedSprite} from "./graphics/animated-sprite";
 import * as Constants   from "./constants";
 import * as state       from "./state";
 import {TweenHandler}   from "./tween-handler";
-import * as utils       from "./utils";
+import * as utils       from "../../common/utils";
 
 export class GroundLayer extends PIXI.Container {
 	private tweenHandler: TweenHandler;

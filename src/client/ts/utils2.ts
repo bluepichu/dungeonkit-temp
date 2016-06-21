@@ -4,9 +4,7 @@ export function getTile(map: Game.Crawl.Map, location: Game.Crawl.Location): Gam
 	return map.grid[location.r][location.c];
 }
 
-export function locationToCoordinates(location: Game.Crawl.Location, gridSize: number): [number, number] {
-	return [location.c * gridSize, location.r * gridSize];
-}
+
 
 /**
  * Constructs a new list with the given length using the given function to produce each element.
@@ -47,8 +45,4 @@ export function decodeDirection(direction: number): [number, number] {
 		default:
 			throw new Error(sprintf("[Code 4] %d is not a valid direction.", direction));
 	}
-}
-
-export function isMobile(): boolean {
-	return window.location.pathname.substring(0, 7) === "/mobile";
 }

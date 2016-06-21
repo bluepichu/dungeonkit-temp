@@ -4,7 +4,7 @@ import * as controllers     from "./controllers";
 import * as executer        from "./executer";
 import * as generator       from "./generator";
 import * as printer         from "./printer";
-import * as utils           from "./utils";
+import * as utils           from "../../common/utils";
 
 import * as log             from "beautiful-log";
 import * as shortid         from "shortid";

@@ -4,7 +4,7 @@ import * as Constants from "./constants";
 import {EntitySprite} from "./graphics/entity-sprite";
 import * as state     from "./state";
 import {TweenHandler} from "./tween-handler";
-import * as utils     from "./utils";
+import * as utils     from "../../common/utils";
 
 export class EntityLayer extends PIXI.Container {
 	public static entityGraphicsCache: Game.Graphics.EntityGrpahicsCache = new Map();

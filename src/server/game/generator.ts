@@ -3,7 +3,7 @@
 import * as log     from "beautiful-log";
 
 import * as printer from "./printer";
-import * as utils   from "./utils";
+import * as utils   from "../../common/utils";
 
 export function generateFloor(options: Game.Crawl.FeatureGeneratorOptions): Promise<Game.Crawl.Map> {
 	return new Promise((resolve, _) => setTimeout(resolve, 0))

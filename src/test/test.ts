@@ -7,7 +7,7 @@ import {sprintf}      from "sprintf-js";
 import {inspect}      from "util";
 import * as sourcemap from "source-map-support";
 
-import * as utils     from "../server/game/utils";
+import * as utils     from "../common/utils";
 
 sourcemap.install();
 

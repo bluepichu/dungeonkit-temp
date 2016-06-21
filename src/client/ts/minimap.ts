@@ -2,7 +2,7 @@
 
 import * as Colors from "./colors";
 import * as state  from "./state";
-import * as utils  from "./utils";
+import * as utils  from "../../common/utils";
 
 export class MiniMap extends PIXI.Container {
 	private mapMask: PIXI.Graphics;
