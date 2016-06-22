@@ -11,6 +11,8 @@ export class DungeonLayer extends PIXI.Container {
 	public groundLayer: GroundLayer;
 	public entityLayer: EntityLayer;
 	public tweenHandler: TweenHandler;
+	private _viewport: { r: [number, number], c: [number, number] };
+	private _zoomOut: boolean;
 
 	constructor(tweenHandler: TweenHandler) {
 		super();
@@ -22,6 +24,7 @@ export class DungeonLayer extends PIXI.Container {
 		this.addChild(this.entityLayer);
 
 		this.tweenHandler = tweenHandler;
+		this._zoomOut = false;
 	}
 
 	init(): void {
@@ -47,28 +50,7 @@ export class DungeonLayer extends PIXI.Container {
 		return prm;
 	}
 
-	updatePosition(entityLocation: Game.Crawl.Location): void {
-		let nextView = {
-			r: [entityLocation.r, entityLocation.r],
-			c: [entityLocation.c, entityLocation.c]
-		};
-
-		let inRoom = utils.getTile(state.getState().floor.map, entityLocation).roomId > 0;
-
-		for (let i = 0; i < state.getState().floor.map.height; i++) {
-			for (let j = 0; j < state.getState().floor.map.width; j++) {
-				if (utils.isVisible(state.getState().floor.map, entityLocation, { r: i, c: j })) {
-					console.log(i, j, inRoom);
-					nextView.r[0] = Math.min(nextView.r[0], i);
-					nextView.r[1] = Math.max(nextView.r[1], i);
-					nextView.c[0] = Math.min(nextView.c[0], j);
-					nextView.c[1] = Math.max(nextView.c[1], j);
-				}
-			}
-		}
-
-		console.log(nextView.r, nextView.c);
-
+	private updateViewport(nextView: { r: [number, number], c: [number, number] }) {
 		let center = {
 			r: (nextView.r[0] + nextView.r[1]) / 2,
 			c: (nextView.c[0] + nextView.c[1]) / 2
@@ -82,7 +64,48 @@ export class DungeonLayer extends PIXI.Container {
 		this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
 		this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
 		this.groundLayer.moveTo(center);
+		this.groundLayer.updateVisibility();
 		this.entityLayer.moveTo(center);
+	}
+
+	set zoomOut(zoom: boolean) {
+		if (this._zoomOut !== zoom) {
+			if (zoom) {
+				this.updateViewport({
+					r: [0, state.getState().floor.map.height],
+					c: [0, state.getState().floor.map.width]
+				});
+			} else {
+				this.updateViewport(this._viewport);
+			}
+		}
+		this._zoomOut = zoom;
+	}
+
+	updatePosition(entityLocation: Game.Crawl.Location): void {
+		let nextView: { r: [number, number], c: [number, number] } = {
+			r: [entityLocation.r, entityLocation.r],
+			c: [entityLocation.c, entityLocation.c]
+		};
+
+		let inRoom = utils.getTile(state.getState().floor.map, entityLocation).roomId > 0;
+
+		for (let i = 0; i < state.getState().floor.map.height; i++) {
+			for (let j = 0; j < state.getState().floor.map.width; j++) {
+				if (utils.isVisible(state.getState().floor.map, entityLocation, { r: i, c: j })) {
+					nextView.r[0] = Math.min(nextView.r[0], i);
+					nextView.r[1] = Math.max(nextView.r[1], i);
+					nextView.c[0] = Math.min(nextView.c[0], j);
+					nextView.c[1] = Math.max(nextView.c[1], j);
+				}
+			}
+		}
+
+		this._viewport = nextView;
+
+		if (!this._zoomOut) {
+			this.updateViewport(nextView);
+		}
 	}
 
 	showAnimationOnce(entityId: string, animation: string, direction?: number): Thenable {

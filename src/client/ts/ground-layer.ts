@@ -8,11 +8,19 @@ import * as utils       from "../../common/utils";
 
 export class GroundLayer extends PIXI.Container {
 	private tweenHandler: TweenHandler;
+	private tileLayer: PIXI.Container;
+	private lightingLayer: PIXI.Container;
 
 	constructor(tweenHandler: TweenHandler) {
 		super();
 
 		this.tweenHandler = tweenHandler;
+
+		this.tileLayer = new PIXI.Container();
+		this.addChild(this.tileLayer);
+
+		this.lightingLayer = new PIXI.Container();
+		this.addChild(this.lightingLayer);
 	}
 
 	update(location: Game.Crawl.Location) {
@@ -31,7 +39,7 @@ export class GroundLayer extends PIXI.Container {
 				let dtile = tile as PIXI.DisplayObject;
 
 				[dtile.x, dtile.y] = utils.locationToCoordinates({ r: i, c: j }, Constants.GRID_SIZE);
-				this.addChild(dtile);
+				this.tileLayer.addChild(dtile);
 			}
 		}
 	}
@@ -89,7 +97,8 @@ export class GroundLayer extends PIXI.Container {
 	}
 
 	clear(): void {
-		this.removeChildren();
+		this.tileLayer.removeChildren();
+		this.lightingLayer.removeChildren();
 	}
 
 	generateGraphicsObject(base: string, obj: Game.Graphics.GraphicsObject): PIXI.DisplayObject {
@@ -112,6 +121,23 @@ export class GroundLayer extends PIXI.Container {
 
 			case "animated":
 				return new AnimatedSprite(base, obj as Game.Graphics.AnimatedGraphicsObject);
+		}
 	}
-}
+
+	updateVisibility(): void {
+		// this.lightingLayer.removeChildren();
+
+		// for (let i = 0; i < state.getState().floor.map.height; i++) {
+		// 	for (let j = 0; j < state.getState().floor.map.width; j++) {
+		// 		if (!utils.isVisible(state.getState().floor.map, state.getState().self.location, { r: i, c: j })) {
+		// 			let child = new PIXI.Graphics();
+		// 			child.beginFill(0x000000, .8);
+		// 			child.drawRect(0, 0, Constants.GRID_SIZE, Constants.GRID_SIZE);
+		// 			child.endFill();
+		// 			[child.x, child.y] = utils.locationToCoordinates({ r: i, c: j }, Constants.GRID_SIZE);
+		// 			this.lightingLayer.addChild(child);
+		// 		}
+		// 	}
+		// }
+	}
 }

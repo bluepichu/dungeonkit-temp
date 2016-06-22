@@ -268,17 +268,33 @@ let mudkipStats = {
 	}
 };
 
+let eeveeStats = {
+	level: 10,
+	hp: {
+		max: 45,
+		current: 45
+	},
+	attack: {
+		base: 100,
+		modifier: 0
+	},
+	defense: {
+		base: 30,
+		modifier: 0
+	}
+};
+
 export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
-		name: "Mudkip",
-		stats: mudkipStats,
-		attacks: [tackle, growl, waterGun],
+		name: "Eevee",
+		stats: eeveeStats,
+		attacks: [tackle, growl],
 		bag: { capacity: 16, items: [] },
 		controller: new controllers.SocketController(socket),
 		alignment: 1,
 		advances: true,
-		graphics: "mudkip"
+		graphics: "eevee"
 	};
 }
 

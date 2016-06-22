@@ -94,6 +94,8 @@ export class AnimatedSprite extends PIXI.Container {
 				this.sprites[i].x = -frames[i].anchor.x;
 				this.sprites[i].y = -frames[i].anchor.y;
 
+				this.prerenderLayer(this.sprites[i], frames[i]);
+
 				if (frames[i].offset !== undefined) {
 					this.handleOffset(this.sprites[i], frames[i].offset);
 				}
@@ -101,6 +103,10 @@ export class AnimatedSprite extends PIXI.Container {
 		}
 
 		this.changed = false;
+	}
+
+	protected prerenderLayer(layer: PIXI.Sprite, frame: Game.Graphics.Frame): void {
+		// do nothing
 	}
 
 	renderCanvas(renderer: PIXI.CanvasRenderer): void {

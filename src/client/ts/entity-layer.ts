@@ -48,8 +48,7 @@ export class EntityLayer extends PIXI.Container {
 	}
 
 	getEntitySprite(entityGraphicsKey: string): EntitySprite {
-		let entityGraphics = EntityLayer.entityGraphicsCache.get(entityGraphicsKey);
-		return new EntitySprite(entityGraphics.base, entityGraphics.object);
+		return new EntitySprite(EntityLayer.entityGraphicsCache.get(entityGraphicsKey));
 	}
 
 	moveEntity(entity: Game.Crawl.CondensedEntity, from: Game.Crawl.Location, to: Game.Crawl.Location): Thenable {

@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			PIXI.loader
 				.add("dng-proto", "/assets/tiles.json")
 				.add("ent-mudkip", "/assets/mudkip.json")
+				.add("ent-eevee", "/assets/eevee.json")
 				.once("complete", init);
 
 			PIXI.loader.load();
@@ -123,7 +124,7 @@ function init() {
 	minimap = new MiniMap(300, 200);
 	minimap.x = 50;
 	minimap.y = 50;
-	gameContainer.addChild(minimap);
+	// gameContainer.addChild(minimap);
 
 	messageLog = new MessageLog(tweenHandler);
 	messageLog.x = window.innerWidth;

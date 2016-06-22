@@ -31,13 +31,15 @@ export class KeyboardInputHandler implements InputHandler {
 		this.minimap = minimap;
 		this.dungeonLayer = dungeonLayer;
 		this.socket = socket;
+
+
 	}
 
 	public handleInput(): void {
 		if (key.isPressed(77)) {
-			this.minimap.resize(600, 600);
+			this.dungeonLayer.zoomOut = true;
 		} else {
-			this.minimap.resize(300, 200);
+			this.dungeonLayer.zoomOut = false;
 		}
 
 		if (this.awaitingMove) {

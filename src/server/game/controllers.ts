@@ -120,17 +120,20 @@ export class SocketController implements Game.Crawl.Controller {
 		});
 	}
 
+	checkGraphics(key: string): void {
+		if (!this.knownGraphics.has(key)) {
+			this.socket.emit("graphics", key, graphics.get(key));
+			log.ok("Added graphics", key);
+			this.knownGraphics.add(key);
+		}
+	}
+
 	pushEvent(event: Game.Crawl.LogEvent): void {
 		if (event.type === "start") {
 			this.lastState = undefined;
 		}
 
-		if (!this.knownGraphics.has(event.entity.graphics)) {
-			this.socket.emit("graphics", event.entity.graphics, graphics.get(event.entity.graphics));
-			log.ok("Added graphics", event.entity.graphics);
-			this.knownGraphics.add(event.entity.graphics);
-		}
-
+		this.checkGraphics(event.entity.graphics);
 		this.log.push(event);
 	}
 
@@ -187,6 +190,8 @@ export class SocketController implements Game.Crawl.Controller {
 				bag: this.currentState.self.bag
 			}
 		};
+
+		stateUpdate.entities.forEach((entity) => this.checkGraphics(entity.graphics));
 
 		let update: Game.Client.UpdateMessage = {
 			stateUpdate,

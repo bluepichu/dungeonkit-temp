@@ -99,6 +99,7 @@ declare namespace Game {
 
 		interface EntityGraphics {
 			base: string;
+			useReflection?: boolean;
 			object: AnimatedGraphicsObject;
 		}
 
