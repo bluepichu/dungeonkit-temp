@@ -252,6 +252,46 @@ let waterGun: Game.Attack = {
 	onHit: []
 };
 
+let tailWhip: Game.Attack = {
+	name: "Tail Whip",
+	animation: "tail-whip",
+	description: "Lowers the target's Defense by one level.",
+	target: {
+		type: "front",
+		includeAllies: false
+	},
+	uses: {
+		max: 20,
+		current: 20
+	},
+	accuracy: 100,
+	power: 0,
+	onHit: [
+		{
+			type: "stat",
+			stat: "defense",
+			amount: -1
+		}
+	]
+};
+
+let swift: Game.Attack = {
+	name: "Swift",
+	animation: "swift",
+	description: "Inflicts damage on the target. It never misses.",
+	target: {
+		type: "front",
+		includeAllies: false
+	},
+	uses: {
+		max: 8,
+		current: 8
+	},
+	accuracy: "always",
+	power: 60,
+	onHit: []
+};
+
 let mudkipStats = {
 	level: 10,
 	hp: {
@@ -289,7 +329,7 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 		id: shortid.generate(),
 		name: "Eevee",
 		stats: eeveeStats,
-		attacks: [tackle, growl],
+		attacks: [tackle, growl, tailWhip, swift],
 		bag: { capacity: 16, items: [] },
 		controller: new controllers.SocketController(socket),
 		alignment: 1,

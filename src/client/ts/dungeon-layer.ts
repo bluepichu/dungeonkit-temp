@@ -61,8 +61,8 @@ export class DungeonLayer extends PIXI.Container {
 
 		newScale = Math.min(newScale, 4);
 
-		this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
-		this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_ZOOM_VELOCITY, "smooth");
+		this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_ZOOM_VELOCITY, "smooth");
 		this.groundLayer.moveTo(center);
 		this.groundLayer.updateVisibility();
 		this.entityLayer.moveTo(center);

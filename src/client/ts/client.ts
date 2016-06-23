@@ -36,7 +36,7 @@ let inputHandler: InputHandler = undefined;
 document.addEventListener("DOMContentLoaded", () => {
 	WebFont.load({
 		google: {
-			families: ["Hind Siliguri:400, 300"]
+			families: ["Hind Siliguri:300,400"]
 		},
 		active: () => {
 			PIXI.loader
@@ -159,8 +159,11 @@ function init() {
 	commandArea.x = window.innerWidth - 350;
 	commandArea.y = 50;
 
+	attackOverlay = new AttackOverlay(tweenHandler);
+	gameContainer.addChild(attackOverlay);
+
 	if (!isMobile()) {
-		inputHandler = new KeyboardInputHandler(socket, minimap, dungeonLayer);
+		inputHandler = new KeyboardInputHandler(socket, minimap, dungeonLayer, attackOverlay);
 		gameContainer.addChild(commandArea);
 		if (window.location.pathname !== "/") {
 			socket.emitTempSignal("join", window.location.pathname.substring(1));
@@ -234,6 +237,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				dungeonLayer.updatePosition(state.getState().self.location);
 				dungeonLayer.entityLayer.update();
 				minimap.update();
+				attackOverlay.update();
 
 				inputHandler.awaitingMove = inputHandler.awaitingMove || doneEvent.move;
 

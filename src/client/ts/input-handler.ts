@@ -1,13 +1,14 @@
 "use strict";
 
-import {DungeonLayer} from "./dungeon-layer";
-import {GameSocket}   from "./game-socket";
-import {isMobile}     from "./is-mobile";
-import * as Messages  from "./messages";
-import {MessageLog}   from "./message-log";
-import {MiniMap}      from "./minimap";
-import * as state     from "./state";
-import * as utils     from "../../common/utils";
+import {AttackOverlay} from "./attack-overlay";
+import {DungeonLayer}  from "./dungeon-layer";
+import {GameSocket}    from "./game-socket";
+import {isMobile}      from "./is-mobile";
+import * as Messages   from "./messages";
+import {MessageLog}    from "./message-log";
+import {MiniMap}       from "./minimap";
+import * as state      from "./state";
+import * as utils      from "../../common/utils";
 
 export interface InputHandler {
 	awaitingMove: boolean;
@@ -23,24 +24,21 @@ export class KeyboardInputHandler implements InputHandler {
 	private moveInput: number;
 	private socket: GameSocket;
 	private dungeonLayer: DungeonLayer;
+	private attackOverlay: AttackOverlay;
 
-	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer) {
+	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer, attackOverlay: AttackOverlay) {
 		this.awaitingMove = false;
 		this.inputTimer = 0;
 		this.moveInput = 0;
 		this.minimap = minimap;
 		this.dungeonLayer = dungeonLayer;
 		this.socket = socket;
-
-
+		this.attackOverlay = attackOverlay;
 	}
 
 	public handleInput(): void {
-		if (key.isPressed(77)) {
-			this.dungeonLayer.zoomOut = true;
-		} else {
-			this.dungeonLayer.zoomOut = false;
-		}
+		this.dungeonLayer.zoomOut = key.isPressed(77);
+		this.attackOverlay.active = key.isPressed(16);
 
 		if (this.awaitingMove) {
 			if (key.shift) {
