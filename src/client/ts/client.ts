@@ -131,28 +131,6 @@ function init() {
 	messageLog.y = window.innerHeight;
 	gameContainer.addChild(messageLog);
 
-	floorSign = new PIXI.Container();
-	floorSign.alpha = 0;
-	gameContainer.addChild(floorSign);
-
-	let g = new PIXI.Graphics();
-	g.beginFill(0x000000);
-	g.drawRect(0, 0, window.innerWidth, window.innerHeight);
-	g.endFill();
-	floorSign.addChild(g);
-
-	floorSignText = new PIXI.Text("", {
-		font: "300 32px Hind Siliguri",
-		fill: Colors.WHITE,
-		align: "center"
-	});
-	floorSignText.anchor.x = .5;
-	floorSignText.anchor.y = .5;
-	floorSignText.x = window.innerWidth / 2;
-	floorSignText.y = window.innerHeight / 2;
-	floorSignText.resolution = window.devicePixelRatio;
-	floorSign.addChild(floorSignText);
-
 	requestAnimationFrame(animate);
 
 	commandArea = new CommandArea(300, 36, socket, messageLog);
@@ -174,6 +152,28 @@ function init() {
 			socket.emitTempSignal("join", window.location.pathname.substring(7));
 		}
 	}
+
+	floorSign = new PIXI.Container();
+	floorSign.alpha = 0;
+	gameContainer.addChild(floorSign);
+
+	let g = new PIXI.Graphics();
+	g.beginFill(0x000000);
+	g.drawRect(0, 0, window.innerWidth, window.innerHeight);
+	g.endFill();
+	floorSign.addChild(g);
+
+	floorSignText = new PIXI.Text("", {
+		font: "300 32px Hind Siliguri",
+		fill: Colors.WHITE,
+		align: "center"
+	});
+	floorSignText.anchor.x = .5;
+	floorSignText.anchor.y = .5;
+	floorSignText.x = window.innerWidth / 2;
+	floorSignText.y = window.innerHeight / 2;
+	floorSignText.resolution = window.devicePixelRatio;
+	floorSign.addChild(floorSignText);
 
 	window.addEventListener("orientationchange", handleWindowResize);
 	window.addEventListener("resize", handleWindowResize);
@@ -341,9 +341,25 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						break;
 
 					default:
+						messageLog.push(sprintf("<%1$s>%2$s</%1$s>'s %3$s %4$s!",
+							statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+							statEvent.entity.name,
+							statEvent.stat,
+							statEvent.change > 0
+								? (statEvent.change > 1 ? "rose sharply" : "rose")
+								: (statEvent.change < -1 ? "fell harshly" : "fell")));
 						done();
 						break;
 				}
+				break;
+
+			case "miss":
+				let missEvent = proc as Game.Crawl.MissLogEvent;
+
+				messageLog.push(sprintf("The attack missed <%1$s>%2$s</%1$s>!",
+					missEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+					missEvent.entity.name));
+				done();
 				break;
 
 			case "defeat":

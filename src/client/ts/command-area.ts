@@ -19,6 +19,8 @@ const COMMAND_AREA_DEFAULT_TEXT = "Press space to input a command...";
 
 const INVALID_COMMAND = "<command>%s</command> is not a valid command.";
 
+type Handler = { pattern: RegExp, handler: (command: string) => void };
+
 export class CommandArea extends PIXI.Container {
 	private _active: boolean;
 	private background: PIXI.Graphics;
@@ -27,6 +29,38 @@ export class CommandArea extends PIXI.Container {
 	private inputPromptFlashFrameCount: number;
 	private socket: GameSocket;
 	private messageLog: MessageLog;
+
+	private HANDLERS: Handler[] = [ // must be internal to class for "this" to work
+		{
+			pattern: /^start$/i,
+			handler: () => {
+				console.log(this);
+				this.socket.emitTempSignal("start");
+			}
+		},
+		{
+			pattern: /^s(tairs)?$/i,
+			handler: () => {
+				this.socket.sendAction({
+					type: "stairs"
+				});
+			}
+		},
+		{
+			pattern: /^h(elp)?$/i,
+			handler: () => {
+				this.messageLog.push(Messages.CONTROLS, 15000);
+			}
+		},
+		{
+			pattern: /^j(oin)? ([\w-]+)$/i,
+			handler: (command) => {
+				let room = command.split(" ")[1];
+				this.socket.emitTempSignal("join", room);
+				this.messageLog.push(sprintf("Joined room <self>%s</self>.", room));
+			}
+		}
+	];
 
 	constructor(width: number, height: number, socket: GameSocket, messageLog: MessageLog) {
 		super();
@@ -111,26 +145,14 @@ export class CommandArea extends PIXI.Container {
 	enter(): void {
 		let command = this.buffer;
 
-		switch (command) {
-			case "start":
-				this.socket.emitTempSignal("start");
-				break;
-
-			case "s":
-			case "stairs":
-				this.socket.sendAction({
-					type: "stairs"
-				});
-				break;
-
-			case "help":
-				this.messageLog.push(Messages.CONTROLS, 15000);
-				break;
-
-			default:
-				this.messageLog.push(sprintf(INVALID_COMMAND, command));
-				break;
+		for (let { pattern, handler } of this.HANDLERS) {
+			if (pattern.test(command)) {
+				handler(command);
+				return;
+			}
 		}
+
+		this.messageLog.push(sprintf(INVALID_COMMAND, command));
 	}
 
 	prerender(): void {

@@ -140,7 +140,7 @@ class AttackListing extends PIXI.Container {
 
 	update(attack: Game.Attack) {
 		this.nameText.text = attack.name;
-		this.powerText.text = attack.power + " POW";
+		this.powerText.text = attack.power !== undefined ? attack.power + " POW" : "";
 		this.accuracyText.text = attack.accuracy === "always" ? "Always hits" : attack.accuracy + " ACC";
 		this.usesText.text = attack.uses.current + "/" + attack.uses.max;
 	}

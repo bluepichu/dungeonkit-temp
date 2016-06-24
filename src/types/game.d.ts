@@ -23,7 +23,7 @@ declare namespace Game {
 		description: string;
 		target: TargetSelector;
 		accuracy: number | "always";
-		power: number;
+		power?: number;
 		uses: MaxCurrentStat;
 		onHit: SecondaryEffect[];
 		// onMiss
@@ -228,7 +228,8 @@ declare namespace Game {
 
 		interface CrawlItem extends Item, Locatable { }
 
-		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent | StartLogEvent;
+		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
+			| StartLogEvent | MissLogEvent;
 
 		interface WaitLogEvent {
 			type: "wait";
@@ -279,6 +280,12 @@ declare namespace Game {
 				height: number;
 			};
 			self: CensoredSelfCrawlEntity;
+		}
+
+		interface MissLogEvent {
+			type: "miss";
+			entity: CondensedEntity;
+			location: Location;
 		}
 
 		interface SynchronizedMessage<T> {

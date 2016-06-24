@@ -26,7 +26,7 @@ export function start() {
 
 	app.use(express.static("client"));
 
-	app.get(/.*/, (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
+	app.get("/mobile", (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
 
 	const server: http.Server = app.listen(PORT, function() {
 		log.info("Listening on *:" + PORT);

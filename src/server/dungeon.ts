@@ -206,8 +206,8 @@ let tackle: Game.Attack = {
 		max: 30,
 		current: 30
 	},
-	accuracy: 100,
-	power: 50,
+	accuracy: 95,
+	power: 7,
 	onHit: []
 };
 
@@ -225,7 +225,6 @@ let growl: Game.Attack = {
 		current: 30
 	},
 	accuracy: "always",
-	power: 0,
 	onHit: [
 		{
 			type: "stat",
@@ -247,8 +246,8 @@ let waterGun: Game.Attack = {
 		max: 30,
 		current: 30
 	},
-	accuracy: 40,
-	power: 100,
+	accuracy: 88,
+	power: 5,
 	onHit: []
 };
 
@@ -265,7 +264,6 @@ let tailWhip: Game.Attack = {
 		current: 20
 	},
 	accuracy: 100,
-	power: 0,
 	onHit: [
 		{
 			type: "stat",
@@ -288,22 +286,22 @@ let swift: Game.Attack = {
 		current: 8
 	},
 	accuracy: "always",
-	power: 60,
+	power: 10,
 	onHit: []
 };
 
 let mudkipStats = {
-	level: 10,
+	level: 8,
 	hp: {
 		max: 45,
 		current: 45
 	},
 	attack: {
-		base: 100,
+		base: 16,
 		modifier: 0
 	},
 	defense: {
-		base: 30,
+		base: 16,
 		modifier: 0
 	}
 };
@@ -311,15 +309,15 @@ let mudkipStats = {
 let eeveeStats = {
 	level: 10,
 	hp: {
-		max: 45,
-		current: 45
+		max: 48,
+		current: 48
 	},
 	attack: {
-		base: 100,
+		base: 21,
 		modifier: 0
 	},
 	defense: {
-		base: 30,
+		base: 21,
 		modifier: 0
 	}
 };

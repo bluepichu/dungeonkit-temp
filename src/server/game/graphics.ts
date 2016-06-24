@@ -37,21 +37,21 @@ let mudkipGraphics: Game.Graphics.EntityGraphics = {
 							{ texture: "walk-%(dir)da", anchor: { x: 12, y: 15 } },
 							{ texture: "shadow", anchor: { x: 12, y: 5 } }
 						],
-						duration: 4
+						duration: 3
 					},
 					{
 						frames: [
 							{ texture: "walk-%(dir)db", anchor: { x: 12, y: 15 } },
 							{ texture: "shadow", anchor: { x: 12, y: 5 } }
 						],
-						duration: 4
+						duration: 6
 					},
 					{
 						frames: [
 							{ texture: "walk-%(dir)dc", anchor: { x: 12, y: 15 } },
 							{ texture: "shadow", anchor: { x: 12, y: 5 } }
 						],
-						duration: 4
+						duration: 6
 					}
 				]
 			},
@@ -198,21 +198,21 @@ let eeveeGraphics: Game.Graphics.EntityGraphics = {
 							{ texture: "walk-%(dir)da", anchor: { x: 16, y: 20 } },
 							{ texture: "shadow", anchor: { x: 16, y: 18 } }
 						],
-						duration: 2
+						duration: 3
 					},
 					{
 						frames: [
 							{ texture: "walk-%(dir)db", anchor: { x: 16, y: 20 } },
 							{ texture: "shadow", anchor: { x: 16, y: 18 } }
 						],
-						duration: 5
+						duration: 6
 					},
 					{
 						frames: [
 							{ texture: "walk-%(dir)dc", anchor: { x: 16, y: 20 } },
 							{ texture: "shadow", anchor: { x: 16, y: 18 } }
 						],
-						duration: 5
+						duration: 6
 					}
 				]
 			},
@@ -327,6 +327,10 @@ let eeveeGraphics: Game.Graphics.EntityGraphics = {
 		default: "idle"
 	}
 };
+
+eeveeGraphics.object.animations["growl"] = eeveeGraphics.object.animations["tackle"];
+eeveeGraphics.object.animations["tail-whip"] = eeveeGraphics.object.animations["tackle"];
+eeveeGraphics.object.animations["swift"] = eeveeGraphics.object.animations["tackle"];
 
 export const graphics: Game.Graphics.EntityGrpahicsCache = new Map([
 	["mudkip", mudkipGraphics],

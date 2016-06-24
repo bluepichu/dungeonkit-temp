@@ -142,8 +142,6 @@ function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
 function executeAttack(state: Game.Crawl.InProgressCrawlState,
                        entity: Game.Crawl.CrawlEntity,
                        action: Game.Crawl.AttackAction): Promise<Game.Crawl.CrawlState> {
-	let targets = getTargets(state, entity, action.direction, action.attack.target);
-
 	propagateLogEvent(state, {
 		type: "attack",
 		entity: {
@@ -155,6 +153,8 @@ function executeAttack(state: Game.Crawl.InProgressCrawlState,
 		direction: action.direction,
 		attack: action.attack
 	});
+
+	let targets = getTargets(state, entity, action.direction, action.attack.target);
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
 
@@ -187,7 +187,8 @@ function getTargets(state: Game.Crawl.InProgressCrawlState,
 			if (room === undefined) {
 				selection = selection.filter((entity) => utils.distance(attacker.location, entity.location) <= 2);
 			} else {
-				return state.entities.filter((entity) => utils.inSameRoom(state.floor.map, attacker.location, entity.location));
+				selection = state.entities.filter((entity) =>
+					utils.inSameRoom(state.floor.map, attacker.location, entity.location));
 			}
 
 			return selection.filter((entity) => entity.alignment !== attacker.alignment
@@ -200,24 +201,63 @@ function applyAttack(state: Game.Crawl.InProgressCrawlState,
                      attack: Game.Attack,
                      attacker: Game.Crawl.CrawlEntity,
                      defender: Game.Crawl.CrawlEntity): void {
-	let damage = computeDamage(attacker, defender, attack); // TODO accuracy, all of the stuff that isn't damage
-	defender.stats.hp.current -= damage;
+	if (attack.accuracy !== "always" && Math.random() * 100 > attack.accuracy) {
+		propagateLogEvent(state, {
+			type: "miss",
+			entity: {
+				id: defender.id,
+				name: defender.name,
+				graphics: defender.graphics
+			},
+			location: defender.location,
+		});
+		return; // move missed
+	}
 
-	propagateLogEvent(state, {
-		type: "stat",
-		entity: {
-			id: defender.id,
-			name: defender.name,
-			graphics: defender.graphics
-		},
-		location: defender.location,
-		stat: "hp",
-		change: -damage
+	if (attack.power !== undefined) {
+		let damage = computeDamage(attacker, defender, attack);
+		defender.stats.hp.current -= damage;
+
+		propagateLogEvent(state, {
+			type: "stat",
+			entity: {
+				id: defender.id,
+				name: defender.name,
+				graphics: defender.graphics
+			},
+			location: defender.location,
+			stat: "hp",
+			change: -damage
+		});
+	}
+
+	attack.onHit.forEach((effect: Game.SecondaryStatEffect) => {
+		switch (effect.stat) {
+			case "attack":
+				defender.stats.attack.modifier += effect.amount;
+				break;
+
+			case "defense":
+				defender.stats.defense.modifier += effect.amount;
+				break;
+		}
+
+		propagateLogEvent(state, {
+			type: "stat",
+			entity: {
+				id: defender.id,
+				name: defender.name,
+				graphics: defender.graphics
+			},
+			location: defender.location,
+			stat: effect.stat,
+			change: effect.amount
+		});
 	});
 }
 
 function computeDamage(attacker: Game.Entity, defender: Game.Entity, attack: Game.Attack): number {
-	let a = getModifiedStat(attacker.stats.attack);
+	let a = getModifiedStat(attacker.stats.attack) + attack.power;
 	let b = attacker.stats.level;
 	let c = getModifiedStat(defender.stats.defense);
 	let d = ((a - c) / 8) + (b * 43690 / 65536);
@@ -273,6 +313,7 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 		case "wait":
 		case "attack":
 		case "stat":
+		case "miss":
 			let evt: Game.Crawl.Locatable = (event as any as Game.Crawl.Locatable);
 
 			state.entities.forEach((entity) => {

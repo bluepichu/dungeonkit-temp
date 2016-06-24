@@ -42,13 +42,24 @@ export class KeyboardInputHandler implements InputHandler {
 
 		if (this.awaitingMove) {
 			if (key.shift) {
+				let move = 0;
 				if (key.isPressed(49)) {
+					move = 1;
+				} else if (key.isPressed(50)) {
+					move = 2;
+				} else if (key.isPressed(51)) {
+					move = 3;
+				} else if (key.isPressed(52)) {
+					move = 4;
+				}
+
+				if (move > 0) {
 					this.awaitingMove = false;
 
 					this.socket.sendAction({
 						type: "attack",
 						direction: this.dungeonLayer.getEntityDirection(state.getState().self.id),
-						attack: state.getState().self.attacks[0]
+						attack: state.getState().self.attacks[move - 1]
 					});
 				}
 
