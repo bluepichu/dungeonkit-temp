@@ -291,17 +291,17 @@ let swift: Game.Attack = {
 };
 
 let mudkipStats = {
-	level: 8,
+	level: 10,
 	hp: {
-		max: 45,
-		current: 45
+		max: 48,
+		current: 48
 	},
 	attack: {
-		base: 16,
+		base: 19,
 		modifier: 0
 	},
 	defense: {
-		base: 16,
+		base: 19,
 		modifier: 0
 	}
 };

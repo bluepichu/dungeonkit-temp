@@ -11,18 +11,15 @@ import * as utils    from "../../common/utils";
 
 export class AIController implements Game.Crawl.Controller {
 	await: boolean = false;
-	goals: any;
-	attr: string[];
-	hit: boolean;
+	attackTarget: Game.Crawl.CensoredCrawlEntity;
+	moveTarget: Game.Crawl.Location;
 
-	constructor(attributes: string[]) {
-		this.goals = {};
-		this.attr = attributes;
+	constructor() {
 	}
 
 	getAction(state: Game.Crawl.CensoredEntityCrawlState, entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
 		return new Promise((resolve, reject) => {
-			resolve(ai.getAction(state, entity));
+			resolve(ai.getAction(state, entity, this));
 		});
 	}
 

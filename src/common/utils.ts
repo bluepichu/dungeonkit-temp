@@ -263,3 +263,33 @@ export function withinNSteps(steps: number,
 		}
 	}
 }
+
+export function directionTo(from: Game.Crawl.Location, to: Game.Crawl.Location): number {
+	if (from.r < to.r) {
+		if (from.c < to.c) {
+			return 7;
+		} else if (from.c > to.c) {
+			return 5;
+		} else {
+			return 6;
+		}
+	} else if (from.r > to.r) {
+		if (from.c < to.c) {
+			return 1;
+		} else if (from.c > to.c) {
+			return 3;
+		} else {
+			return 2;
+		}
+	} else {
+		if (from.c > to.c) {
+			return 4;
+		} else {
+			return 0;
+		}
+	}
+}
+
+export function isVoid<T>(v: T | void): v is void {
+	return v === undefined;
+}

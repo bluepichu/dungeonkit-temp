@@ -42,6 +42,14 @@ function step(state: Game.Crawl.InProgressCrawlState): Promise<Game.Crawl.Conclu
 		.then((action: Game.Crawl.Action) => {
 			return executer.execute(state, entity, action)
 				.then((newState) => {
+					if (!state.entities.some((entity) => entity.advances)) {
+						return Promise.resolve({
+							dungeon: state.dungeon,
+							success: false,
+							floor: state.floor.number
+						});
+					}
+
 					if (utils.isCrawlOver(newState)) {
 						return Promise.resolve(newState);
 					} else {
@@ -146,7 +154,7 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 									defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 }
 								},
 								attacks: attacks,
-								controller: new controllers.AIController([]),
+								controller: new controllers.AIController(),
 								bag: { capacity: 1, items: [] },
 								alignment: 0,
 								advances: false
