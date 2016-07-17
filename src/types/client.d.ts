@@ -21,7 +21,10 @@ declare namespace Game {
 			stats: EntityStats;
 			alignment: number;
 			advances: boolean;
-			bag: Game.Crawl.Bag;
+			items: {
+				held: ItemSet;
+				bag: ItemSet;
+			};
 		}
 
 		interface FloorUpdate {

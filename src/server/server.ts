@@ -72,7 +72,7 @@ export function start() {
 			players.forEach((player) => player.controller.init(player, dungeon));
 
 			crawl.startCrawl(dungeon, players)
-				.then(() => log.logf("<blue>* %s</blue>", socket.id))
+				.then((state) => log.logf("<blue>%s %s</blue>", state.success ? "✓" : "✗", socket.id))
 				.catch((err) => log.error(err));
 		});
 	});

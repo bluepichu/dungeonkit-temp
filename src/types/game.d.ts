@@ -9,12 +9,22 @@ declare namespace Game {
 		graphics: string;
 		stats: EntityStats;
 		attacks: Attack[];
+		items: {
+			held: ItemSet;
+			bag?: ItemSet;
+		};
 	}
 
 	interface Item {
 		name: string;
 		description: string;
 		// graphics: Graphics.EntityGraphics;
+		apply(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity;
+	}
+
+	interface ItemSet {
+		capacity: number;
+		items: Item[];
 	}
 
 	interface Attack {
@@ -196,7 +206,6 @@ declare namespace Game {
 
 		interface UnplacedCrawlEntity extends Entity {
 			id: string;
-			bag: Bag;
 			controller: Controller;
 			alignment: number;
 			advances: boolean;
@@ -210,11 +219,6 @@ declare namespace Game {
 			id: string;
 			name: string;
 			graphics: string;
-		}
-
-		interface Bag {
-			capacity: number;
-			items: Item[];
 		}
 
 		interface Controller {
@@ -442,7 +446,10 @@ declare namespace Game {
 			stats: EntityStats;
 			alignment: number;
 			advances: boolean;
-			bag: Bag;
+			items: {
+				held: ItemSet;
+				bag?: ItemSet;
+			};
 			map: Map;
 		}
 	}

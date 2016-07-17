@@ -322,13 +322,72 @@ let eeveeStats = {
 	}
 };
 
+type DeepProxyHandler = {
+	get?(target: any, field: string | number | symbol): any,
+	set?(target: any, field: string | number | symbol, value: any): void
+};
+
+function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
+	function makeProxy(obj: T, [field, ...fields]: string[], handler: DeepProxyHandler): T {
+		if (fields.length === 0) {
+			let proxy: ProxyHandler<T> = { get: undefined, set: undefined };
+
+			if (handler.get !== undefined) {
+				proxy.get = (t: T, f: string | number | symbol) => f === field ? handler.get(t, f) : (t as any)[f];
+			}
+
+			if (handler.set !== undefined) {
+				proxy.set = (t: T, f: string | number | symbol, v: any) => {
+					if (f === field) {
+						handler.set(t, f, v);
+					} else {
+						(t as any)[f] = v;
+					}
+					return true;
+				};
+			}
+
+			return new Proxy(obj, proxy);
+		}
+
+		let innerProxy = makeProxy((obj as any)[field], fields, handler);
+
+		return new Proxy(obj, {
+			get(t: any, f: string | number | symbol) {
+				if (f === field) {
+					return innerProxy;
+				}
+
+				return (t as any)[f];
+			}
+		}) as T;
+	};
+
+	return makeProxy(obj, field.split("."), handler);
+}
+
 export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
 		name: "Eevee",
 		stats: eeveeStats,
 		attacks: [tackle, growl, tailWhip, swift],
-		bag: { capacity: 16, items: [] },
+		items: {
+			held: { capacity: 1, items: [
+				{
+					name: "OP Scarf of Doom",
+					description: "gg no re?",
+					apply(entity) {
+						return deepProxy(entity, "stats.attack.base", {
+							get(target: any, field: any): number {
+								return 10000000;
+							}
+						});
+					}
+				}
+			] },
+			bag: { capacity: 16, items: [] }
+		},
 		controller: new controllers.SocketController(socket),
 		alignment: 1,
 		advances: true,

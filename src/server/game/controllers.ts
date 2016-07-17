@@ -184,7 +184,7 @@ export class SocketController implements Game.Crawl.Controller {
 				stats: this.currentState.self.stats,
 				alignment: this.currentState.self.alignment,
 				advances: this.currentState.self.advances,
-				bag: this.currentState.self.bag
+				items: this.currentState.self.items
 			}
 		};
 

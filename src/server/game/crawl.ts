@@ -10,10 +10,48 @@ import * as log             from "beautiful-log";
 import * as shortid         from "shortid";
 import {sprintf}            from "sprintf-js";
 
+function buildWrapper(ent: Game.Crawl.UnplacedCrawlEntity): Game.Crawl.UnplacedCrawlEntity {
+	let base: Game.Crawl.UnplacedCrawlEntity;
+
+	let invalidate = () => {
+		base = ent;
+
+		for (let item of ent.items.held.items) {
+			base = item.apply(base);
+		}
+	};
+
+	invalidate();
+
+	let itemsProxy: Game.Item[] = new Proxy(ent.items.held.items, {
+		set(target: Game.Item[], field: string | number | symbol, value: any): boolean {
+			if (field === "length") {
+				target.length = value;
+			}
+
+			if (typeof field === "number") {
+				target[field] = value;
+				invalidate();
+				return true;
+			}
+
+			return false;
+		}
+	});
+
+	ent.items.held.items = itemsProxy;
+
+	return new Proxy(ent, {
+		get(target: Game.Crawl.UnplacedCrawlEntity, field: string | number | symbol): any {
+			return (base as any)[field];
+		}
+	});
+}
+
 export function startCrawl(dungeon: Game.Crawl.Dungeon,
                            entities: Game.Crawl.UnplacedCrawlEntity[]): Promise<Game.Crawl.ConcludedCrawlState> {
 	if (validateDungeonBlueprint(dungeon)) {
-		return advanceToFloor(dungeon, 1, entities)
+		return advanceToFloor(dungeon, 1, entities.map(buildWrapper))
 			.then((state) => {
 				if (utils.isCrawlOver(state)) {
 					return Promise.resolve(state);
@@ -143,26 +181,21 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 								}
 							}
 
-							enemies.push({
+							enemies.push(Object.assign({}, enemyBlueprint, {
 								id: shortid.generate(),
-								name: enemyBlueprint.name,
-								graphics: enemyBlueprint.graphics,
-								stats: {
-									level: enemyBlueprint.stats.level,
-									hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
-									attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
-									defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 }
-								},
 								attacks: attacks,
 								controller: new controllers.AIController(),
-								bag: { capacity: 1, items: [] },
+								items: {
+									held: { capacity: 1, items: [] }
+								},
 								alignment: 0,
 								advances: false
-							});
+							}));
 						}
 					}
 				});
 
+				enemies.map(buildWrapper);
 				enemies.forEach((enemy) => placeEntities(state, enemy));
 
 				state.entities.forEach((entity) => {
@@ -319,7 +352,21 @@ function getFloorBlueprint(dungeon: Game.Crawl.Dungeon, floor: number): Game.Cra
 
 export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
                                  entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredEntityCrawlState {
-	let censored: Game.Crawl.CensoredEntityCrawlState = {
+	function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
+		return new Proxy(obj, {
+			get(target: T, field: string | number | symbol): any {
+				if (typeof (target as any)[field] === "object") {
+					return makeReadOnly((target as any)[field], logstr + "." + field.toString());
+				}
+				return (target as any)[field];
+			},
+			set(target: T, field: string | number | symbol, value: any): boolean {
+				return false;
+			}
+		});
+	}
+
+	return makeReadOnly({
 		self: censorSelf(entity),
 		dungeon: {
 			name: state.dungeon.name,
@@ -337,9 +384,7 @@ export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 		entities: state.entities.filter((ent: Game.Crawl.CrawlEntity) =>
 				utils.isVisible(state.floor.map, entity.location, ent.location)
 			).map(censorEntity)
-	};
-
-	return JSON.parse(JSON.stringify(censored)); // ewwwww (clone won't build for me)
+	});
 }
 
 function censorEntity(entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredCrawlEntity {
@@ -364,6 +409,6 @@ function censorSelf(entity: Game.Crawl.CrawlEntity): Game.Crawl.CensoredSelfCraw
 		alignment: entity.alignment,
 		advances: entity.advances,
 		map: entity.map,
-		bag: entity.bag
+		items: entity.items
 	};
 }

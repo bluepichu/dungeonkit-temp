@@ -31,7 +31,7 @@ export class AttackOverlay extends PIXI.Container {
 		return this._active;
 	}
 
-	private update(): void {
+	public update(): void {
 		if (this.children.length > 0) {
 			return;
 		}
