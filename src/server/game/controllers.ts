@@ -7,6 +7,7 @@ import * as ai       from "./ai";
 import * as crawl    from "./crawl";
 import * as executer from "./executer";
 import { graphics }  from "./graphics";
+import * as printer  from "./printer";
 import * as utils    from "../../common/utils";
 
 export class AIController implements Game.Crawl.Controller {
@@ -44,7 +45,7 @@ export class SocketController implements Game.Crawl.Controller {
 	await: boolean = true;
 	socket: SocketIO.Socket;
 	log: Game.Crawl.LogEvent[];
-	lastState: Game.Crawl.CensoredEntityCrawlState;
+	lastMap: Game.Crawl.Map;
 	currentState: Game.Crawl.CensoredEntityCrawlState;
 	flushTimeout: NodeJS.Timer;
 	dashing: boolean;
@@ -55,7 +56,7 @@ export class SocketController implements Game.Crawl.Controller {
 	constructor(socket: SocketIO.Socket) {
 		this.socket = socket;
 		this.log = [];
-		this.lastState = undefined;
+		this.lastMap = undefined;
 		this.currentState = undefined;
 		this.flushTimeout = undefined;
 		this.dashing = false;
@@ -127,7 +128,7 @@ export class SocketController implements Game.Crawl.Controller {
 
 	pushEvent(event: Game.Crawl.LogEvent): void {
 		if (event.type === "start") {
-			this.lastState = undefined;
+			this.lastMap = undefined;
 		}
 
 		this.checkGraphics(event.entity.graphics);
@@ -152,13 +153,13 @@ export class SocketController implements Game.Crawl.Controller {
 			this.currentState.floor.map.grid
 				.map((row, r) =>
 					row.map((tile, c) => {
-						if (this.lastState === undefined) {
+						if (this.lastMap === undefined) {
 							if (tile.type !== Game.Crawl.DungeonTileType.UNKNOWN) {
 								return { location: { r, c }, tile };
 							}
-						} else if (tile.type !== utils.getTile(this.lastState.floor.map, { r, c }).type
-							|| tile.roomId !== utils.getTile(this.lastState.floor.map, { r, c }).roomId
-							|| tile.stairs !== utils.getTile(this.lastState.floor.map, { r, c }).stairs) {
+						} else if (tile.type !== utils.getTile(this.lastMap, { r, c }).type
+							|| tile.roomId !== utils.getTile(this.lastMap, { r, c }).roomId
+							|| tile.stairs !== utils.getTile(this.lastMap, { r, c }).stairs) {
 							return { location: { r, c }, tile };
 						}
 						return undefined;
@@ -166,7 +167,11 @@ export class SocketController implements Game.Crawl.Controller {
 				.reduce((acc, row) => acc.concat(row), [])
 				.filter((update) => update !== undefined);
 
-		this.lastState = this.currentState;
+		this.lastMap = {
+			width: this.currentState.floor.map.width,
+			height: this.currentState.floor.map.height,
+			grid: this.currentState.floor.map.grid.map((row) => row.map((tile) => Object.assign({}, tile)))
+		};
 
 		let stateUpdate: Game.Client.StateUpdate = {
 			entities: this.currentState.entities,

@@ -16,6 +16,7 @@ import {isMobile}                                              from "./is-mobile
 import {MessageLog}                                            from "./message-log";
 import {MiniMap}                                               from "./minimap";
 import * as state                                              from "./state";
+import {TeamOverlay}                                           from "./team-overlay";
 import {TweenHandler}                                          from "./tween-handler";
 import * as utils                                              from "../../common/utils";
 
@@ -32,11 +33,16 @@ let floorSign: PIXI.Container = undefined;
 let floorSignText: PIXI.Text = undefined;
 let attackOverlay: AttackOverlay = undefined;
 let inputHandler: InputHandler = undefined;
+let teamOverlay: TeamOverlay = undefined;
 
 document.addEventListener("DOMContentLoaded", () => {
 	WebFont.load({
 		google: {
-			families: ["Hind Siliguri:300,400"]
+			families: ["Lato:100,300,400,700"]
+		},
+		custom: {
+			families: ["DK Icons"],
+			urls: ["/assets/fonts.css"]
 		},
 		active: () => {
 			PIXI.loader
@@ -153,6 +159,10 @@ function init() {
 		}
 	}
 
+	teamOverlay = new TeamOverlay();
+	teamOverlay.y = window.innerHeight;
+	gameContainer.addChild(teamOverlay);
+
 	floorSign = new PIXI.Container();
 	floorSign.alpha = 0;
 	gameContainer.addChild(floorSign);
@@ -164,7 +174,7 @@ function init() {
 	floorSign.addChild(g);
 
 	floorSignText = new PIXI.Text("", {
-		font: "300 32px Hind Siliguri",
+		font: "300 32px Lato",
 		fill: Colors.WHITE,
 		align: "center"
 	});
@@ -198,6 +208,8 @@ function handleWindowResize(): void {
 
 	dungeonLayer.x = window.innerWidth / 2;
 	dungeonLayer.y = window.innerHeight / 2;
+
+	teamOverlay.y = window.innerHeight;
 }
 
 function processAll(updates: Processable[]): void {
@@ -227,6 +239,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				let doneEvent = proc as { type: "done", move: boolean, state: Game.Client.StateUpdate };
 
 				doneEvent.state.floor.mapUpdates.forEach((update) => {
+					console.error(update.location);
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
 					dungeonLayer.groundLayer.update(update.location);
 				});
@@ -238,6 +251,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				dungeonLayer.entityLayer.update();
 				minimap.update();
 				attackOverlay.update();
+				teamOverlay.update();
 
 				inputHandler.awaitingMove = inputHandler.awaitingMove || doneEvent.move;
 

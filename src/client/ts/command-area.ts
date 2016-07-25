@@ -6,12 +6,12 @@ import * as Messages from "./messages";
 import {MessageLog}  from "./message-log";
 
 const COMMAND_AREA_INACTIVE_STYLE = {
-	font: "300 16px Hind Siliguri",
+	font: "300 16px Lato",
 	fill: Colors.GRAY_4
 };
 
 const COMMAND_AREA_ACTIVE_STYLE = {
-	font: "300 16px Hind Siliguri",
+	font: "300 16px Lato",
 	fill: Colors.WHITE
 };
 

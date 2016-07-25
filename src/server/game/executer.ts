@@ -6,8 +6,8 @@ import * as crawl from "./crawl";
 import * as utils from "../../common/utils";
 
 export function isValidAction(state: Game.Crawl.CensoredInProgressCrawlState,
-                              entity: Game.Crawl.CrawlEntity,
-                              action: Game.Crawl.Action): boolean {
+	entity: Game.Crawl.CrawlEntity,
+	action: Game.Crawl.Action): boolean {
 	switch (action.type) {
 		case "wait":
 			return true;
@@ -27,8 +27,8 @@ export function isValidAction(state: Game.Crawl.CensoredInProgressCrawlState,
 }
 
 export function execute(state: Game.Crawl.InProgressCrawlState,
-                        entity: Game.Crawl.CrawlEntity,
-                        action: Game.Crawl.Action): Promise<Game.Crawl.CrawlState> {
+	entity: Game.Crawl.CrawlEntity,
+	action: Game.Crawl.Action): Promise<Game.Crawl.CrawlState> {
 	let result: Promise<Game.Crawl.CrawlState> = undefined;
 
 	switch (action.type) {
@@ -57,7 +57,7 @@ export function execute(state: Game.Crawl.InProgressCrawlState,
 }
 
 function postExecute(state: Game.Crawl.CrawlState,
-                     entity: Game.Crawl.CrawlEntity): Game.Crawl.CrawlState {
+	entity: Game.Crawl.CrawlEntity): Game.Crawl.CrawlState {
 	if (utils.isCrawlOver(state)) {
 		return state;
 	}
@@ -85,16 +85,18 @@ function postExecute(state: Game.Crawl.CrawlState,
 }
 
 function executeMove(state: Game.Crawl.InProgressCrawlState,
-                     entity: Game.Crawl.CrawlEntity,
-                     action: Game.Crawl.MoveAction): Promise<Game.Crawl.CrawlState> {
+	entity: Game.Crawl.CrawlEntity,
+	action: Game.Crawl.MoveAction): Promise<Game.Crawl.CrawlState> {
 	let start = entity.location;
 
-	if (isValidMove(state, entity, action.direction)) {
-		let offset: [number, number] = utils.decodeDirection(action.direction);
-		let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
-
-		entity.location = location;
+	if (!isValidMove(state, entity, action.direction)) {
+		return Promise.resolve(state);
 	}
+
+	let offset: [number, number] = utils.decodeDirection(action.direction);
+	let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
+
+	entity.location = location;
 
 	propagateLogEvent(state, {
 		type: "move",
@@ -108,12 +110,54 @@ function executeMove(state: Game.Crawl.InProgressCrawlState,
 		direction: action.direction
 	});
 
+	return executeItemPickup(state, entity);
+}
+
+function executeItemPickup(state: Game.Crawl.InProgressCrawlState,
+	entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.CrawlState> {
+	let item = utils.getItemAtLocation(state, entity.location);
+
+	if (item !== undefined) {
+		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
+			entity.items.bag.items.push(item);
+			state.floor.items.filter((it) => it !== item);
+			return;
+		}
+
+		if (entity.items.held.items.length < entity.items.held.capacity) {
+			entity.items.bag.items.push(item);
+			state.floor.items.filter((it) => it !== item);
+			return;
+		}
+	}
+
+	return Promise.resolve(state);
+}
+
+function executeItemDrop(state: Game.Crawl.InProgressCrawlState,
+	location: Game.Crawl.Location,
+	item: Game.Crawl.CrawlItem): Promise<Game.Crawl.CrawlState> {
+	let loc = { r: location.r, c: location.c };
+	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
+		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
+			for (let j = 0; j < 2 * i + di; i++) {
+				if (utils.getTile(state.floor.map, loc).type === Game.Crawl.DungeonTileType.FLOOR
+					&& utils.getItemAtLocation(state, loc) === undefined) {
+					item.location = loc;
+					state.floor.items.push(item);
+					return Promise.resolve(state);
+				}
+			}
+		}
+	}
+
+	// welp
 	return Promise.resolve(state);
 }
 
 function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
-                     entity: Game.Crawl.CrawlEntity,
-                     direction: number): boolean {
+	entity: Game.Crawl.CrawlEntity,
+	direction: number): boolean {
 	let offset: [number, number] = utils.decodeDirection(direction);
 	let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
 
@@ -140,8 +184,8 @@ function isValidMove(state: Game.Crawl.CensoredInProgressCrawlState,
 }
 
 function executeAttack(state: Game.Crawl.InProgressCrawlState,
-                       entity: Game.Crawl.CrawlEntity,
-                       action: Game.Crawl.AttackAction): Promise<Game.Crawl.CrawlState> {
+	entity: Game.Crawl.CrawlEntity,
+	action: Game.Crawl.AttackAction): Promise<Game.Crawl.CrawlState> {
 	propagateLogEvent(state, {
 		type: "attack",
 		entity: {
@@ -155,6 +199,7 @@ function executeAttack(state: Game.Crawl.InProgressCrawlState,
 	});
 
 	let targets = getTargets(state, entity, action.direction, action.attack.target);
+	console.log(targets);
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
 
@@ -162,9 +207,9 @@ function executeAttack(state: Game.Crawl.InProgressCrawlState,
 }
 
 function getTargets(state: Game.Crawl.InProgressCrawlState,
-                    attacker: Game.Crawl.CrawlEntity,
-                    direction: number,
-                    selector: Game.TargetSelector): Game.Crawl.CrawlEntity[] {
+	attacker: Game.Crawl.CrawlEntity,
+	direction: number,
+	selector: Game.TargetSelector): Game.Crawl.CrawlEntity[] {
 	switch (selector.type) {
 		case "self":
 			return [attacker];
@@ -198,9 +243,9 @@ function getTargets(state: Game.Crawl.InProgressCrawlState,
 }
 
 function applyAttack(state: Game.Crawl.InProgressCrawlState,
-                     attack: Game.Attack,
-                     attacker: Game.Crawl.CrawlEntity,
-                     defender: Game.Crawl.CrawlEntity): void {
+	attack: Game.Attack,
+	attacker: Game.Crawl.CrawlEntity,
+	defender: Game.Crawl.CrawlEntity): void {
 	if (attack.accuracy !== "always" && Math.random() * 100 > attack.accuracy) {
 		propagateLogEvent(state, {
 			type: "miss",
@@ -284,14 +329,14 @@ function getModifiedStat(stat: Game.BaseModifierStat): number {
 }
 
 function executeItem(state: Game.Crawl.InProgressCrawlState,
-                     entity: Game.Crawl.CrawlEntity,
-                     action: Game.Crawl.ItemAction): Promise<Game.Crawl.CrawlState> {
+	entity: Game.Crawl.CrawlEntity,
+	action: Game.Crawl.ItemAction): Promise<Game.Crawl.CrawlState> {
 	return Promise.resolve(state); // TODO
 }
 
 function executeStairs(state: Game.Crawl.InProgressCrawlState,
-                       entity: Game.Crawl.CrawlEntity,
-                       action: Game.Crawl.StairsAction): Promise<Game.Crawl.CrawlState> {
+	entity: Game.Crawl.CrawlEntity,
+	action: Game.Crawl.StairsAction): Promise<Game.Crawl.CrawlState> {
 	if (state.floor.map.grid[entity.location.r][entity.location.c].stairs) {
 		propagateLogEvent(state, {
 			type: "stairs",
@@ -335,7 +380,7 @@ function propagateLogEvent(state: Game.Crawl.InProgressCrawlState, event: Game.C
 
 			state.entities.forEach((entity) => {
 				if (utils.isVisible(state.floor.map, entity.location, moveEvent.start)
-				 || utils.isVisible(state.floor.map, entity.location, moveEvent.end)) {
+					|| utils.isVisible(state.floor.map, entity.location, moveEvent.end)) {
 					entity.controller.pushEvent(event);
 				}
 			});

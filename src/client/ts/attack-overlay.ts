@@ -79,7 +79,7 @@ class AttackListing extends PIXI.Container {
 		this.addChild(this.bg);
 
 		this.indexText = new PIXI.Text(indexText.toString(), {
-			font: "400 32px Hind Siliguri",
+			font: "400 32px Lato",
 			fill: Colors.WHITE
 		});
 		this.indexText.anchor.x = .5;
@@ -90,7 +90,7 @@ class AttackListing extends PIXI.Container {
 		this.addChild(this.indexText);
 
 		this.nameText = new PIXI.Text("", {
-			font: "300 24px Hind Siliguri",
+			font: "300 24px Lato",
 			fill: Colors.WHITE
 		});
 		this.nameText.anchor.y = .5;
@@ -101,7 +101,7 @@ class AttackListing extends PIXI.Container {
 		this.addChild(this.nameText);
 
 		this.powerText = new PIXI.Text("", {
-			font: "300 16px Hind Siliguri",
+			font: "300 16px Lato",
 			fill: Colors.WHITE
 		});
 		this.powerText.anchor.x = 1;
@@ -112,7 +112,7 @@ class AttackListing extends PIXI.Container {
 		this.addChild(this.powerText);
 
 		this.accuracyText = new PIXI.Text("", {
-			font: "300 16px Hind Siliguri",
+			font: "300 16px Lato",
 			fill: Colors.WHITE
 		});
 		this.accuracyText.anchor.x = 1;
@@ -123,7 +123,7 @@ class AttackListing extends PIXI.Container {
 		this.addChild(this.accuracyText);
 
 		this.usesText = new PIXI.Text("", {
-			font: "300 16px Hind Siliguri",
+			font: "300 16px Lato",
 			fill: Colors.WHITE
 		});
 		this.usesText.anchor.x = .5;

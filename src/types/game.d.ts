@@ -175,7 +175,7 @@ declare namespace Game {
 			items: CrawlItem[];
 		}
 
-		interface CrawlItem extends Item, Locatable { }
+		type CrawlItem = Item & Locatable;
 
 		interface Map {
 			width: number;
@@ -229,8 +229,6 @@ declare namespace Game {
 			wait(): void;
 			init(entity: UnplacedCrawlEntity, dungeon: Game.Crawl.CensoredDungeon): void;
 		}
-
-		interface CrawlItem extends Item, Locatable { }
 
 		type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
 			| StartLogEvent | MissLogEvent;
@@ -415,7 +413,7 @@ declare namespace Game {
 		interface CensoredInProgressCrawlState {
 			dungeon: CensoredDungeon;
 			floor: Floor;
-			entities: CensoredCrawlEntity[];
+			entities: (CensoredCrawlEntity | CensoredSelfCrawlEntity)[];
 		}
 
 		interface CensoredEntityCrawlState extends CensoredInProgressCrawlState {

@@ -39,6 +39,8 @@ export class AnimatedSprite extends PIXI.Container {
 		for (let i = spriteCount - 1; i >= 0; i--) {
 			this.addChild(this.sprites[i]);
 		}
+
+		this.prerender();
 	}
 
 	addAnimationEndListener(f: () => any) {

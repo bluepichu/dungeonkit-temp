@@ -5,37 +5,37 @@ import {TweenHandler} from "./tween-handler";
 
 const MESSAGE_LOG_STYLES: { [key: string]: PIXI.TextStyle } = {
 	def: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.WHITE,
 		align: "right"
 	},
 	self: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.YELLOW,
 		align: "right"
 	},
 	ally: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.ORANGE,
 		align: "right"
 	},
 	enemy: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.RED,
 		align: "right"
 	},
 	item: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.BLUE,
 		align: "right"
 	},
 	command: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.PURPLE,
 		align: "right"
 	},
 	attack: {
-		font: "300 16px Hind Siliguri",
+		font: "300 16px Lato",
 		fill: Colors.BROWN,
 		align: "right"
 	}

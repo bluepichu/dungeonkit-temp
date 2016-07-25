@@ -8,7 +8,7 @@ declare namespace Game {
 
 		interface StateUpdate {
 			floor: FloorUpdate;
-			entities: Game.Crawl.CensoredCrawlEntity[];
+			entities: (Game.Crawl.CensoredCrawlEntity | Game.Crawl.CensoredSelfCrawlEntity)[];
 			self: CensoredSelfEntity;
 		}
 
@@ -23,7 +23,7 @@ declare namespace Game {
 			advances: boolean;
 			items: {
 				held: ItemSet;
-				bag: ItemSet;
+				bag?: ItemSet;
 			};
 		}
 

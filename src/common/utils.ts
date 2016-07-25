@@ -51,14 +51,19 @@ export function getEntityAtLocation(state: Game.Crawl.CensoredInProgressCrawlSta
 	location: Game.Crawl.Location): Game.Crawl.CensoredCrawlEntity | void;
 
 export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
-	location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void {
-	for (let i = 0; i < state.entities.length; i++) {
-		if (areLocationsEqual(location, state.entities[i].location)) {
-			return state.entities[i];
-		}
-	}
+	                                location: Game.Crawl.Location): Game.Crawl.CrawlEntity {
+	return state.entities.find((entity) => areLocationsEqual(entity.location, location));
+}
 
-	return undefined;
+/**
+ * Retrieves the item at the given location.
+ * @param state - The state.
+ * @param location - The location.
+ * @returns The item at the given location in the given state, or undefined if no item occupies that location.
+ */
+
+export function getItemAtLocation(state: Game.Crawl.InProgressCrawlState, location: Game.Crawl.Location): Game.Item {
+	return state.floor.items.find((item) => areLocationsEqual(item.location, location));
 }
 
 /**
@@ -68,7 +73,7 @@ export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
  * @returns Whether or not the location is empty in the given state.
  */
 export function isLocationEmpty(state: Game.Crawl.CensoredInProgressCrawlState,
-	location: Game.Crawl.Location): boolean {
+	                            location: Game.Crawl.Location): boolean {
 	return (getEntityAtLocation(state, location) === undefined);
 }
 

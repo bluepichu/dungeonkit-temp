@@ -1,5 +1,6 @@
 "use strict";
 
+import * as clone       from "clone";
 import * as shortid     from "shortid";
 import {sprintf}        from "sprintf-js";
 
@@ -370,17 +371,36 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 	return {
 		id: shortid.generate(),
 		name: "Eevee",
-		stats: eeveeStats,
-		attacks: [tackle, growl, tailWhip, swift],
+		stats: clone(eeveeStats),
+		attacks: clone([tackle, growl, tailWhip, swift]),
 		items: {
-			held: { capacity: 1, items: [
+			held: { capacity: 2, items: [
 				{
-					name: "OP Scarf of Doom",
-					description: "gg no re?",
+					name: "Attack Scarf",
+					description: "Raises attack by two stages.",
 					apply(entity) {
-						return deepProxy(entity, "stats.attack.base", {
-							get(target: any, field: any): number {
-								return 10000000;
+						return deepProxy(entity, "stats.attack.modifier", {
+							get(target: Game.BaseModifierStat, field: any): number {
+								return target.modifier + 2;
+							},
+							set(target: Game.BaseModifierStat, field: any, value: number): boolean {
+								target.modifier += value - target.modifier;
+								return true;
+							}
+						});
+					}
+				},
+				{
+					name: "Antidefense Scarf",
+					description: "Lowers defense by two stages.",
+					apply(entity) {
+						return deepProxy(entity, "stats.defense.modifier", {
+							get(target: Game.BaseModifierStat, field: any): number {
+								return target.modifier - 2;
+							},
+							set(target: Game.BaseModifierStat, field: any, value: number): boolean {
+								target.modifier += value - target.modifier;
+								return true;
 							}
 						});
 					}

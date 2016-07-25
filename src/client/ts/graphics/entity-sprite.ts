@@ -34,7 +34,7 @@ export class EntitySprite extends AnimatedSprite {
 	}
 
 	protected getTexture(frame: Game.Graphics.Frame): PIXI.Texture {
-		let dir = this.direction;
+		let dir = this.direction !== undefined ? this.direction : 6; // default to straight ahead if not set
 
 		if (this.useReflection) {
 			switch (this.direction) {

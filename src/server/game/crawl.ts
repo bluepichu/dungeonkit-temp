@@ -6,6 +6,7 @@ import * as generator       from "./generator";
 import * as printer         from "./printer";
 import * as utils           from "../../common/utils";
 
+import * as clone           from "clone";
 import * as log             from "beautiful-log";
 import * as shortid         from "shortid";
 import {sprintf}            from "sprintf-js";
@@ -181,7 +182,7 @@ export function advanceToFloor(dungeon: Game.Crawl.Dungeon,
 								}
 							}
 
-							enemies.push(Object.assign({}, enemyBlueprint, {
+							enemies.push(Object.assign(clone(enemyBlueprint), {
 								id: shortid.generate(),
 								attacks: attacks,
 								controller: new controllers.AIController(),
@@ -361,7 +362,7 @@ export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 				return (target as any)[field];
 			},
 			set(target: T, field: string | number | symbol, value: any): boolean {
-				return false;
+				throw new TypeError(`Attempted illegal set action on field "${field}" of read-only object.`);
 			}
 		});
 	}
@@ -383,7 +384,7 @@ export function getCensoredState(state: Game.Crawl.InProgressCrawlState,
 		},
 		entities: state.entities.filter((ent: Game.Crawl.CrawlEntity) =>
 				utils.isVisible(state.floor.map, entity.location, ent.location)
-			).map(censorEntity)
+			).map((ent) => ent.alignment === entity.alignment ? censorSelf(ent) : censorEntity(ent))
 	});
 }
 
