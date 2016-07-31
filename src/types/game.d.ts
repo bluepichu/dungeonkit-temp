@@ -19,7 +19,8 @@ declare namespace Game {
 		name: string;
 		description: string;
 		// graphics: Graphics.EntityGraphics;
-		apply(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity;
+		// [event: Symbol]: (state: Game.Crawl.CrawlState) => [Game.Crawl.CrawlState, boolean];
+		// TODO(bluepichu): Fix when TS compiler supports symbols
 	}
 
 	interface ItemSet {

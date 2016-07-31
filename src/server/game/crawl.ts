@@ -4,6 +4,7 @@ import * as controllers     from "./controllers";
 import * as executer        from "./executer";
 import * as generator       from "./generator";
 import * as printer         from "./printer";
+import * as Symbols         from "./symbols";
 import * as utils           from "../../common/utils";
 
 import * as clone           from "clone";
@@ -11,20 +12,29 @@ import * as log             from "beautiful-log";
 import * as shortid         from "shortid";
 import {sprintf}            from "sprintf-js";
 
-function buildWrapper(ent: Game.Crawl.UnplacedCrawlEntity): Game.Crawl.UnplacedCrawlEntity {
+type ItemHandler = (item: Game.Item, entity: Game.Crawl.UnplacedCrawlEntity) => any;
+
+function getHandler(item: Game.Item, key: symbol): ItemHandler {
+	if ((item as any)[key] !== undefined) {
+		return ((item as any)[key]) as ItemHandler;
+	}
+	return (item: Game.Item, entity: Game.Crawl.CrawlEntity) => entity;
+}
+
+function buildWrapper(entity: Game.Crawl.UnplacedCrawlEntity): Game.Crawl.UnplacedCrawlEntity {
 	let base: Game.Crawl.UnplacedCrawlEntity;
 
 	let invalidate = () => {
-		base = ent;
+		base = entity;
 
-		for (let item of ent.items.held.items) {
-			base = item.apply(base);
+		for (let item of entity.items.held.items) {
+			base = getHandler(item, Symbols.ITEM_EQUIP)(item, base);
 		}
 	};
 
 	invalidate();
 
-	let itemsProxy: Game.Item[] = new Proxy(ent.items.held.items, {
+	let itemsProxy: Game.Item[] = new Proxy(entity.items.held.items, {
 		set(target: Game.Item[], field: string | number | symbol, value: any): boolean {
 			if (field === "length") {
 				target.length = value;
@@ -40,9 +50,9 @@ function buildWrapper(ent: Game.Crawl.UnplacedCrawlEntity): Game.Crawl.UnplacedC
 		}
 	});
 
-	ent.items.held.items = itemsProxy;
+	entity.items.held.items = itemsProxy;
 
-	return new Proxy(ent, {
+	return new Proxy(entity, {
 		get(target: Game.Crawl.UnplacedCrawlEntity, field: string | number | symbol): any {
 			return (base as any)[field];
 		}

@@ -1,9 +1,19 @@
 "use strict";
 
-import * as log   from "beautiful-log";
+import * as log     from "beautiful-log";
 
-import * as crawl from "./crawl";
-import * as utils from "../../common/utils";
+import * as crawl   from "./crawl";
+import * as Symbols from "./symbols";
+import * as utils   from "../../common/utils";
+
+type ItemHandler = (item: Game.Item, entity: Game.Crawl.UnplacedCrawlEntity) => any;
+
+function getHandler(item: Game.Item, key: symbol): ItemHandler {
+	if ((item as any)[key] !== undefined) {
+		return ((item as any)[key]) as ItemHandler;
+	}
+	return (item: Game.Item, entity: Game.Crawl.CrawlEntity) => entity;
+}
 
 export function isValidAction(state: Game.Crawl.CensoredInProgressCrawlState,
 	entity: Game.Crawl.CrawlEntity,
@@ -65,6 +75,22 @@ function postExecute(state: Game.Crawl.CrawlState,
 	let newState = state as Game.Crawl.InProgressCrawlState;
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0).forEach((entity: Game.Crawl.CrawlEntity) => {
+		for (let item of entity.items.held.items) {
+			getHandler(item, Symbols.ENTITY_DEFEAT)(item, entity);
+			if (entity.stats.hp.current > 0) {
+				return;
+			}
+		}
+
+		if (entity.items.bag !== undefined) {
+			for (let item of entity.items.bag.items) {
+				getHandler(item, Symbols.ENTITY_DEFEAT)(item, entity);
+				if (entity.stats.hp.current > 0) {
+					return;
+				}
+			}
+		}
+
 		propagateLogEvent(newState, {
 			type: "defeat",
 			entity: {
@@ -75,7 +101,7 @@ function postExecute(state: Game.Crawl.CrawlState,
 		});
 	});
 
-	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0); // this needs work
+	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
 
 	newState.entities.forEach((entity) => updateMap(newState, entity));
 

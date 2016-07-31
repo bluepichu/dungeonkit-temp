@@ -5,6 +5,7 @@ import * as shortid     from "shortid";
 import {sprintf}        from "sprintf-js";
 
 import * as controllers from "./game/controllers";
+import * as Symbols     from "./game/symbols";
 
 let roomFeatures = [
 	{
@@ -370,7 +371,7 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
-		name: "Eevee",
+		name: "Charmander",
 		stats: clone(eeveeStats),
 		attacks: clone([tackle, growl, tailWhip, swift]),
 		items: {
@@ -378,7 +379,7 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 				{
 					name: "Attack Scarf",
 					description: "Raises attack by two stages.",
-					apply(entity) {
+					[Symbols.ITEM_EQUIP]: (item: Game.Item, entity: Game.Crawl.UnplacedCrawlEntity) => {
 						return deepProxy(entity, "stats.attack.modifier", {
 							get(target: Game.BaseModifierStat, field: any): number {
 								return target.modifier + 2;
@@ -391,18 +392,26 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 					}
 				},
 				{
-					name: "Antidefense Scarf",
-					description: "Lowers defense by two stages.",
-					apply(entity) {
-						return deepProxy(entity, "stats.defense.modifier", {
-							get(target: Game.BaseModifierStat, field: any): number {
-								return target.modifier - 2;
-							},
-							set(target: Game.BaseModifierStat, field: any, value: number): boolean {
-								target.modifier += value - target.modifier;
-								return true;
-							}
-						});
+					name: "Reviver Seed",
+					description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
+					[Symbols.ENTITY_DEFEAT]: (item: Game.Item, entity: Game.Crawl.UnplacedCrawlEntity) => {
+						entity.stats.hp.current = entity.stats.hp.max;
+						entity.items.held.items = entity.items.held.items.map((heldItem) =>
+							heldItem === item
+								? {
+									name: "Plain Seed",
+									description: "Does nothing in particular.  Fills the belly slightly when eaten"
+								}
+								: heldItem);
+						if (entity.items.bag !== undefined) {
+							entity.items.bag.items = entity.items.bag.items.map((bagItem) =>
+								bagItem === item
+									? {
+										name: "Plain Seed",
+										description: "Does nothing in particular.  Fills the belly slightly when eaten"
+									}
+									: bagItem);
+						}
 					}
 				}
 			] },

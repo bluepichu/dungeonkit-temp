@@ -160,12 +160,13 @@ function init() {
 	}
 
 	teamOverlay = new TeamOverlay();
+	teamOverlay.x = 10;
 	teamOverlay.y = window.innerHeight;
 	gameContainer.addChild(teamOverlay);
 
 	floorSign = new PIXI.Container();
 	floorSign.alpha = 0;
-	gameContainer.addChild(floorSign);
+	// gameContainer.addChild(floorSign);
 
 	let g = new PIXI.Graphics();
 	g.beginFill(0x000000);

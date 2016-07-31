@@ -8,29 +8,37 @@ import {TweenHandler} from "./tween-handler";
 
 const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 	def: {
-		font: "300 16px Lato",
+		font: "300 14px Lato",
 		fill: Colors.WHITE
 	},
 	title: {
-		font: "100 40px Lato",
+		font: "300 20px Lato",
 		fill: Colors.YELLOW
 	},
+	header: {
+		font: "700 14px Lato",
+		fill: Colors.WHITE
+	},
+	strategy: {
+		font: "400 12px Lato",
+		fill: Colors.GRAY_6
+	},
 	icon: {
-		font: "300 16px DK Icons",
+		font: "300 14px DK Icons",
 		fill: Colors.WHITE
 	},
 	denom: {
-		font: "300 12px Lato",
+		font: "300 10px Lato",
 		fill: Colors.GRAY_5,
-		valign: "bottom"
+		valign: "middle"
 	},
 	statup: {
-		font: "700 12px Lato",
+		font: "400 10px Lato",
 		fill: Colors.BLUE,
 		valign: "middle"
 	},
 	statdown: {
-		font: "700 12px Lato",
+		font: "400 10px Lato",
 		fill: Colors.RED,
 		valign: "middle"
 	},
@@ -65,40 +73,74 @@ export class TeamOverlay extends PIXI.Container {
 
 class TeamListing extends PIXI.Container {
 	private bg: PIXI.Graphics;
-	private nameText: PIXI.Text;
+
 	private entitySprite: EntitySprite;
-	private itemSlots: ItemSlot[];
+	private nameText: PIXI.Text;
+	private strategyText: PIXI.Text;
+
+	private statsHeader: PIXI.Text;
 	private hpText: PIXI.MultiStyleText;
 	private attackText: PIXI.MultiStyleText;
 	private defenseText: PIXI.MultiStyleText;
+	private hungerText: PIXI.MultiStyleText;
+
+	private itemsHeader: PIXI.Text;
+	private itemsText: PIXI.Text[];
 
 	constructor(entity: Game.Crawl.CensoredSelfCrawlEntity) {
 		super();
 
 		this.bg = new PIXI.Graphics();
 		this.addChild(this.bg);
-
-		this.nameText = new PIXI.Text(entity.name, STYLES["title"]);
-		this.nameText.x = 60;
-		this.nameText.y = 2;
-		this.nameText.resolution = window.devicePixelRatio;
-		this.addChild(this.nameText);
+		this.bg.beginFill(Colors.BLACK, .9);
+		this.bg.drawRect(-10, 0, 230, 140);
+		this.bg.endFill();
 
 		this.entitySprite = new EntitySprite(EntityLayer.entityGraphicsCache.get(entity.graphics));
 		this.entitySprite.direction = 7;
-		this.entitySprite.x = 30;
+		this.entitySprite.x = 40;
 		this.entitySprite.y = 28;
 		this.entitySprite.scale.x = 1.5;
 		this.entitySprite.scale.y = 1.5;
 		this.addChild(this.entitySprite);
 
+		this.nameText = new PIXI.Text(entity.name, STYLES["title"]);
+		this.nameText.anchor.x = .5;
+		this.nameText.anchor.y = .5;
+		this.nameText.x = 130;
+		this.nameText.y = 18;
+		this.nameText.resolution = window.devicePixelRatio;
+		this.addChild(this.nameText);
+
+		this.strategyText = new PIXI.Text("Leader", STYLES["strategy"]);
+		this.strategyText.anchor.x = .5;
+		this.strategyText.anchor.y = .5;
+		this.strategyText.x = 130;
+		this.strategyText.y = 35;
+		this.strategyText.resolution = window.devicePixelRatio;
+		this.addChild(this.strategyText);
+
+		this.statsHeader = new PIXI.Text("STATS", STYLES["header"]);
+		this.statsHeader.x = 12;
+		this.statsHeader.y = 50;
+		this.statsHeader.resolution = window.devicePixelRatio;
+		this.addChild(this.statsHeader);
+
 		this.hpText = new PIXI.MultiStyleText(
 			`<icon>hp</icon> ${entity.stats.hp.current} <denom>/ ${entity.stats.hp.max}</denom>`,
 			STYLES);
-		this.hpText.x = 16 + this.nameText.x + this.nameText.width;
-		this.hpText.y = 6;
+		this.hpText.x = 16;
+		this.hpText.y = 70;
 		this.hpText.resolution = window.devicePixelRatio;
 		this.addChild(this.hpText);
+
+		this.hungerText = new PIXI.MultiStyleText(
+			`<icon>hp</icon> ${100} <denom>/ ${100}</denom>`,
+			STYLES);
+		this.hungerText.x = 16;
+		this.hungerText.y = 86;
+		this.hungerText.resolution = window.devicePixelRatio;
+		this.addChild(this.hungerText);
 
 		if (entity.stats.attack.modifier !== 0) {
 			this.attackText = new PIXI.MultiStyleText(
@@ -110,8 +152,8 @@ class TeamListing extends PIXI.Container {
 		} else {
 			this.defenseText = new PIXI.MultiStyleText(`<icon>attack</icon> ${entity.stats.attack.base}`, STYLES);
 		}
-		this.attackText.x = 20 + this.hpText.x + this.hpText.width;
-		this.attackText.y = 6;
+		this.attackText.x = 16;
+		this.attackText.y = 102;
 		this.attackText.resolution = window.devicePixelRatio;
 		this.addChild(this.attackText);
 
@@ -125,63 +167,24 @@ class TeamListing extends PIXI.Container {
 		} else {
 			this.defenseText = new PIXI.MultiStyleText(`<icon>defense</icon> ${entity.stats.defense.base}`, STYLES);
 		}
-		this.defenseText.x = 20 + this.hpText.x + this.hpText.width;
-		this.defenseText.y = 28;
+		this.defenseText.x = 16;
+		this.defenseText.y = 118;
 		this.defenseText.resolution = window.devicePixelRatio;
 		this.addChild(this.defenseText);
 
-		this.bg.beginFill(Colors.BLACK, .9);
-		this.bg.drawPolygon([
-			0, 0,
-			this.attackText.x + this.attackText.width + 40, 0,
-			this.attackText.x + this.attackText.width + 10, 50,
-			0, 50]);
-		this.bg.endFill();
+		this.statsHeader = new PIXI.Text("ITEMS", STYLES["header"]);
+		this.statsHeader.x = 98;
+		this.statsHeader.y = 50;
+		this.statsHeader.resolution = window.devicePixelRatio;
+		this.addChild(this.statsHeader);
 
-		this.itemSlots = [];
+		this.itemsText = entity.items.held.items.map((item) => new PIXI.Text(item.name, STYLES["def"]));
 
-		for (let i = 0; i < entity.items.held.capacity; i++) {
-			this.itemSlots.push(new ItemSlot(entity.items.held.items[i]));
-		}
-
-		this.itemSlots.forEach((itemSlot, i) => {
-			itemSlot.y = 50 + 28 * i;
-			this.addChild(itemSlot);
+		this.itemsText.forEach((text, i) => {
+			text.x = 102;
+			text.y = 70 + 16 * i;
+			text.resolution = window.devicePixelRatio;
+			this.addChild(text);
 		});
-	}
-}
-
-class ItemSlot extends PIXI.Container {
-	private bg: PIXI.Graphics;
-	private text: PIXI.Text;
-
-	constructor(item: Game.Item) {
-		super();
-
-		this.bg = new PIXI.Graphics();
-		this.bg.beginFill(Colors.GRAY_1, .8);
-		this.bg.drawRect(0, 0, 200, 28);
-		this.bg.lineStyle(1, Colors.BLACK, .8);
-		this.bg.moveTo(0, 28);
-		this.bg.lineTo(200, 28);
-		this.bg.endFill();
-		this.bg.lineStyle(0);
-		this.addChild(this.bg);
-
-		if (item === undefined) {
-			this.text = new PIXI.Text("<No Item>", {
-				font: "300 16px Lato",
-				fill: Colors.GRAY_5
-			});
-		} else {
-			this.text = new PIXI.Text(item.name, {
-				font: "300 16px Lato",
-				fill: Colors.WHITE
-			});
-		}
-		this.text.x = 40;
-		this.text.y = 4;
-		this.text.resolution = window.devicePixelRatio;
-		this.addChild(this.text);
 	}
 }
