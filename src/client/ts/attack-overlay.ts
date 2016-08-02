@@ -36,7 +36,7 @@ export class AttackOverlay extends PIXI.Container {
 			return;
 		}
 
-		state.getState().self.attacks.forEach((attack: Game.Attack, i: number) => {
+		state.getState().self.attacks.forEach((attack: Attack, i: number) => {
 			if (this.children.length <= i) {
 				let child = new AttackListing(i + 1, attack);
 
@@ -69,7 +69,7 @@ class AttackListing extends PIXI.Container {
 	private accuracyText: PIXI.Text;
 	private usesText: PIXI.Text;
 
-	constructor(indexText: number, attack: Game.Attack) {
+	constructor(indexText: number, attack: Attack) {
 		super();
 
 		this.bg = new PIXI.Graphics();
@@ -138,7 +138,7 @@ class AttackListing extends PIXI.Container {
 		this.update(attack);
 	}
 
-	update(attack: Game.Attack) {
+	update(attack: Attack) {
 		this.nameText.text = attack.name;
 		this.powerText.text = attack.power !== undefined ? attack.power + " POW" : "";
 		this.accuracyText.text = attack.accuracy === "always" ? "Always hits" : attack.accuracy + " ACC";

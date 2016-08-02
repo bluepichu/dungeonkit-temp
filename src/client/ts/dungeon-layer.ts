@@ -34,9 +34,9 @@ export class DungeonLayer extends PIXI.Container {
 		[this.entityLayer.x, this.entityLayer.y] = [-offsetX, -offsetY];
 	}
 
-	moveEntity(entity: Game.Crawl.CondensedEntity,
-		from: Game.Crawl.Location,
-		to: Game.Crawl.Location,
+	moveEntity(entity: Crawl.CondensedEntity,
+		from: Crawl.Location,
+		to: Crawl.Location,
 		isSelf: boolean,
 		animation?: string,
 		direction?: number): Thenable {
@@ -82,7 +82,7 @@ export class DungeonLayer extends PIXI.Container {
 		this._zoomOut = zoom;
 	}
 
-	updatePosition(entityLocation: Game.Crawl.Location): void {
+	updatePosition(entityLocation: Crawl.Location): void {
 		let nextView: { r: [number, number], c: [number, number] } = {
 			r: [entityLocation.r, entityLocation.r],
 			c: [entityLocation.c, entityLocation.c]

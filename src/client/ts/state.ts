@@ -1,11 +1,11 @@
 "use strict";
 
-let _state: Game.Client.CensoredClientCrawlState = undefined;
+let _state: Client.CensoredClientCrawlState = undefined;
 
-export function getState(): Game.Client.CensoredClientCrawlState {
+export function getState(): Client.CensoredClientCrawlState {
 	return _state;
 }
 
-export function setState(state: Game.Client.CensoredClientCrawlState): void {
+export function setState(state: Client.CensoredClientCrawlState): void {
 	_state = state;
 }

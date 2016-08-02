@@ -23,7 +23,7 @@ export class GroundLayer extends PIXI.Container {
 		this.addChild(this.lightingLayer);
 	}
 
-	update(location: Game.Crawl.Location) {
+	update(location: Crawl.Location) {
 		for (let i = location.r - 1; i <= location.r + 1; i++) {
 			for (let j = location.c - 1; j <= location.c + 1; j++) {
 				if (i < 0 || i >= state.getState().floor.map.height || j < 0 || j >= state.getState().floor.map.width) {
@@ -44,7 +44,7 @@ export class GroundLayer extends PIXI.Container {
 		}
 	}
 
-	moveTo(loc: Game.Crawl.Location): Thenable {
+	moveTo(loc: Crawl.Location): Thenable {
 		let [x, y] = utils.locationToCoordinates(loc, Constants.GRID_SIZE);
 
 		let xPrm = this.tweenHandler.tween(this, "x", -x, Constants.VIEW_MOVE_VELOCITY, "smooth");
@@ -53,14 +53,14 @@ export class GroundLayer extends PIXI.Container {
 		return Promise.all([xPrm, yPrm]);
 	}
 
-	private getFloorTile(map: Game.Crawl.Map,
-		loc: Game.Crawl.Location,
-		graphics: Game.Graphics.DungeonGraphics): PIXI.DisplayObject | void {
-		if (utils.getTile(map, loc).type === Game.Crawl.DungeonTileType.UNKNOWN) {
+	private getFloorTile(map: Crawl.Map,
+		loc: Crawl.Location,
+		graphics: Graphics.DungeonGraphics): PIXI.DisplayObject | void {
+		if (utils.getTile(map, loc).type === Crawl.DungeonTileType.UNKNOWN) {
 			return undefined;
 		}
 
-		if (utils.getTile(map, loc).type === Game.Crawl.DungeonTileType.FLOOR) {
+		if (utils.getTile(map, loc).type === Crawl.DungeonTileType.FLOOR) {
 			return this.generateGraphicsObject(graphics.base, graphics.open);
 		}
 
@@ -74,10 +74,10 @@ export class GroundLayer extends PIXI.Container {
 
 			if (0 <= r && r < map.height && 0 <= c && c < map.width) {
 				switch (utils.getTile(map, { r, c }).type) {
-					case Game.Crawl.DungeonTileType.UNKNOWN:
+					case Crawl.DungeonTileType.UNKNOWN:
 						return undefined;
 
-					case Game.Crawl.DungeonTileType.WALL:
+					case Crawl.DungeonTileType.WALL:
 						pattern |= 1;
 				}
 			} else {
@@ -101,10 +101,10 @@ export class GroundLayer extends PIXI.Container {
 		this.lightingLayer.removeChildren();
 	}
 
-	generateGraphicsObject(base: string, obj: Game.Graphics.GraphicsObject): PIXI.DisplayObject {
+	generateGraphicsObject(base: string, obj: Graphics.GraphicsObject): PIXI.DisplayObject {
 		switch (obj.type) {
 			case "static":
-				let sgo: Game.Graphics.StaticGraphicsObject = obj as Game.Graphics.StaticGraphicsObject;
+				let sgo: Graphics.StaticGraphicsObject = obj as Graphics.StaticGraphicsObject;
 				let ret = new PIXI.Container();
 
 				sgo.frames.reverse().forEach((frame) => {
@@ -120,7 +120,7 @@ export class GroundLayer extends PIXI.Container {
 				return ret;
 
 			case "animated":
-				return new AnimatedSprite(base, obj as Game.Graphics.AnimatedGraphicsObject);
+				return new AnimatedSprite(base, obj as Graphics.AnimatedGraphicsObject);
 		}
 	}
 

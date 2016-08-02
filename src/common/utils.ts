@@ -35,7 +35,7 @@ export function decodeDirection(direction: number): [number, number] {
  * @param b - The second location.
  * @returns Whether or not the two locations are equal.
  */
-export function areLocationsEqual(a: Game.Crawl.Location, b: Game.Crawl.Location): boolean {
+export function areLocationsEqual(a: Crawl.Location, b: Crawl.Location): boolean {
 	return (a.r === b.r) && (a.c === b.c);
 }
 
@@ -45,13 +45,13 @@ export function areLocationsEqual(a: Game.Crawl.Location, b: Game.Crawl.Location
  * @param location - The location.
  * @returns The entity at the given location in the given state, or undefined if no entity occupies that location.
  */
-export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
-	location: Game.Crawl.Location): Game.Crawl.CrawlEntity | void;
-export function getEntityAtLocation(state: Game.Crawl.CensoredInProgressCrawlState,
-	location: Game.Crawl.Location): Game.Crawl.CensoredCrawlEntity | void;
+export function getEntityAtLocation(state: Crawl.InProgressCrawlState,
+	location: Crawl.Location): Crawl.CrawlEntity | void;
+export function getEntityAtLocation(state: Crawl.CensoredInProgressCrawlState,
+	location: Crawl.Location): Crawl.CensoredCrawlEntity | void;
 
-export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
-	                                location: Game.Crawl.Location): Game.Crawl.CrawlEntity {
+export function getEntityAtLocation(state: Crawl.InProgressCrawlState,
+	location: Crawl.Location): Crawl.CrawlEntity {
 	return state.entities.find((entity) => areLocationsEqual(entity.location, location));
 }
 
@@ -62,7 +62,8 @@ export function getEntityAtLocation(state: Game.Crawl.InProgressCrawlState,
  * @returns The item at the given location in the given state, or undefined if no item occupies that location.
  */
 
-export function getItemAtLocation(state: Game.Crawl.InProgressCrawlState, location: Game.Crawl.Location): Game.Item {
+export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: Crawl.Location):
+	Crawl.CrawlItem {
 	return state.floor.items.find((item) => areLocationsEqual(item.location, location));
 }
 
@@ -72,8 +73,8 @@ export function getItemAtLocation(state: Game.Crawl.InProgressCrawlState, locati
  * @param location - The location.
  * @returns Whether or not the location is empty in the given state.
  */
-export function isLocationEmpty(state: Game.Crawl.CensoredInProgressCrawlState,
-	                            location: Game.Crawl.Location): boolean {
+export function isLocationEmpty(state: Crawl.CensoredInProgressCrawlState,
+	location: Crawl.Location): boolean {
 	return (getEntityAtLocation(state, location) === undefined);
 }
 
@@ -83,7 +84,7 @@ export function isLocationEmpty(state: Game.Crawl.CensoredInProgressCrawlState,
  * @param location - The location.
  * @returns Whether or not the location is valid for the given map.
  */
-export function isLocationInMap(map: Game.Crawl.Map, location: Game.Crawl.Location): boolean {
+export function isLocationInMap(map: Crawl.Map, location: Crawl.Location): boolean {
 	return isValidLocation(location) && location.r < map.height && location.c < map.width;
 }
 
@@ -92,7 +93,7 @@ export function isLocationInMap(map: Game.Crawl.Map, location: Game.Crawl.Locati
  * @param state - The state.
  * @returns Whether or not the crawl is over.
  */
-export function isCrawlOver(state: Game.Crawl.CrawlState): state is Game.Crawl.ConcludedCrawlState {
+export function isCrawlOver(state: Crawl.CrawlState): state is Crawl.ConcludedCrawlState {
 	return "success" in state;
 }
 
@@ -142,7 +143,7 @@ export function randint(min: number, max: number): number {
  * @param b - The second location.
  * @returns The distance between the two locations.
  */
-export function distance(a: Game.Crawl.Location, b: Game.Crawl.Location): number {
+export function distance(a: Crawl.Location, b: Crawl.Location): number {
 	return Math.max(Math.abs(a.r - b.r), Math.abs(a.c - b.c));
 }
 
@@ -170,7 +171,7 @@ export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
  * @param location - The location.
  * @returns Whether or not the location is in a room.
  */
-export function isLocationInRoom(map: Game.Crawl.Map, location: Game.Crawl.Location) {
+export function isLocationInRoom(map: Crawl.Map, location: Crawl.Location) {
 	return isLocationInMap(map, location)
 		&& getTile(map, location).roomId !== undefined;
 }
@@ -182,7 +183,7 @@ export function isLocationInRoom(map: Game.Crawl.Map, location: Game.Crawl.Locat
  * @param b - The second location.
  * @returns Whether or not the two locations are in the same room.
  */
-export function inSameRoom(map: Game.Crawl.Map, a: Game.Crawl.Location, b: Game.Crawl.Location): boolean {
+export function inSameRoom(map: Crawl.Map, a: Crawl.Location, b: Crawl.Location): boolean {
 	return isLocationInRoom(map, a)
 		&& isLocationInRoom(map, b)
 		&& map.grid[a.r][a.c].roomId === map.grid[b.r][b.c].roomId;
@@ -207,9 +208,9 @@ export function inRange(v: number, min: number, max: number): boolean {
  * @param observer - The observation location.
  * @param location - The location to check.
  */
-export function isVisible(map: Game.Crawl.Map,
-	observer: Game.Crawl.Location,
-	location: Game.Crawl.Location): boolean {
+export function isVisible(map: Crawl.Map,
+	observer: Crawl.Location,
+	location: Crawl.Location): boolean {
 	if (!isValidLocation(observer) || !isValidLocation(location)) {
 		return false;
 	}
@@ -234,7 +235,7 @@ export function isVisible(map: Game.Crawl.Map,
  * @param location - The location to check.
  * @returns Whether or not location is valid.
  */
-export function isValidLocation(location: Game.Crawl.Location): boolean {
+export function isValidLocation(location: Crawl.Location): boolean {
 	return location.r >= 0 && location.c >= 0 && Number.isInteger(location.r) && Number.isInteger(location.c);
 }
 
@@ -244,24 +245,24 @@ export function isValidLocation(location: Game.Crawl.Location): boolean {
  * @param b - The second entity.
  * @returns Whether or not the two entities are aligned.
  */
-export function areAligned(a: Game.Crawl.CensoredCrawlEntity, b: Game.Crawl.CensoredCrawlEntity): boolean {
+export function areAligned(a: Crawl.CensoredCrawlEntity, b: Crawl.CensoredCrawlEntity): boolean {
 	return a.alignment !== 0 && a.alignment === b.alignment;
 }
 
-export function getTile(map: Game.Crawl.Map, location: Game.Crawl.Location): Game.Crawl.DungeonTile {
+export function getTile(map: Crawl.Map, location: Crawl.Location): Crawl.DungeonTile {
 	if (isLocationInMap(map, location)) {
 		return map.grid[location.r][location.c];
 	}
-	return { type: Game.Crawl.DungeonTileType.UNKNOWN }; // defaulting to this prevents errors
+	return { type: Crawl.DungeonTileType.UNKNOWN }; // defaulting to this prevents errors
 }
 
-export function locationToCoordinates(location: Game.Crawl.Location, gridSize: number): [number, number] {
+export function locationToCoordinates(location: Crawl.Location, gridSize: number): [number, number] {
 	return [location.c * gridSize, location.r * gridSize];
 }
 
 export function withinNSteps(steps: number,
-	location: Game.Crawl.Location,
-	fn: (location: Game.Crawl.Location) => any): void {
+	location: Crawl.Location,
+	fn: (location: Crawl.Location) => any): void {
 	for (let r = location.r - steps; r <= location.r + steps; r++) {
 		for (let c = location.c - steps; c <= location.c + steps; c++) {
 			fn({ r, c });
@@ -269,7 +270,7 @@ export function withinNSteps(steps: number,
 	}
 }
 
-export function directionTo(from: Game.Crawl.Location, to: Game.Crawl.Location): number {
+export function directionTo(from: Crawl.Location, to: Crawl.Location): number {
 	if (from.r < to.r) {
 		if (from.c < to.c) {
 			return 7;

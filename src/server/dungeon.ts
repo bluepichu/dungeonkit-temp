@@ -5,7 +5,7 @@ import * as shortid     from "shortid";
 import {sprintf}        from "sprintf-js";
 
 import * as controllers from "./game/controllers";
-import * as Symbols     from "./game/symbols";
+import * as crawl       from "./game/crawl";
 
 let roomFeatures = [
 	{
@@ -141,7 +141,7 @@ let corridorFeatures = [
 	}
 ];
 
-function std(pattern: number): Game.Graphics.DungeonTileSelector {
+function std(pattern: number): Graphics.DungeonTileSelector {
 	return {
 		pattern: pattern,
 		object: {
@@ -153,7 +153,7 @@ function std(pattern: number): Game.Graphics.DungeonTileSelector {
 	};
 }
 
-let dungeonGraphics: Game.Graphics.DungeonGraphics = {
+let dungeonGraphics: Graphics.DungeonGraphics = {
 	base: "dng-proto",
 	walls: [
 		std(0xff), // surrounded
@@ -196,7 +196,7 @@ let features = {
 	corridors: corridorFeatures
 };
 
-let tackle: Game.Attack = {
+let tackle: Attack = {
 	name: "Tackle",
 	animation: "tackle",
 	description: "Charges the foe with a full-body tackle.",
@@ -213,7 +213,7 @@ let tackle: Game.Attack = {
 	onHit: []
 };
 
-let growl: Game.Attack = {
+let growl: Attack = {
 	name: "Growl",
 	animation: "growl",
 	description: "Growls cutely to reduce the foe's ATTACK.",
@@ -236,7 +236,7 @@ let growl: Game.Attack = {
 	]
 };
 
-let waterGun: Game.Attack = {
+let waterGun: Attack = {
 	name: "Water Gun",
 	animation: "water-gun",
 	description: "Squirts water to attack the foe.",
@@ -253,7 +253,7 @@ let waterGun: Game.Attack = {
 	onHit: []
 };
 
-let tailWhip: Game.Attack = {
+let tailWhip: Attack = {
 	name: "Tail Whip",
 	animation: "tail-whip",
 	description: "Lowers the target's Defense by one level.",
@@ -275,7 +275,7 @@ let tailWhip: Game.Attack = {
 	]
 };
 
-let swift: Game.Attack = {
+let swift: Attack = {
 	name: "Swift",
 	animation: "swift",
 	description: "Inflicts damage on the target. It never misses.",
@@ -368,7 +368,7 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
-export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCrawlEntity {
+export function generatePlayer(socket: SocketIO.Socket): Crawl.UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
 		name: "Charmander",
@@ -377,14 +377,14 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 		items: {
 			held: { capacity: 2, items: [
 				{
-					name: "Attack Scarf",
-					description: "Raises attack by two stages.",
-					[Symbols.ITEM_EQUIP]: (item: Game.Item, entity: Game.Crawl.UnplacedCrawlEntity) => {
-						return deepProxy(entity, "stats.attack.modifier", {
-							get(target: Game.BaseModifierStat, field: any): number {
-								return target.modifier + 2;
+					name: "Antidefense Scarf",
+					description: "Why did you equip this?!?",
+					equip(entity: Crawl.UnplacedCrawlEntity) {
+						return deepProxy(entity, "stats.defense.modifier", {
+							get(target: BaseModifierStat, field: any): number {
+								return target.modifier - 6;
 							},
-							set(target: Game.BaseModifierStat, field: any, value: number): boolean {
+							set(target: BaseModifierStat, field: any, value: number): boolean {
 								target.modifier += value - target.modifier;
 								return true;
 							}
@@ -394,22 +394,44 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 				{
 					name: "Reviver Seed",
 					description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
-					[Symbols.ENTITY_DEFEAT]: (item: Game.Item, entity: Game.Crawl.UnplacedCrawlEntity) => {
+					[Items.Hooks.ENTITY_DEFEAT](entity: Crawl.UnplacedCrawlEntity, state: Crawl.InProgressCrawlState) {
 						entity.stats.hp.current = entity.stats.hp.max;
+						crawl.propagateLogEvent(state, {
+							type: "message",
+							entity: {
+								id: entity.id,
+								name: entity.name,
+								graphics: entity.graphics
+							},
+							message: sprintf(
+								"<entity>%s</entity> was revived by the <item>Reviver Seed</item>!",
+								entity.name)
+						});
+						crawl.propagateLogEvent(state, {
+							type: "message",
+							entity: {
+								id: entity.id,
+								name: entity.name,
+								graphics: entity.graphics
+							},
+							message: sprintf(
+								"The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!",
+								entity.name)
+						});
 						entity.items.held.items = entity.items.held.items.map((heldItem) =>
-							heldItem === item
+							heldItem === this
 								? {
 									name: "Plain Seed",
-									description: "Does nothing in particular.  Fills the belly slightly when eaten"
-								}
+									description: "Does nothing in particular.  Fills the belly slightly when eaten."
+								} as Items.Item
 								: heldItem);
 						if (entity.items.bag !== undefined) {
 							entity.items.bag.items = entity.items.bag.items.map((bagItem) =>
-								bagItem === item
+								bagItem === this
 									? {
 										name: "Plain Seed",
-										description: "Does nothing in particular.  Fills the belly slightly when eaten"
-									}
+										description: "Does nothing in particular.  Fills the belly slightly when eaten."
+									} as Items.Item
 									: bagItem);
 						}
 					}
@@ -424,7 +446,7 @@ export function generatePlayer(socket: SocketIO.Socket): Game.Crawl.UnplacedCraw
 	};
 }
 
-export let dungeon: Game.Crawl.Dungeon = {
+export let dungeon: Crawl.Dungeon = {
 	name: "Prototypical Forest",
 	floors: 10,
 	direction: "up",

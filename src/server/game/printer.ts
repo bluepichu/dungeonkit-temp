@@ -8,17 +8,17 @@ import * as utils from "../../common/utils";
  * Pretty-prints a map to the console.
  * @param map - The map to print.
  */
-export function printMap(map: Game.Crawl.Map): void {
+export function printMap(map: Crawl.Map): void {
 	for (let i = 0; i < map.height; i++) {
 		let line = "";
 
 		for (let j = 0; j < map.width; j++) {
 			switch (map.grid[i][j].type) {
-				case Game.Crawl.DungeonTileType.WALL:
+				case Crawl.DungeonTileType.WALL:
 					line += "<#262626>\u2591</>";
 					break;
 
-				case Game.Crawl.DungeonTileType.FLOOR:
+				case Crawl.DungeonTileType.FLOOR:
 					if (map.grid[i][j].stairs) {
 						line += "<#00afd7>\u25a3</>";
 					} else if (map.grid[i][j].roomId > 0) {
@@ -43,18 +43,18 @@ export function printMap(map: Game.Crawl.Map): void {
  * Pretty-prints a state to the console.
  * @param state - The state to print.
  */
-export function printState(state: Game.Crawl.CensoredInProgressCrawlState): void {
+export function printState(state: Crawl.CensoredInProgressCrawlState): void {
 	for (let i = 0; i < state.floor.map.height; i++) {
 		let line = "";
 
 		for (let j = 0; j < state.floor.map.width; j++) {
 			if (utils.isLocationEmpty(state, { r: i, c: j })) {
 				switch (state.floor.map.grid[i][j].type) {
-					case Game.Crawl.DungeonTileType.WALL:
+					case Crawl.DungeonTileType.WALL:
 						line += "<#262626>\u2591</>";
 						break;
 
-					case Game.Crawl.DungeonTileType.FLOOR:
+					case Crawl.DungeonTileType.FLOOR:
 						if (state.floor.map.grid[i][j].stairs) {
 							line += "<#00afd7>\u25a0</>";
 						} else if (state.floor.map.grid[i][j].roomId > 0) {

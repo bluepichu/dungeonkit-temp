@@ -11,7 +11,7 @@ import * as utils     from "../common/utils";
 
 sourcemap.install();
 
-let testFloorBlueprint: Game.Crawl.FloorBlueprint = {
+let testFloorBlueprint: Crawl.FloorBlueprint = {
 	generatorOptions: {
 		generator: "feature",
 		options: {
@@ -34,7 +34,7 @@ let testFloorBlueprint: Game.Crawl.FloorBlueprint = {
 	enemies: []
 };
 
-let testDungeon: Game.Crawl.Dungeon = {
+let testDungeon: Crawl.Dungeon = {
 	name: "<Dungeon Name>",
 	floors: 5,
 	direction: "down",
@@ -77,21 +77,21 @@ let testNumberGrid: number[][] = [
 	[X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X]
 ];
 
-let testFloorGrid: Game.Crawl.DungeonTile[][] = testNumberGrid.map((row) => row.map((cell) => {
+let testFloorGrid: Crawl.DungeonTile[][] = testNumberGrid.map((row) => row.map((cell) => {
 	if (cell === X) {
-		return { type: Game.Crawl.DungeonTileType.WALL };
+		return { type: Crawl.DungeonTileType.WALL };
 	}
 
-	return { type: Game.Crawl.DungeonTileType.FLOOR, roomId: cell === 0 ? undefined : cell };
+	return { type: Crawl.DungeonTileType.FLOOR, roomId: cell === 0 ? undefined : cell };
 }));
 
-let testMap: Game.Crawl.Map = {
+let testMap: Crawl.Map = {
 	width: 20,
 	height: 20,
 	grid: testFloorGrid
 };
 
-let testEntity1: Game.Crawl.CrawlEntity = {
+let testEntity1: Crawl.CrawlEntity = {
 	name: "<Test Entity 1 name>",
 	id: "<Test Entity 1 id>",
 	stats: undefined,
@@ -105,7 +105,7 @@ let testEntity1: Game.Crawl.CrawlEntity = {
 	advances: true
 };
 
-let testEntity2: Game.Crawl.CrawlEntity = {
+let testEntity2: Crawl.CrawlEntity = {
 	name: "<Test Entity 2 name>",
 	id: "<Test Entity 2 id>",
 	stats: undefined,
@@ -119,7 +119,7 @@ let testEntity2: Game.Crawl.CrawlEntity = {
 	advances: true
 };
 
-let testEntity3: Game.Crawl.CrawlEntity = {
+let testEntity3: Crawl.CrawlEntity = {
 	name: "<Test Entity 3 name>",
 	id: "<Test Entity 3 id>",
 	stats: undefined,
@@ -133,7 +133,7 @@ let testEntity3: Game.Crawl.CrawlEntity = {
 	advances: false
 };
 
-let testEntity4: Game.Crawl.CrawlEntity = {
+let testEntity4: Crawl.CrawlEntity = {
 	name: "<Test Entity 4 name>",
 	id: "<Test Entity 4 id>",
 	stats: undefined,
@@ -147,7 +147,7 @@ let testEntity4: Game.Crawl.CrawlEntity = {
 	advances: false
 };
 
-let testInProgressState: Game.Crawl.InProgressCrawlState = {
+let testInProgressState: Crawl.InProgressCrawlState = {
 	dungeon: testDungeon,
 	floor: {
 		number: 2,
@@ -157,13 +157,13 @@ let testInProgressState: Game.Crawl.InProgressCrawlState = {
 	entities: [testEntity1, testEntity2, testEntity3, testEntity4]
 };
 
-let testConcludedSuccessState: Game.Crawl.ConcludedCrawlState = {
+let testConcludedSuccessState: Crawl.ConcludedCrawlState = {
 	dungeon: testDungeon,
 	success: true,
 	floor: 5
 };
 
-let testConcludedFailureState: Game.Crawl.ConcludedCrawlState = {
+let testConcludedFailureState: Crawl.ConcludedCrawlState = {
 	dungeon: testDungeon,
 	success: false,
 	floor: 4

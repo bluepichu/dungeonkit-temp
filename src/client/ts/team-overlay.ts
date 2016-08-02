@@ -60,7 +60,7 @@ export class TeamOverlay extends PIXI.Container {
 			.filter((entity) => entity.alignment === state.getState().self.alignment)
 			.reverse()
 			.forEach((entity, i) => {
-				let listing = new TeamListing(entity as Game.Crawl.CensoredSelfCrawlEntity);
+				let listing = new TeamListing(entity as Crawl.CensoredSelfCrawlEntity);
 
 				y -= listing.height;
 				listing.y = y;
@@ -87,7 +87,7 @@ class TeamListing extends PIXI.Container {
 	private itemsHeader: PIXI.Text;
 	private itemsText: PIXI.Text[];
 
-	constructor(entity: Game.Crawl.CensoredSelfCrawlEntity) {
+	constructor(entity: Crawl.CensoredSelfCrawlEntity) {
 		super();
 
 		this.bg = new PIXI.Graphics();
@@ -150,7 +150,7 @@ class TeamListing extends PIXI.Container {
 						: `<statup>+${entity.stats.attack.modifier}</statup>`),
 				STYLES);
 		} else {
-			this.defenseText = new PIXI.MultiStyleText(`<icon>attack</icon> ${entity.stats.attack.base}`, STYLES);
+			this.attackText = new PIXI.MultiStyleText(`<icon>attack</icon> ${entity.stats.attack.base}`, STYLES);
 		}
 		this.attackText.x = 16;
 		this.attackText.y = 102;

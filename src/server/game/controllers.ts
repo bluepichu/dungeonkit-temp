@@ -5,30 +5,29 @@ import * as shortid  from "shortid";
 
 import * as ai       from "./ai";
 import * as crawl    from "./crawl";
-import * as executer from "./executer";
 import { graphics }  from "./graphics";
 import * as printer  from "./printer";
 import * as utils    from "../../common/utils";
 
-export class AIController implements Game.Crawl.Controller {
+export class AIController implements Crawl.Controller {
 	await: boolean = false;
-	attackTarget: Game.Crawl.CensoredCrawlEntity;
-	moveTarget: Game.Crawl.Location;
+	attackTarget: Crawl.CensoredCrawlEntity;
+	moveTarget: Crawl.Location;
 
 	constructor() {
 	}
 
-	getAction(state: Game.Crawl.CensoredEntityCrawlState, entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
+	getAction(state: Crawl.CensoredEntityCrawlState, entity: Crawl.CrawlEntity): Promise<Crawl.Action> {
 		return new Promise((resolve, reject) => {
 			resolve(ai.getAction(state, entity, this));
 		});
 	}
 
-	updateState(state: Game.Crawl.CensoredEntityCrawlState): void {
+	updateState(state: Crawl.CensoredEntityCrawlState): void {
 		// TODO
 	}
 
-	pushEvent(event: Game.Crawl.LogEvent): void {
+	pushEvent(event: Crawl.LogEvent): void {
 		// TODO
 	}
 
@@ -36,17 +35,17 @@ export class AIController implements Game.Crawl.Controller {
 		// TODO
 	}
 
-	init(entity: Game.Crawl.UnplacedCrawlEntity, dungeon: Game.Crawl.CensoredDungeon): void {
+	init(entity: Crawl.UnplacedCrawlEntity, dungeon: Crawl.CensoredDungeon): void {
 		// TODO
 	}
 }
 
-export class SocketController implements Game.Crawl.Controller {
+export class SocketController implements Crawl.Controller {
 	await: boolean = true;
 	socket: SocketIO.Socket;
-	log: Game.Crawl.LogEvent[];
-	lastMap: Game.Crawl.Map;
-	currentState: Game.Crawl.CensoredEntityCrawlState;
+	log: Crawl.LogEvent[];
+	lastMap: Crawl.Map;
+	currentState: Crawl.CensoredEntityCrawlState;
 	flushTimeout: NodeJS.Timer;
 	dashing: boolean;
 	dashPattern: number;
@@ -65,8 +64,8 @@ export class SocketController implements Game.Crawl.Controller {
 		this.knownGraphics = new Set();
 	}
 
-	getAction(state: Game.Crawl.CensoredEntityCrawlState,
-	          entity: Game.Crawl.CrawlEntity): Promise<Game.Crawl.Action> {
+	getAction(state: Crawl.CensoredEntityCrawlState,
+	          entity: Crawl.CrawlEntity): Promise<Crawl.Action> {
 		log.logf("<yellow>W %s</yellow>", this.socket.id);
 
 		let pattern = 0;
@@ -80,7 +79,7 @@ export class SocketController implements Game.Crawl.Controller {
 			let [r, c] = [loc.r + dr, loc.c + dc];
 
 			if (0 <= r && r < state.floor.map.height && 0 <= c && c < state.floor.map.width) {
-				if (state.floor.map.grid[r][c].type === Game.Crawl.DungeonTileType.WALL) {
+				if (state.floor.map.grid[r][c].type === Crawl.DungeonTileType.WALL) {
 					pattern |= 1;
 				}
 			} else {
@@ -99,15 +98,15 @@ export class SocketController implements Game.Crawl.Controller {
 		return new Promise((resolve, reject) => {
 			this.currentState = state;
 			this.flushLog(true);
-			this.socket.on("action", (action: Game.Crawl.Action, options: Game.Client.ActionOptions) => {
+			this.socket.on("action", (action: Crawl.Action, options: Client.ActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
-				if (executer.isValidAction(state, entity, action)) {
+				if (crawl.isValidAction(state, entity, action)) {
 					this.socket.removeAllListeners("action");
 
 					if (action.type === "move" && options.dash) {
 						this.dashPattern = pattern;
 						this.dashing = true;
-						this.dashDirection = (action as Game.Crawl.MoveAction).direction;
+						this.dashDirection = (action as Crawl.MoveAction).direction;
 					}
 
 					resolve(action);
@@ -126,7 +125,7 @@ export class SocketController implements Game.Crawl.Controller {
 		}
 	}
 
-	pushEvent(event: Game.Crawl.LogEvent): void {
+	pushEvent(event: Crawl.LogEvent): void {
 		if (event.type === "start") {
 			this.lastMap = undefined;
 		}
@@ -135,7 +134,7 @@ export class SocketController implements Game.Crawl.Controller {
 		this.log.push(event);
 	}
 
-	updateState(state: Game.Crawl.CensoredEntityCrawlState): void {
+	updateState(state: Crawl.CensoredEntityCrawlState): void {
 		this.currentState = state;
 		this.flushTimeout = setTimeout(() => this.flushLog(false), 50);
 	}
@@ -149,12 +148,12 @@ export class SocketController implements Game.Crawl.Controller {
 			clearTimeout(this.flushTimeout);
 		}
 
-		let mapUpdates: Game.Client.MapUpdate[] =
+		let mapUpdates: Client.MapUpdate[] =
 			this.currentState.floor.map.grid
 				.map((row, r) =>
 					row.map((tile, c) => {
 						if (this.lastMap === undefined) {
-							if (tile.type !== Game.Crawl.DungeonTileType.UNKNOWN) {
+							if (tile.type !== Crawl.DungeonTileType.UNKNOWN) {
 								return { location: { r, c }, tile };
 							}
 						} else if (tile.type !== utils.getTile(this.lastMap, { r, c }).type
@@ -173,7 +172,7 @@ export class SocketController implements Game.Crawl.Controller {
 			grid: this.currentState.floor.map.grid.map((row) => row.map((tile) => Object.assign({}, tile)))
 		};
 
-		let stateUpdate: Game.Client.StateUpdate = {
+		let stateUpdate: Client.StateUpdate = {
 			entities: this.currentState.entities,
 			floor: {
 				number: this.currentState.floor.number,
@@ -195,7 +194,7 @@ export class SocketController implements Game.Crawl.Controller {
 
 		stateUpdate.entities.forEach((entity) => this.checkGraphics(entity.graphics));
 
-		let update: Game.Client.UpdateMessage = {
+		let update: Client.UpdateMessage = {
 			stateUpdate,
 			log: this.log,
 			move
@@ -206,7 +205,7 @@ export class SocketController implements Game.Crawl.Controller {
 		this.log = [];
 	}
 
-	init(entity: Game.Crawl.UnplacedCrawlEntity, dungeon: Game.Crawl.CensoredDungeon): void {
+	init(entity: Crawl.UnplacedCrawlEntity, dungeon: Crawl.CensoredDungeon): void {
 		this.socket.emit("init", dungeon);
 	}
 }

@@ -5,7 +5,7 @@ import * as log     from "beautiful-log";
 import * as printer from "./printer";
 import * as utils   from "../../common/utils";
 
-export function generateFloor(options: Game.Crawl.FeatureGeneratorOptions): Promise<Game.Crawl.Map> {
+export function generateFloor(options: Crawl.FeatureGeneratorOptions): Promise<Crawl.Map> {
 	return new Promise((resolve, _) => setTimeout(resolve, 0))
 		.then(() => new Promise((resolve, reject) => {
 		let open = 0;
@@ -43,7 +43,7 @@ export function generateFloor(options: Game.Crawl.FeatureGeneratorOptions): Prom
 
 			if (0 < grid[r][c] && grid[r][c] < 9) {
 				let placed: boolean = false;
-				let feature: Game.Crawl.Feature = undefined;
+				let feature: Crawl.Feature = undefined;
 				let isRoom: boolean = false;
 
 				if (grid[r][c] < 5 || Math.random() < .5) {
@@ -103,7 +103,7 @@ export function generateFloor(options: Game.Crawl.FeatureGeneratorOptions): Prom
 	}));
 }
 
-function selectFeature(features: Game.Crawl.Feature[]): Game.Crawl.Feature {
+function selectFeature(features: Crawl.Feature[]): Crawl.Feature {
 	let sum = features.map((feature) => feature.weight).reduce((a, b) => a + b, 0);
 	let v = Math.random() * sum;
 
@@ -121,7 +121,7 @@ function selectFeature(features: Game.Crawl.Feature[]): Game.Crawl.Feature {
 function canPlaceFeature(grid: number[][],
                          r: number,
                          c: number,
-                         feature: Game.Crawl.Feature,
+                         feature: Crawl.Feature,
                          isRoom: boolean): boolean {
 	let matched: boolean = false;
 
@@ -210,7 +210,7 @@ function canPlaceFeature(grid: number[][],
 function placeFeature(grid: number[][],
                       r: number,
                       c: number,
-                      feature: Game.Crawl.Feature,
+                      feature: Crawl.Feature,
                       choices: [number, number][],
                       roomId: number): void {
 	for (let i = 0; i < feature.height; i++) {
@@ -268,7 +268,7 @@ function placeFeature(grid: number[][],
 	}
 }
 
-function gridToMap(grid: number[][]): Game.Crawl.Map {
+function gridToMap(grid: number[][]): Crawl.Map {
 	return {
 		width: grid[0].length,
 		height: grid.length,
@@ -276,25 +276,25 @@ function gridToMap(grid: number[][]): Game.Crawl.Map {
 	};
 }
 
-function numberToTile(val: number): Game.Crawl.DungeonTile {
+function numberToTile(val: number): Crawl.DungeonTile {
 	switch (val) {
 		case 0:
-			return { type: Game.Crawl.DungeonTileType.WALL };
+			return { type: Crawl.DungeonTileType.WALL };
 		case 10:
-			return { type: Game.Crawl.DungeonTileType.WALL };
+			return { type: Crawl.DungeonTileType.WALL };
 		case 9:
-			return { type: Game.Crawl.DungeonTileType.FLOOR };
+			return { type: Crawl.DungeonTileType.FLOOR };
 		default:
 			if (val > 0) {
-				return { type: Game.Crawl.DungeonTileType.WALL };
+				return { type: Crawl.DungeonTileType.WALL };
 			} else {
-				return { type: Game.Crawl.DungeonTileType.FLOOR, roomId: -(val + 1) };
+				return { type: Crawl.DungeonTileType.FLOOR, roomId: -(val + 1) };
 			}
 	}
 }
 
 export function testGenerateFloor(): void {
-	let options: Game.Crawl.FeatureGeneratorOptions = {
+	let options: Crawl.FeatureGeneratorOptions = {
 		width: {
 			min: 120,
 			max: 120,

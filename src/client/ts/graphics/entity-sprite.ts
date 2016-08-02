@@ -8,7 +8,7 @@ export class EntitySprite extends AnimatedSprite {
 	private _direction: number;
 	private useReflection: boolean;
 
-	constructor(descriptor: Game.Graphics.EntityGraphics) {
+	constructor(descriptor: Graphics.EntityGraphics) {
 		super(descriptor.base, descriptor.object);
 		this.useReflection = descriptor.useReflection;
 		this.direction = 6;
@@ -33,7 +33,7 @@ export class EntitySprite extends AnimatedSprite {
 		this.changed = true;
 	}
 
-	protected getTexture(frame: Game.Graphics.Frame): PIXI.Texture {
+	protected getTexture(frame: Graphics.Frame): PIXI.Texture {
 		let dir = this.direction !== undefined ? this.direction : 6; // default to straight ahead if not set
 
 		if (this.useReflection) {
@@ -56,7 +56,7 @@ export class EntitySprite extends AnimatedSprite {
 		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, textureName));
 	}
 
-	protected prerenderLayer(layer: PIXI.Sprite, frame: Game.Graphics.Frame) {
+	protected prerenderLayer(layer: PIXI.Sprite, frame: Graphics.Frame) {
 		if (this.useReflection) {
 			if (this.direction < 2 || this.direction > 6) {
 				layer.scale.x = -1;

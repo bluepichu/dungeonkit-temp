@@ -7,7 +7,7 @@ import {TweenHandler} from "./tween-handler";
 import * as utils     from "../../common/utils";
 
 export class EntityLayer extends PIXI.Container {
-	public static entityGraphicsCache: Game.Graphics.EntityGrpahicsCache = new Map();
+	public static entityGraphicsCache: Graphics.EntityGrpahicsCache = new Map();
 	public spriteMap: Map<string, EntitySprite>;
 	private tweenHandler: TweenHandler;
 
@@ -38,7 +38,7 @@ export class EntityLayer extends PIXI.Container {
 		});
 	}
 
-	addEntity(entity: Game.Crawl.CondensedEntity, location: Game.Crawl.Location) {
+	addEntity(entity: Crawl.CondensedEntity, location: Crawl.Location) {
 		let entitySprite = this.getEntitySprite(entity.graphics);
 
 		[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
@@ -51,7 +51,7 @@ export class EntityLayer extends PIXI.Container {
 		return new EntitySprite(EntityLayer.entityGraphicsCache.get(entityGraphicsKey));
 	}
 
-	moveEntity(entity: Game.Crawl.CondensedEntity, from: Game.Crawl.Location, to: Game.Crawl.Location): Thenable {
+	moveEntity(entity: Crawl.CondensedEntity, from: Crawl.Location, to: Crawl.Location): Thenable {
 		if (!this.spriteMap.has(entity.id)) {
 			this.addEntity(entity, from);
 		}
@@ -67,7 +67,7 @@ export class EntityLayer extends PIXI.Container {
 		return Promise.all([xPrm, yPrm]);
 	}
 
-	moveTo(location: Game.Crawl.Location): Thenable {
+	moveTo(location: Crawl.Location): Thenable {
 		let [xTarget, yTarget] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
 
 		let xPrm = this.tweenHandler.tween(this, "x", -xTarget, Constants.VIEW_MOVE_VELOCITY, "smooth");

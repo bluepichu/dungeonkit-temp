@@ -1,6 +1,6 @@
 "use strict";
 
-let mudkipGraphics: Game.Graphics.EntityGraphics = {
+let mudkipGraphics: Graphics.EntityGraphics = {
 	base: "mudkip",
 	object: {
 		type: "animated",
@@ -167,7 +167,7 @@ let mudkipGraphics: Game.Graphics.EntityGraphics = {
 	}
 };
 
-let eeveeGraphics: Game.Graphics.EntityGraphics = {
+let eeveeGraphics: Graphics.EntityGraphics = {
 	base: "eevee",
 	useReflection: true,
 	object: {
@@ -332,7 +332,7 @@ eeveeGraphics.object.animations["growl"] = eeveeGraphics.object.animations["tack
 eeveeGraphics.object.animations["tail-whip"] = eeveeGraphics.object.animations["tackle"];
 eeveeGraphics.object.animations["swift"] = eeveeGraphics.object.animations["tackle"];
 
-export const graphics: Game.Graphics.EntityGrpahicsCache = new Map([
+export const graphics: Graphics.EntityGrpahicsCache = new Map([
 	["mudkip", mudkipGraphics],
 	["eevee", eeveeGraphics]
 ]);

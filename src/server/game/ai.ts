@@ -4,13 +4,13 @@ import * as log       from "beautiful-log";
 import {AIController} from "./controllers";
 import * as utils     from "../../common/utils";
 
-export function getAction(state: Game.Crawl.CensoredEntityCrawlState,
-                          entity: Game.Crawl.CrawlEntity,
-                          controller: AIController): Game.Crawl.Action {
+export function getAction(state: Crawl.CensoredEntityCrawlState,
+                          entity: Crawl.CrawlEntity,
+                          controller: AIController): Crawl.Action {
 	log.logf("<blue>AI %s is moving!</blue>", entity.id);
 
 	// Update our attack target if needed
-	let attackTarget: Game.Crawl.CensoredCrawlEntity = undefined;
+	let attackTarget: Crawl.CensoredCrawlEntity = undefined;
 
 	if (!utils.isVoid(controller.attackTarget)) {
 		state.entities.forEach((ent) => {
