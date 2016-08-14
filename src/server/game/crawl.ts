@@ -1,17 +1,15 @@
 "use strict";
 
-import * as controllers     from "./controllers";
 import * as generator       from "./generator";
 import * as printer         from "./printer";
 import * as utils           from "../../common/utils";
 
 import * as clone           from "clone";
 import * as log             from "beautiful-log";
-import * as shortid         from "shortid";
 import {sprintf}            from "sprintf-js";
 
 export function startCrawl(dungeon: Crawl.Dungeon,
-                           entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.ConcludedCrawlState> {
+	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.ConcludedCrawlState> {
 	if (validateDungeonBlueprint(dungeon)) {
 		return advanceToFloor(dungeon, 1, entities.map(buildWrapper))
 			.then((state) => {
@@ -102,8 +100,15 @@ function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlSt
 		});
 }
 
-function checkItems(hook: Items.Hooks, entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState): void {
+function checkItems(
+	hook: Items.Hooks,
+	entity: Crawl.CrawlEntity,
+	state: Crawl.InProgressCrawlState,
+	condition: () => boolean): void {
 	for (let item of entity.items.held.items) {
+		if (!condition()) {
+			return;
+		}
 		if (hook in item) {
 			item[hook](entity, state, true);
 		}
@@ -111,6 +116,9 @@ function checkItems(hook: Items.Hooks, entity: Crawl.CrawlEntity, state: Crawl.I
 
 	if (entity.items.bag !== undefined) {
 		for (let item of entity.items.bag.items) {
+			if (!condition()) {
+				return;
+			}
 			if (hook in item) {
 				item[hook](entity, state, false);
 			}
@@ -149,8 +157,8 @@ function validateDungeonBlueprint(dungeon: Crawl.Dungeon): boolean {
 }
 
 function advanceToFloor(dungeon: Crawl.Dungeon,
-                               floor: number,
-                               entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.CrawlState> {
+	floor: number,
+	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.CrawlState> {
 	if (floor > dungeon.blueprint[dungeon.blueprint.length - 1].range[1]) {
 		return Promise.resolve({
 			dungeon: dungeon,
@@ -159,64 +167,11 @@ function advanceToFloor(dungeon: Crawl.Dungeon,
 		});
 	} else {
 		let blueprint = getFloorBlueprint(dungeon, floor);
-		let options = blueprint.generatorOptions.options as Crawl.FeatureGeneratorOptions;
-		return generator.generateFloor(options)
-			.then((floorplan) => {
-				let state: Crawl.InProgressCrawlState = {
-					dungeon: dungeon,
-					floor: {
-						number: floor,
-						map: floorplan,
-						items: []
-					},
-					entities: []
-				};
-
-				placeEntities(state, ...entities);
-
-				placeStairs(state);
-
-				let enemies: Crawl.UnplacedCrawlEntity[] = [];
-
-				blueprint.enemies.forEach((enemyBlueprint) => {
-					for (let i = 0; i < enemyBlueprint.density; i++) {
-						if (Math.random() < .1) {
-							let attacks: Attack[] = [];
-							let options = enemyBlueprint.attacks.slice();
-							let sum = enemyBlueprint.attacks.map((atk) => atk.weight).reduce((a, b) => a + b, 0);
-
-							while (options.length > 0 && attacks.length < 4) {
-								let choice = Math.random() * sum;
-
-								for (let j = 0; j < options.length; j++) {
-									choice -= options[j].weight;
-
-									if (choice <= 0) {
-										attacks.push(options[j].attack);
-										options.splice(j, 1);
-										break;
-									}
-								}
-							}
-
-							enemies.push(Object.assign(clone(enemyBlueprint), {
-								id: shortid.generate(),
-								attacks: attacks,
-								controller: new controllers.AIController(),
-								items: {
-									held: { capacity: 1, items: [] }
-								},
-								alignment: 0,
-								advances: false
-							}));
-						}
-					}
-				});
-
-				enemies.map(buildWrapper);
-				enemies.forEach((enemy) => placeEntities(state, enemy));
-
+		return generator.generateFloor(dungeon, floor, blueprint, entities)
+			.then((state) => {
 				state.entities.forEach((entity) => {
+					updateMap(state, entity);
+
 					entity.controller.pushEvent({
 						type: "start",
 						entity: {
@@ -231,6 +186,7 @@ function advanceToFloor(dungeon: Crawl.Dungeon,
 						},
 						self: censorSelf(entity)
 					});
+
 					entity.controller.updateState(getCensoredState(state, entity));
 				});
 
@@ -255,88 +211,9 @@ function placeStairs(state: Crawl.InProgressCrawlState): void {
 	state.floor.map.grid[loc.r][loc.c].stairs = true;
 }
 
-function placeEntities(state: Crawl.InProgressCrawlState, ...entities: Crawl.UnplacedCrawlEntity[]): void {
-	let map: Crawl.Map = {
-		width: state.floor.map.width,
-		height: state.floor.map.height,
-		grid: utils.tabulate((row) =>
-				utils.tabulate((col) =>
-					({ type: Crawl.DungeonTileType.UNKNOWN }),
-				state.floor.map.width),
-			state.floor.map.height)
-	};
-
-	let loc: Crawl.Location = {
-		r: utils.randint(0, state.floor.map.height - 1),
-		c: utils.randint(0, state.floor.map.width - 1)
-	};
-
-	while (!(utils.isLocationInRoom(state.floor.map, loc) && utils.isLocationEmpty(state, loc))) {
-		loc = {
-			r: utils.randint(0, state.floor.map.height - 1),
-			c: utils.randint(0, state.floor.map.width - 1)
-		};
-	}
-
-	let entity = createPlacedEntity(entities[0], loc, map);
-	state.entities.push(entity);
-	updateMap(state, entity);
-
-	let dr = 0;
-	let dc = 0;
-	let k = 1;
-	let i = 1;
-
-	if (i >= entities.length) {
-		return;
-	}
-
-	while (true) {
-		for (let j = 0; j < k; j++) {
-			if (k % 2 === 1) {
-				dr--;
-			} else {
-				dr++;
-			}
-
-			if (utils.isLocationInRoom(state.floor.map, { r: loc.r + dr, c: loc.c + dc })
-				&& utils.isLocationEmpty(state, { r : loc.r + dr, c : loc.c + dc })) {
-				let entity = createPlacedEntity(entities[i], { r: loc.r + dr, c: loc.c + dc }, map);
-				state.entities.push(entity);
-				updateMap(state, entity);
-
-				i++;
-
-				if (i >= entities.length) {
-					return;
-				}
-			}
-		}
-
-		for (let j = 0; j < k; j++) {
-			if (k % 2 === 1) {
-				dc++;
-			} else {
-				dc--;
-			}
-
-			if (utils.isLocationInRoom(state.floor.map, { r: loc.r + dr, c: loc.c + dc })
-				&& utils.isLocationEmpty(state, { r: loc.r + dr, c: loc.c + dc })) {
-				let entity = createPlacedEntity(entities[i], { r: loc.r + dr, c: loc.c + dc }, map);
-				state.entities.push(entity);
-				updateMap(state, entity);
-
-				if (i >= entities.length) {
-					return;
-				}
-			}
-		}
-	}
-}
-
 function createPlacedEntity(unplacedEntity: Crawl.UnplacedCrawlEntity,
-	                        location: Crawl.Location,
-	                        map: Crawl.Map): Crawl.CrawlEntity {
+	location: Crawl.Location,
+	map: Crawl.Map): Crawl.CrawlEntity {
 	let ret = unplacedEntity as Crawl.CrawlEntity;
 	ret.location = location;
 	ret.map = map;
@@ -369,7 +246,7 @@ function getFloorBlueprint(dungeon: Crawl.Dungeon, floor: number): Crawl.FloorBl
 }
 
 function getCensoredState(state: Crawl.InProgressCrawlState,
-                                 entity: Crawl.CrawlEntity): Crawl.CensoredEntityCrawlState {
+	entity: Crawl.CrawlEntity): Crawl.CensoredEntityCrawlState {
 	function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
 		return new Proxy(obj, {
 			get(target: T, field: string | number | symbol): any {
@@ -395,13 +272,13 @@ function getCensoredState(state: Crawl.InProgressCrawlState,
 		},
 		floor: {
 			number: state.floor.number,
-			map: entity.map,
-			items: state.floor.items.filter((item: Crawl.CrawlItem) =>
-				utils.isVisible(state.floor.map, entity.location, item.location))
+			map: entity.map
 		},
 		entities: state.entities.filter((ent: Crawl.CrawlEntity) =>
-				utils.isVisible(state.floor.map, entity.location, ent.location)
-			).map((ent) => ent.alignment === entity.alignment ? censorSelf(ent) : censorEntity(ent))
+			utils.isVisible(state.floor.map, entity.location, ent.location)).map((ent) =>
+				ent.alignment === entity.alignment ? censorSelf(ent) : censorEntity(ent)),
+		items: state.items.filter((item: Crawl.CrawlItem) =>
+			utils.isVisible(state.floor.map, entity.location, item.location))
 	});
 }
 
@@ -491,7 +368,8 @@ function postExecute(state: Crawl.CrawlState,
 	let newState = state as Crawl.InProgressCrawlState;
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
-		.forEach((entity) => checkItems(Items.Hooks.ENTITY_DEFEAT, entity, newState));
+		.forEach((entity) =>
+			checkItems(Items.Hooks.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0));
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
 
@@ -538,14 +416,14 @@ function executeItemPickup(state: Crawl.InProgressCrawlState,
 	if (item !== undefined) {
 		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
 			entity.items.bag.items.push(item);
-			state.floor.items.filter((it) => it !== item);
-			return;
+			state.items = state.items.filter((it) => it !== item);
+			return Promise.resolve(state);
 		}
 
 		if (entity.items.held.items.length < entity.items.held.capacity) {
-			entity.items.bag.items.push(item);
-			state.floor.items.filter((it) => it !== item);
-			return;
+			entity.items.held.items.push(item);
+			state.items = state.items.filter((it) => it !== item);
+			return Promise.resolve(state);
 		}
 	}
 
@@ -562,7 +440,7 @@ function executeItemDrop(state: Crawl.InProgressCrawlState,
 				if (utils.getTile(state.floor.map, loc).type === Crawl.DungeonTileType.FLOOR
 					&& utils.getItemAtLocation(state, loc) === undefined) {
 					item.location = loc;
-					state.floor.items.push(item);
+					state.items.push(item);
 					return Promise.resolve(state);
 				}
 			}
@@ -617,7 +495,6 @@ function executeAttack(state: Crawl.InProgressCrawlState,
 	});
 
 	let targets = getTargets(state, entity, action.direction, action.attack.target);
-	console.log(targets);
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
 

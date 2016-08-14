@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				.add("dng-proto", "/assets/tiles.json")
 				.add("ent-mudkip", "/assets/mudkip.json")
 				.add("ent-eevee", "/assets/eevee.json")
+				.add("items", "/assets/items.json")
 				.once("complete", init);
 
 			PIXI.loader.load();
@@ -72,10 +73,10 @@ function init() {
 					width: 0,
 					height: 0,
 					grid: []
-				},
-				items: []
+				}
 			},
 			entities: [],
+			items: [],
 			self: undefined
 		});
 	});
@@ -245,10 +246,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				});
 
 				state.getState().entities = doneEvent.state.entities;
+				state.getState().items = doneEvent.state.items;
 				state.getState().self = doneEvent.state.self;
 
 				dungeonLayer.updatePosition(state.getState().self.location);
 				dungeonLayer.entityLayer.update();
+				dungeonLayer.itemLayer.update();
 				minimap.update();
 				attackOverlay.update();
 				teamOverlay.update();

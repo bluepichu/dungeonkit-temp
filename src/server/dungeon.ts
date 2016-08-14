@@ -368,6 +368,76 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
+let reviverSeed: Items.Item = {
+	name: "Reviver Seed",
+	description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
+	[Items.Hooks.ENTITY_DEFEAT](entity: Crawl.UnplacedCrawlEntity, state: Crawl.InProgressCrawlState) {
+		entity.stats.hp.current = entity.stats.hp.max;
+		crawl.propagateLogEvent(state, {
+			type: "message",
+			entity: {
+				id: entity.id,
+				name: entity.name,
+				graphics: entity.graphics
+			},
+			message: sprintf(
+				"<self>%s</self> was revived by the <item>Reviver Seed</item>!",
+				entity.name)
+		});
+		crawl.propagateLogEvent(state, {
+			type: "message",
+			entity: {
+				id: entity.id,
+				name: entity.name,
+				graphics: entity.graphics
+			},
+			message: sprintf(
+				"The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!",
+				entity.name)
+		});
+		entity.items.held.items = entity.items.held.items.map((heldItem) =>
+			heldItem === this
+				? {
+					name: "Plain Seed",
+					description: "Does nothing in particular.  Fills the belly slightly when eaten."
+				} as Items.Item
+				: heldItem);
+		if (entity.items.bag !== undefined) {
+			entity.items.bag.items = entity.items.bag.items.map((bagItem) =>
+				bagItem === this
+					? {
+						name: "Plain Seed",
+						description: "Does nothing in particular.  Fills the belly slightly when eaten."
+					} as Items.Item
+					: bagItem);
+		}
+	},
+	graphics: {
+		type: "static",
+		base: "item",
+		frames: [
+			{ texture: "seed", anchor: { x: 16, y: 16 }}
+		]
+	}
+};
+
+let antidefenseScarf: Items.Item = {
+	name: "Antidefense Scarf",
+	description: "Why did you equip this?!?",
+	equip(entity: Crawl.UnplacedCrawlEntity) {
+		return deepProxy(entity, "stats.defense.modifier", {
+			get(target: BaseModifierStat, field: any): number {
+				return target.modifier - 6;
+			},
+			set(target: BaseModifierStat, field: any, value: number): boolean {
+				target.modifier += value - target.modifier;
+				return true;
+			}
+		});
+	},
+	graphics: undefined
+};
+
 export function generatePlayer(socket: SocketIO.Socket): Crawl.UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
@@ -375,68 +445,10 @@ export function generatePlayer(socket: SocketIO.Socket): Crawl.UnplacedCrawlEnti
 		stats: clone(eeveeStats),
 		attacks: clone([tackle, growl, tailWhip, swift]),
 		items: {
-			held: { capacity: 2, items: [
-				{
-					name: "Antidefense Scarf",
-					description: "Why did you equip this?!?",
-					equip(entity: Crawl.UnplacedCrawlEntity) {
-						return deepProxy(entity, "stats.defense.modifier", {
-							get(target: BaseModifierStat, field: any): number {
-								return target.modifier - 6;
-							},
-							set(target: BaseModifierStat, field: any, value: number): boolean {
-								target.modifier += value - target.modifier;
-								return true;
-							}
-						});
-					}
-				},
-				{
-					name: "Reviver Seed",
-					description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
-					[Items.Hooks.ENTITY_DEFEAT](entity: Crawl.UnplacedCrawlEntity, state: Crawl.InProgressCrawlState) {
-						entity.stats.hp.current = entity.stats.hp.max;
-						crawl.propagateLogEvent(state, {
-							type: "message",
-							entity: {
-								id: entity.id,
-								name: entity.name,
-								graphics: entity.graphics
-							},
-							message: sprintf(
-								"<entity>%s</entity> was revived by the <item>Reviver Seed</item>!",
-								entity.name)
-						});
-						crawl.propagateLogEvent(state, {
-							type: "message",
-							entity: {
-								id: entity.id,
-								name: entity.name,
-								graphics: entity.graphics
-							},
-							message: sprintf(
-								"The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!",
-								entity.name)
-						});
-						entity.items.held.items = entity.items.held.items.map((heldItem) =>
-							heldItem === this
-								? {
-									name: "Plain Seed",
-									description: "Does nothing in particular.  Fills the belly slightly when eaten."
-								} as Items.Item
-								: heldItem);
-						if (entity.items.bag !== undefined) {
-							entity.items.bag.items = entity.items.bag.items.map((bagItem) =>
-								bagItem === this
-									? {
-										name: "Plain Seed",
-										description: "Does nothing in particular.  Fills the belly slightly when eaten."
-									} as Items.Item
-									: bagItem);
-						}
-					}
-				}
-			] },
+			held: {
+				capacity: 2,
+				items: [antidefenseScarf, reviverSeed]
+			},
 			bag: { capacity: 16, items: [] }
 		},
 		controller: new controllers.SocketController(socket),
@@ -448,7 +460,7 @@ export function generatePlayer(socket: SocketIO.Socket): Crawl.UnplacedCrawlEnti
 
 export let dungeon: Crawl.Dungeon = {
 	name: "Prototypical Forest",
-	floors: 10,
+	floors: 4,
 	direction: "up",
 	difficulty: 3,
 	graphics: dungeonGraphics,
@@ -457,24 +469,15 @@ export let dungeon: Crawl.Dungeon = {
 			range: [1, 4],
 			blueprint: {
 				generatorOptions: {
-					generator: "feature",
-					options: {
-						width: {
-							min: 40,
-							max: 60
-						},
-						height: {
-							min: 40,
-							max: 60
-						},
-						features: features,
-						limit: 100000,
-						cleanliness: .95
-					}
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: features,
+					limit: 100000,
+					cleanliness: .95
 				},
 				enemies: [
 					{
-						density: 50,
+						density: { type: "binomial", n: 10, p: .4 },
 						name: "Mudkip",
 						graphics: "mudkip",
 						stats: mudkipStats,
@@ -484,52 +487,11 @@ export let dungeon: Crawl.Dungeon = {
 							{ attack: waterGun, weight: 1 }
 						]
 					}
+				],
+				items: [
+					{ item: reviverSeed, density: { type: "binomial", n: 100, p: 1 } }
 				]
 			}
-		},
-		{
-			range: [5, 8],
-			blueprint: {
-				generatorOptions: {
-					generator: "feature",
-					options: {
-						width: {
-							min: 80,
-							max: 100
-						},
-						height: {
-							min: 60,
-							max: 80
-						},
-						features: features,
-						limit: 100000,
-						cleanliness: .95
-					}
-				},
-				enemies: []
-			}
-		},
-		{
-			range: [9, 10],
-			blueprint: {
-				generatorOptions: {
-					generator: "feature",
-					options: {
-						width: {
-							min: 120,
-							max: 140
-						},
-						height: {
-							min: 80,
-							max: 100
-						},
-						features: features,
-						limit: 100000,
-						cleanliness: .95
-					}
-				},
-				enemies: []
-			}
-		},
+		}
 	]
 };

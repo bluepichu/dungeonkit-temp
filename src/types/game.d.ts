@@ -94,19 +94,19 @@ declare namespace Graphics {
 
 	type EntityGrpahicsCache = Map<string, EntityGraphics>;
 
-	interface EntityGraphics {
-		base: string;
+	interface EntityGraphics extends AnimatedGraphicsObject {
 		useReflection?: boolean;
-		object: AnimatedGraphicsObject;
 	}
 
 	interface StaticGraphicsObject {
 		type: "static";
+		base?: string;
 		frames: Frame[];
 	}
 
 	interface AnimatedGraphicsObject {
 		type: "animated";
+		base?: string;
 		animations: { [key: string]: Animation };
 		default: string;
 	}
@@ -136,10 +136,10 @@ declare namespace Items {
 	interface Item {
 	name: string;
 	description: string;
-	equip?(entity: Crawl.UnplacedCrawlEntity): Crawl.CrawlEntity; // In reality, Proxy<Crawl.CrawlEntity>
+	equip?(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity; // In reality, Proxy<Crawl.CrawlEntity>
 	[event: number]: (entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState, held: boolean) => void;
 		// In reality, index is Items.Hooks
-	// graphics: Graphics.EntityGraphics;
+	graphics: Graphics.GraphicsObject;
 	}
 
 	interface ItemSet {
@@ -152,6 +152,14 @@ declare namespace Items {
 	}
 }
 
+type Distribution = BinomialDistribution;
+
+interface BinomialDistribution {
+	type: "binomial";
+	n: number;
+	p: number;
+}
+
 declare namespace Crawl {
 	type CrawlState = InProgressCrawlState | ConcludedCrawlState;
 
@@ -159,6 +167,7 @@ declare namespace Crawl {
 		dungeon: Dungeon;
 		floor: Floor;
 		entities: CrawlEntity[];
+		items: Crawl.CrawlItem[];
 	}
 
 	interface ConcludedCrawlState {
@@ -179,7 +188,6 @@ declare namespace Crawl {
 	interface Floor {
 		number: number;
 		map: Map;
-		items: CrawlItem[];
 	}
 
 	type CrawlItem = Items.Item & Locatable;
@@ -317,12 +325,18 @@ declare namespace Crawl {
 	}
 
 	interface FloorBlueprint {
-		generatorOptions: GeneratorOptionsWrapper;
+		generatorOptions: GeneratorOptions;
 		enemies: EntityBlueprint[];
+		items: ItemBlueprint[];
+	}
+
+	interface ItemBlueprint {
+		density: Distribution;
+		item: Items.Item;
 	}
 
 	interface EntityBlueprint {
-		density: number;
+		density: Distribution;
 		name: string;
 		graphics: string;
 		stats: EntityStats;
@@ -334,54 +348,9 @@ declare namespace Crawl {
 		attack: Attack;
 	}
 
-	type GeneratorOptionsWrapper = DFSGeneratorOptionsWrapper | FeatureGeneratorOptionsWrapper;
-
-	interface DFSGeneratorOptionsWrapper {
-		generator: "dfs";
-		options: DFSGeneratorOptions;
-	}
-
-	interface DFSGeneratorOptions {
-		size: {
-			width: number;
-			height: number;
-		};
-		spacing: number;
-		rooms: {
-			density: number;
-			width: {
-				min: number;
-				max: number;
-			};
-			height: {
-				min: number;
-				max: number;
-			};
-			gutter: number;
-		};
-		corridors: {
-			remove: number;
-			straightness: number;
-		};
-		connectors: {
-			randomness: number;
-		};
-	}
-
-	interface FeatureGeneratorOptionsWrapper {
-		generator: "feature";
-		options: FeatureGeneratorOptions;
-	}
-
-	interface FeatureGeneratorOptions {
-		width: {
-			min: number;
-			max: number;
-		};
-		height: {
-			min: number;
-			max: number;
-		};
+	interface GeneratorOptions {
+		width: Distribution;
+		height: Distribution;
 		features: {
 			rooms: Feature[];
 			corridors: Feature[];
@@ -427,6 +396,7 @@ declare namespace Crawl {
 		dungeon: CensoredDungeon;
 		floor: Floor;
 		entities: (CensoredCrawlEntity | CensoredSelfCrawlEntity)[];
+		items: CrawlItem[];
 	}
 
 	interface CensoredEntityCrawlState extends CensoredInProgressCrawlState {

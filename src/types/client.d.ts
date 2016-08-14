@@ -8,6 +8,7 @@ declare namespace Client {
 	interface StateUpdate {
 		floor: FloorUpdate;
 		entities: (Crawl.CensoredCrawlEntity | Crawl.CensoredSelfCrawlEntity)[];
+		items: Crawl.CrawlItem[];
 		self: CensoredSelfEntity;
 	}
 
@@ -29,7 +30,6 @@ declare namespace Client {
 	interface FloorUpdate {
 		number: number;
 		mapUpdates: MapUpdate[];
-		items: Crawl.CrawlItem[];
 	}
 
 	interface MapUpdate {
@@ -45,6 +45,7 @@ declare namespace Client {
 		dungeon: Crawl.CensoredDungeon;
 		floor: Crawl.Floor;
 		entities: Crawl.CensoredCrawlEntity[];
+		items: Crawl.CrawlItem[];
 		self: CensoredSelfEntity;
 	}
 }

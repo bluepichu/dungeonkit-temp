@@ -174,9 +174,9 @@ export class SocketController implements Crawl.Controller {
 
 		let stateUpdate: Client.StateUpdate = {
 			entities: this.currentState.entities,
+			items: this.currentState.items,
 			floor: {
 				number: this.currentState.floor.number,
-				items: this.currentState.floor.items,
 				mapUpdates
 			},
 			self: {

@@ -25,7 +25,7 @@ export function decodeDirection(direction: number): [number, number] {
 		case 7:
 			return [1, 1];
 		default:
-			throw new Error(sprintf("[Code 4] %d is not a valid direction.", direction));
+			throw new Error(`[Code 4] ${direction} is not a valid direction.`);
 	}
 }
 
@@ -62,9 +62,8 @@ export function getEntityAtLocation(state: Crawl.InProgressCrawlState,
  * @returns The item at the given location in the given state, or undefined if no item occupies that location.
  */
 
-export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: Crawl.Location):
-	Crawl.CrawlItem {
-	return state.floor.items.find((item) => areLocationsEqual(item.location, location));
+export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: Crawl.Location): Crawl.CrawlItem {
+	return state.items.find((item) => areLocationsEqual(item.location, location));
 }
 
 /**
@@ -108,7 +107,7 @@ export function isCrawlOver(state: Crawl.CrawlState): state is Crawl.ConcludedCr
  */
 export function bound(v: number, min: number, max: number): number {
 	if (min > max) {
-		throw new RangeError(sprintf("[Code 5] Max (%d) is less than min (%d).", max, min));
+		throw new RangeError(`[Code 5] Max (${max}) is less than min (${min}).`);
 	}
 
 	if (v < min) {
@@ -131,7 +130,7 @@ export function bound(v: number, min: number, max: number): number {
  */
 export function randint(min: number, max: number): number {
 	if (min > max) {
-		throw new RangeError(sprintf("[Code 5] Max (%d) is less than min (%d).", max, min));
+		throw new RangeError(`[Code 5] Max (${max}) is less than min (${min}).`);
 	}
 
 	return Math.floor(Math.random() * (max - min + 1)) + min;

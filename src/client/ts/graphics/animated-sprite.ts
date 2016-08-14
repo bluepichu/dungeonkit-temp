@@ -43,11 +43,11 @@ export class AnimatedSprite extends PIXI.Container {
 		this.prerender();
 	}
 
-	addAnimationEndListener(f: () => any) {
+	public addAnimationEndListener(f: () => any) {
 		this.animationEndListeners.push(f);
 	}
 
-	setAnimation(animation: string): void {
+	public setAnimation(animation: string): void {
 		if (this.animation !== animation) {
 			this.animation = animation;
 			this.step = 0;
@@ -62,7 +62,7 @@ export class AnimatedSprite extends PIXI.Container {
 		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, frame.texture));
 	}
 
-	prerender() {
+	private prerender() {
 		this.frame++;
 
 		if (this.frame >= this.descriptor.animations[this.animation].steps[this.step].duration) {
@@ -111,12 +111,12 @@ export class AnimatedSprite extends PIXI.Container {
 		// do nothing
 	}
 
-	renderCanvas(renderer: PIXI.CanvasRenderer): void {
+	public renderCanvas(renderer: PIXI.CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	renderWebGL(renderer: PIXI.WebGLRenderer): void {
+	public renderWebGL(renderer: PIXI.WebGLRenderer): void {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}

@@ -13,25 +13,17 @@ sourcemap.install();
 
 let testFloorBlueprint: Crawl.FloorBlueprint = {
 	generatorOptions: {
-		generator: "feature",
-		options: {
-			width: {
-				min: 10,
-				max: 10
-			},
-			height: {
-				min: 10,
-				max: 10
-			},
-			features: {
-				rooms: [],
-				corridors: []
-			},
-			limit: 10,
-			cleanliness: 1
-		}
+		width: { type: "binomial", n: 10, p: 1 },
+		height: { type: "binomial", n: 10, p: 1 },
+		features: {
+			rooms: [],
+			corridors: []
+		},
+		limit: 10,
+		cleanliness: 1
 	},
-	enemies: []
+	enemies: [],
+	items: []
 };
 
 let testDungeon: Crawl.Dungeon = {
@@ -151,10 +143,10 @@ let testInProgressState: Crawl.InProgressCrawlState = {
 	dungeon: testDungeon,
 	floor: {
 		number: 2,
-		map: testMap,
-		items: []
+		map: testMap
 	},
-	entities: [testEntity1, testEntity2, testEntity3, testEntity4]
+	entities: [testEntity1, testEntity2, testEntity3, testEntity4],
+	items: []
 };
 
 let testConcludedSuccessState: Crawl.ConcludedCrawlState = {
@@ -191,8 +183,8 @@ function eq<T>(test: any, answer: any): void {
 
 		if (testArr.length !== answerArr.length) {
 			throw new Error(sprintf("Expected array of length %d but received array of length %d.",
-			                        answerArr.length,
-			                        testArr.length));
+				answerArr.length,
+				testArr.length));
 		}
 
 		for (let i = 0; i < test.length; i++) {
@@ -200,9 +192,9 @@ function eq<T>(test: any, answer: any): void {
 				eq(testArr[i], answerArr[i]);
 			} catch (e) {
 				throw new Error(sprintf("Expected %s at index %d but received %s.",
-				                        inspect(answerArr[i]),
-				                        i,
-				                        inspect(testArr[i])));
+					inspect(answerArr[i]),
+					i,
+					inspect(testArr[i])));
 			}
 		}
 
@@ -218,9 +210,9 @@ function eq<T>(test: any, answer: any): void {
 			eq(test[key], answer[key]);
 		} catch (e) {
 			throw new Error(sprintf("Expected %s at key \"%s\" but received %s.",
-			                        inspect(answer[key]),
-			                        key,
-			                        inspect(test[key])));
+				inspect(answer[key]),
+				key,
+				inspect(test[key])));
 		}
 	}
 
@@ -372,9 +364,9 @@ describe("server", () => {
 					if (min !== 4 || max !== 8) {
 						throw new Error(
 							sprintf("Expected values in the range [4, 8] but received values in the range [%d, %d]."
-							        + " (Note that this has a MINISCULE (< 1e-100) chance of failure.)",
-							        min,
-							        max));
+								+ " (Note that this has a MINISCULE (< 1e-100) chance of failure.)",
+								min,
+								max));
 					}
 				});
 

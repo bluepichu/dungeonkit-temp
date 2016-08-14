@@ -3,12 +3,14 @@
 import * as Constants from "./constants";
 import {EntityLayer}  from "./entity-layer";
 import {GroundLayer}  from "./ground-layer";
+import {ItemLayer}    from "./item-layer";
 import * as state     from "./state";
 import {TweenHandler} from "./tween-handler";
 import * as utils     from "../../common/utils";
 
 export class DungeonLayer extends PIXI.Container {
 	public groundLayer: GroundLayer;
+	public itemLayer: ItemLayer;
 	public entityLayer: EntityLayer;
 	public tweenHandler: TweenHandler;
 	private _viewport: { r: [number, number], c: [number, number] };
@@ -18,9 +20,11 @@ export class DungeonLayer extends PIXI.Container {
 		super();
 
 		this.groundLayer = new GroundLayer(tweenHandler);
+		this.itemLayer = new ItemLayer(tweenHandler);
 		this.entityLayer = new EntityLayer(tweenHandler);
 
 		this.addChild(this.groundLayer);
+		this.addChild(this.itemLayer);
 		this.addChild(this.entityLayer);
 
 		this.tweenHandler = tweenHandler;
@@ -31,6 +35,7 @@ export class DungeonLayer extends PIXI.Container {
 		let [offsetX, offsetY] = utils.locationToCoordinates(state.getState().self.location, Constants.GRID_SIZE);
 
 		[this.groundLayer.x, this.groundLayer.y] = [-offsetX, -offsetY];
+		[this.itemLayer.x, this.itemLayer.y] = [-offsetX, -offsetY];
 		[this.entityLayer.x, this.entityLayer.y] = [-offsetX, -offsetY];
 	}
 
@@ -65,6 +70,7 @@ export class DungeonLayer extends PIXI.Container {
 		this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_ZOOM_VELOCITY, "smooth");
 		this.groundLayer.moveTo(center);
 		this.groundLayer.updateVisibility();
+		this.itemLayer.moveTo(center);
 		this.entityLayer.moveTo(center);
 	}
 

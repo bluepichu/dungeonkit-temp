@@ -9,7 +9,7 @@ export class EntitySprite extends AnimatedSprite {
 	private useReflection: boolean;
 
 	constructor(descriptor: Graphics.EntityGraphics) {
-		super(descriptor.base, descriptor.object);
+		super(descriptor.base, descriptor);
 		this.useReflection = descriptor.useReflection;
 		this.direction = 6;
 	}
@@ -24,11 +24,11 @@ export class EntitySprite extends AnimatedSprite {
 		sprite.y += dy;
 	}
 
-	get direction(): number {
+	public get direction(): number {
 		return this._direction;
 	}
 
-	set direction(direction: number) {
+	public set direction(direction: number) {
 		this._direction = direction;
 		this.changed = true;
 	}
