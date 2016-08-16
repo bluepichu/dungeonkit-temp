@@ -130,6 +130,10 @@ export class SocketController implements Crawl.Controller {
 			this.lastMap = undefined;
 		}
 
+		if (event.type === "attack") {
+			this.dashing = false;
+		}
+
 		this.checkGraphics(event.entity.graphics);
 		this.log.push(event);
 	}
