@@ -9,8 +9,8 @@ interface Entity {
 	stats: EntityStats;
 	attacks: Attack[];
 	items: {
-		held: Items.ItemSet;
-		bag?: Items.ItemSet;
+		held: ItemSet;
+		bag?: ItemSet;
 	};
 }
 
@@ -132,25 +132,36 @@ declare namespace Graphics {
 	}
 }
 
-declare namespace Items {
-	interface Item {
+interface ItemBlueprint {
 	name: string;
 	description: string;
-	equip?(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity; // In reality, Proxy<Crawl.CrawlEntity>
-	[event: number]: (entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState, held: boolean) => void;
-		// In reality, index is Items.Hooks
+	equip?(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity; // via a proxy
+	handlers: {
+		[event: number]: (entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState, Item: Item, held: boolean) => void
+			// In reality, index is ItemHook
+	};
+	actions?: {
+		[action: string]: string[]; // In reality, index is ItemActionType
+	};
 	graphics: Graphics.GraphicsObject;
-	}
-
-	interface ItemSet {
-		capacity: number;
-		items: Item[];
-	}
-
-	const enum Hooks {
-		ENTITY_DEFEAT
-	}
 }
+
+interface Item extends ItemBlueprint {
+	id: string;
+}
+
+interface ItemSet {
+	capacity: number;
+	items: Item[];
+}
+
+declare const enum ItemHook {
+	ITEM_USE,
+	ITEM_THROW,
+	ENTITY_DEFEAT
+}
+
+type ItemActionType = "use" | "throw" | "drop" | "equip" | "unequip";
 
 type Distribution = BinomialDistribution;
 
@@ -190,7 +201,7 @@ declare namespace Crawl {
 		map: Map;
 	}
 
-	type CrawlItem = Items.Item & Locatable;
+	type CrawlItem = Item & Locatable;
 
 	interface Map {
 		width: number;
@@ -246,7 +257,7 @@ declare namespace Crawl {
 	}
 
 	type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
-		| StartLogEvent | MissLogEvent | MessageLogEvent;
+		| StartLogEvent | MissLogEvent | MessageLogEvent | ItemPickupLogEvent | ItemDropLogEvent;
 
 	interface WaitLogEvent {
 		type: "wait";
@@ -311,6 +322,18 @@ declare namespace Crawl {
 		message: string;
 	}
 
+	interface ItemPickupLogEvent {
+		type: "item_pickup";
+		entity: CondensedEntity;
+		item: Item;
+	}
+
+	interface ItemDropLogEvent {
+		type: "item_drop";
+		entity: CondensedEntity;
+		item: Item;
+	}
+
 	interface SynchronizedMessage<T> {
 		id: string;
 		last?: string;
@@ -327,12 +350,12 @@ declare namespace Crawl {
 	interface FloorBlueprint {
 		generatorOptions: GeneratorOptions;
 		enemies: EntityBlueprint[];
-		items: ItemBlueprint[];
+		items: DungeonItemBlueprint[];
 	}
 
-	interface ItemBlueprint {
+	interface DungeonItemBlueprint {
 		density: Distribution;
-		item: Items.Item;
+		item: ItemBlueprint;
 	}
 
 	interface EntityBlueprint {
@@ -366,7 +389,7 @@ declare namespace Crawl {
 		grid: string[];
 	}
 
-	type Action = WaitAction | MoveAction | AttackAction | ItemAction | StairsAction; // TODO
+	type Action = WaitAction | MoveAction | AttackAction | ItemAction | StairsAction;
 
 	interface WaitAction {
 		type: "wait";
@@ -385,7 +408,9 @@ declare namespace Crawl {
 
 	interface ItemAction {
 		type: "item";
-		// some other stuff...
+		direction: number;
+		action: ItemActionType;
+		item: string;
 	}
 
 	interface StairsAction {
@@ -428,8 +453,8 @@ declare namespace Crawl {
 		alignment: number;
 		advances: boolean;
 		items: {
-			held: Items.ItemSet;
-			bag?: Items.ItemSet;
+			held: ItemSet;
+			bag?: ItemSet;
 		};
 		map: Map;
 	}

@@ -22,8 +22,8 @@ declare namespace Client {
 		alignment: number;
 		advances: boolean;
 		items: {
-			held: Items.ItemSet;
-			bag?: Items.ItemSet;
+			held: ItemSet;
+			bag?: ItemSet;
 		};
 	}
 

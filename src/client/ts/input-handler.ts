@@ -1,6 +1,7 @@
 "use strict";
 
 import {AttackOverlay} from "./attack-overlay";
+import {CommandArea}   from "./command-area";
 import {DungeonLayer}  from "./dungeon-layer";
 import {GameSocket}    from "./game-socket";
 import {isMobile}      from "./is-mobile";
@@ -22,21 +23,34 @@ export class KeyboardInputHandler implements InputHandler {
 	private minimap: MiniMap;
 	private inputTimer: number;
 	private moveInput: number;
+	private commandArea: CommandArea;
 	private socket: GameSocket;
 	private dungeonLayer: DungeonLayer;
 	private attackOverlay: AttackOverlay;
 
-	constructor(socket: GameSocket, minimap: MiniMap, dungeonLayer: DungeonLayer, attackOverlay: AttackOverlay) {
+	constructor(
+		socket: GameSocket,
+		commandArea: CommandArea,
+		minimap: MiniMap,
+		dungeonLayer: DungeonLayer,
+		attackOverlay: AttackOverlay) {
 		this.awaitingMove = false;
 		this.inputTimer = 0;
 		this.moveInput = 0;
 		this.minimap = minimap;
 		this.dungeonLayer = dungeonLayer;
 		this.socket = socket;
+		this.commandArea = commandArea;
 		this.attackOverlay = attackOverlay;
+
+		document.addEventListener("keydown", (event) => this.commandArea.keypress(event));
 	}
 
 	public handleInput(): void {
+		if (this.commandArea.active) {
+			return;
+		}
+
 		this.dungeonLayer.zoomOut = key.isPressed(77);
 		this.attackOverlay.active = key.isPressed(16);
 

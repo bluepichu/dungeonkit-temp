@@ -11,7 +11,7 @@ import {sprintf}            from "sprintf-js";
 export function startCrawl(dungeon: Crawl.Dungeon,
 	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.ConcludedCrawlState> {
 	if (validateDungeonBlueprint(dungeon)) {
-		return advanceToFloor(dungeon, 1, entities.map(buildWrapper))
+		return advanceToFloor(dungeon, 1, entities.map(wrap))
 			.then((state) => {
 				if (utils.isCrawlOver(state)) {
 					return Promise.resolve(state);
@@ -24,41 +24,17 @@ export function startCrawl(dungeon: Crawl.Dungeon,
 	}
 }
 
-function buildWrapper(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity {
-	let base: Crawl.UnplacedCrawlEntity;
-
-	let invalidate = () => {
-		base = entity;
-
-		for (let item of entity.items.held.items) {
-			if (item.equip !== undefined) {
-				base = item.equip(base);
-			}
-		}
-	};
-
-	invalidate();
-
-	let itemsProxy: Items.Item[] = new Proxy(entity.items.held.items, {
-		set(target: Items.Item[], field: string | number | symbol, value: any): boolean {
-			if (field === "length") {
-				target.length = value;
-			}
-
-			if (typeof field === "number") {
-				target[field] = value;
-				invalidate();
-				return true;
-			}
-
-			return false;
-		}
-	});
-
-	entity.items.held.items = itemsProxy;
-
+export function wrap(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity {
 	return new Proxy(entity, {
 		get(target: Crawl.UnplacedCrawlEntity, field: string | number | symbol): any {
+			let base = entity;
+
+			for (let item of entity.items.held.items) {
+				if (item.equip !== undefined) {
+					base = item.equip(base);
+				}
+			}
+
 			return (base as any)[field];
 		}
 	});
@@ -101,27 +77,27 @@ function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlSt
 }
 
 function checkItems(
-	hook: Items.Hooks,
+	hook: ItemHook,
 	entity: Crawl.CrawlEntity,
 	state: Crawl.InProgressCrawlState,
 	condition: () => boolean): void {
-	for (let item of entity.items.held.items) {
-		if (!condition()) {
-			return;
-		}
-		if (hook in item) {
-			item[hook](entity, state, true);
-		}
-	}
-
 	if (entity.items.bag !== undefined) {
 		for (let item of entity.items.bag.items) {
 			if (!condition()) {
 				return;
 			}
-			if (hook in item) {
-				item[hook](entity, state, false);
+			if (hook in item.handlers) {
+				item.handlers[hook](entity, state, item, false);
 			}
+		}
+	}
+
+	for (let item of entity.items.held.items) {
+		if (!condition()) {
+			return;
+		}
+		if (hook in item.handlers) {
+			item.handlers[hook](entity, state, item, true);
 		}
 	}
 }
@@ -193,22 +169,6 @@ function advanceToFloor(dungeon: Crawl.Dungeon,
 				return state;
 			});
 	}
-}
-
-function placeStairs(state: Crawl.InProgressCrawlState): void {
-	let loc: Crawl.Location = {
-		r: utils.randint(0, state.floor.map.height - 1),
-		c: utils.randint(0, state.floor.map.width - 1)
-	};
-
-	while (!(utils.isLocationInRoom(state.floor.map, loc))) {
-		loc = {
-			r: utils.randint(0, state.floor.map.height - 1),
-			c: utils.randint(0, state.floor.map.width - 1)
-		};
-	}
-
-	state.floor.map.grid[loc.r][loc.c].stairs = true;
 }
 
 function createPlacedEntity(unplacedEntity: Crawl.UnplacedCrawlEntity,
@@ -369,7 +329,18 @@ function postExecute(state: Crawl.CrawlState,
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
 		.forEach((entity) =>
-			checkItems(Items.Hooks.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0));
+			checkItems(ItemHook.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0));
+
+	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
+		.forEach((entity) => propagateLogEvent(newState, {
+			type: "defeat",
+			entity: {
+				id: entity.id,
+				name: entity.name,
+				graphics: entity.graphics
+			},
+			location: entity.location
+		}));
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
 
@@ -417,14 +388,22 @@ function executeItemPickup(state: Crawl.InProgressCrawlState,
 		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
 			entity.items.bag.items.push(item);
 			state.items = state.items.filter((it) => it !== item);
+		} else if (entity.items.held.items.length < entity.items.held.capacity) {
+			entity.items.held.items.push(item);
+			state.items = state.items.filter((it) => it !== item);
+		} else {
 			return Promise.resolve(state);
 		}
 
-		if (entity.items.held.items.length < entity.items.held.capacity) {
-			entity.items.held.items.push(item);
-			state.items = state.items.filter((it) => it !== item);
-			return Promise.resolve(state);
-		}
+		propagateLogEvent(state, {
+			type: "item_pickup",
+			entity: {
+				id: entity.id,
+				name: entity.name,
+				graphics: entity.graphics
+			},
+			item: item
+		});
 	}
 
 	return Promise.resolve(state);
@@ -432,23 +411,22 @@ function executeItemPickup(state: Crawl.InProgressCrawlState,
 
 function executeItemDrop(state: Crawl.InProgressCrawlState,
 	location: Crawl.Location,
-	item: Crawl.CrawlItem): Promise<Crawl.CrawlState> {
+	item: Item): Promise<Crawl.CrawlState> {
 	let loc = { r: location.r, c: location.c };
 	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
 		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
-			for (let j = 0; j < 2 * i + di; i++) {
+			for (let j = 0; j < 2 * i + di; j++) {
 				if (utils.getTile(state.floor.map, loc).type === Crawl.DungeonTileType.FLOOR
 					&& utils.getItemAtLocation(state, loc) === undefined) {
-					item.location = loc;
-					state.items.push(item);
-					return Promise.resolve(state);
+					let crawlItem = Object.assign(item, { location: loc });
+					state.items.push(crawlItem);
+					return;
 				}
+				loc.r += dr;
+				loc.c += dc;
 			}
 		}
 	}
-
-	// welp
-	return Promise.resolve(state);
 }
 
 function isValidMove(state: Crawl.CensoredInProgressCrawlState,
@@ -626,6 +604,76 @@ function getModifiedStat(stat: BaseModifierStat): number {
 function executeItem(state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.ItemAction): Promise<Crawl.CrawlState> {
+	let item: Item;
+	let held: boolean;
+
+	for (let it of entity.items.held.items) {
+		if (action.item === it.id) {
+			item = it;
+			held = true;
+			break;
+		}
+	}
+
+	if (entity.items.bag !== undefined) {
+		for (let it of entity.items.bag.items) {
+			if (action.item === it.id) {
+				item = it;
+				held = false;
+				break;
+			}
+		}
+	}
+
+	if (item === undefined) {
+		return Promise.resolve(state);
+	}
+
+	switch (action.action) {
+		case "use":
+			item.handlers[ItemHook.ITEM_USE](entity, state, item, held);
+			if (held) {
+				entity.items.held.items = entity.items.held.items.filter((it) => it.id !== item.id);
+			} else {
+				entity.items.bag.items = entity.items.bag.items.filter((it) => it.id !== item.id);
+			}
+			break;
+
+		case "throw":
+			break;
+
+		case "drop":
+			if (held) {
+				entity.items.held.items = entity.items.held.items.filter((it) => it.id !== item.id);
+			} else {
+				entity.items.bag.items = entity.items.bag.items.filter((it) => it.id !== item.id);
+			}
+			executeItemDrop(state, entity.location, item);
+			propagateLogEvent(state, {
+				type: "item_drop",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				item
+			});
+			break;
+
+		case "equip":
+			entity.items.bag.items = entity.items.bag.items.filter((it) => it !== item);
+			entity.items.held.items.push(item);
+			break;
+
+		case "unequip":
+			entity.items.held.items = entity.items.held.items.filter((it) => it !== item);
+			entity.items.bag.items.push(item);
+			break;
+
+		default:
+			// ???
+			break;
+	}
 	return Promise.resolve(state); // TODO
 }
 
@@ -659,7 +707,9 @@ export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Craw
 		case "attack":
 		case "stat":
 		case "miss":
-			let evt: Crawl.Locatable = (event as any as Crawl.Locatable);
+			let evt: Crawl.Locatable = event as
+				Crawl.WaitLogEvent | Crawl.AttackLogEvent | Crawl.StatLogEvent | Crawl.MissLogEvent as
+				Crawl.Locatable;
 
 			state.entities.forEach((entity) => {
 				if (utils.isVisible(state.floor.map, entity.location, evt.location)) {
@@ -685,6 +735,8 @@ export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Craw
 		case "stairs":
 		case "defeat":
 		case "message":
+		case "item_pickup":
+		case "item_drop":
 			state.entities.forEach((entity) => entity.controller.pushEvent(event));
 			break;
 	}

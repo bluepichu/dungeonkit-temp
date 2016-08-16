@@ -1,9 +1,10 @@
 "use strict";
 
 import * as log         from "beautiful-log";
-import * as controllers from "./controllers";
 import * as shortid     from "shortid";
 
+import * as controllers from "./controllers";
+import {wrap}           from "./crawl";
 import * as printer     from "./printer";
 import * as utils       from "../../common/utils";
 
@@ -14,6 +15,7 @@ export function generateFloor(
 	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.InProgressCrawlState> {
 	return new Promise((resolve, _) => setTimeout(resolve, 0)) // don't block computation
 		.then(() => generateMap(blueprint.generatorOptions))
+		.then((map) => placeStairs(map))
 		.then((map) => initializeState(dungeon, floor, map))
 		.then((state) => placeEntityGroup(state, ...entities))
 		.then((state) => placeEnemies(state, blueprint))
@@ -217,7 +219,7 @@ function placeEnemies(
 		let count = evaluateDistribution(enemyBlueprint.density);
 
 		for (let i = 0; i < count; i++) {
-			placeEntityGroup(state, {
+			placeEntityGroup(state, wrap({
 				name: enemyBlueprint.name,
 				graphics: enemyBlueprint.graphics,
 				id: shortid.generate(),
@@ -232,7 +234,7 @@ function placeEnemies(
 					held: { capacity: 1, items: [] }
 				},
 				controller: new controllers.AIController()
-			});
+			}));
 		}
 	});
 
@@ -256,7 +258,7 @@ function placeItems(
 			} while (!utils.isLocationInRoom(state.floor.map, location)
 				|| utils.getItemAtLocation(state, location) !== undefined);
 
-			let item: Crawl.CrawlItem = Object.assign({}, itemBlueprint.item, { location });
+			let item: Crawl.CrawlItem = Object.assign({ id: shortid.generate(), location }, itemBlueprint.item);
 			state.items.push(item);
 		}
 	});
@@ -452,6 +454,20 @@ function numberToTile(val: number): Crawl.DungeonTile {
 				return { type: Crawl.DungeonTileType.FLOOR, roomId: -(val + 1) };
 			}
 	}
+}
+
+function placeStairs(map: Crawl.Map): Crawl.Map {
+	let loc: Crawl.Location;
+
+	do {
+		loc = {
+			r: utils.randint(0, map.height - 1),
+			c: utils.randint(0, map.width - 1)
+		};
+	} while (!(utils.isLocationInRoom(map, loc)));
+
+	map.grid[loc.r][loc.c].stairs = true;
+	return map;
 }
 
 function evaluateDistribution(distribution: Distribution) {

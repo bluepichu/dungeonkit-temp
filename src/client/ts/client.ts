@@ -140,15 +140,29 @@ function init() {
 
 	requestAnimationFrame(animate);
 
-	commandArea = new CommandArea(300, 36, socket, messageLog);
+	commandArea = new CommandArea(socket, messageLog);
 	commandArea.x = window.innerWidth - 350;
 	commandArea.y = 50;
+
+	commandArea.addHandler("start", {
+		label: "start",
+		handler(socket) {
+			socket.emitTempSignal("start");
+		}
+	});
+
+	commandArea.addHandler("help", {
+		label: "help",
+		handler(socket, messageLog) {
+			messageLog.push(Messages.CONTROLS, 15000);
+		}
+	});
 
 	attackOverlay = new AttackOverlay(tweenHandler);
 	gameContainer.addChild(attackOverlay);
 
 	if (!isMobile()) {
-		inputHandler = new KeyboardInputHandler(socket, minimap, dungeonLayer, attackOverlay);
+		inputHandler = new KeyboardInputHandler(socket, commandArea, minimap, dungeonLayer, attackOverlay);
 		gameContainer.addChild(commandArea);
 		if (window.location.pathname !== "/") {
 			socket.emitTempSignal("join", window.location.pathname.substring(1));
@@ -256,6 +270,75 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				attackOverlay.update();
 				teamOverlay.update();
 
+				commandArea.clearHandlers();
+
+				if (state.getState().self.items.bag.items !== undefined) {
+					for (let item of state.getState().self.items.bag.items) {
+						for (let action in item.actions) {
+							for (let alias of item.actions[action]) {
+								commandArea.addHandler(`${alias} ${item.name}`, {
+									label: `${alias} <item>${item.name}</item>`,
+									handler(socket) {
+										socket.sendAction({
+											type: "item",
+											direction: 0,
+											action: action as ItemActionType,
+											item: item.id
+										});
+									}
+								});
+							}
+						}
+
+						if (state.getState().self.items.held.items.length < state.getState().self.items.held.capacity) {
+							commandArea.addHandler(`equip ${item.name}`, {
+								label: `equip <item>${item.name}</item>`,
+								handler(socket) {
+									socket.sendAction({
+										type: "item",
+										direction: 0,
+										action: "equip",
+										item: item.id
+									});
+								}
+							});
+						}
+					}
+				}
+
+				for (let item of state.getState().self.items.held.items) {
+					for (let action in item.actions) {
+						for (let alias of item.actions[action]) {
+							commandArea.addHandler(`${alias} ${item.name}`, {
+								label: `${alias} <item>${item.name}</item>`,
+								handler(socket) {
+									socket.sendAction({
+										type: "item",
+										direction: 0,
+										action: action as ItemActionType,
+										item: item.id
+									});
+								}
+							});
+						}
+					}
+
+					if (state.getState().self.items.bag !== undefined
+						&& state.getState().self.items.bag.items.length < state.getState().self.items.bag.capacity) {
+						commandArea.addHandler(`unequip ${item.name}`, {
+							label: `unequip <item>${item.name}</item>`,
+							handler(socket) {
+								socket.sendAction({
+									type: "item",
+									direction: 0,
+									action: "unequip",
+									item: item.id
+								});
+							}
+						});
+					}
+				}
+
 				inputHandler.awaitingMove = inputHandler.awaitingMove || doneEvent.move;
 
 				return done();
@@ -314,7 +397,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				while (processes.length > 0) {
 					if (processes[0].type === "move") {
 						movePromises.push(getMovePromise(processes.shift() as Crawl.MoveLogEvent));
-					} else if (processes[0].type === "done") {
+					} else if (processes[0].type === "done" || processes[0].type === "item_pickup") {
 						deferred.push(processes.shift());
 					} else {
 						break;
@@ -345,16 +428,27 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				switch (statEvent.stat) {
 					case "hp":
-						messageLog.push(sprintf("<%1$s>%2$s</%1$s> took %3$d damage!",
-							statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
-							statEvent.entity.name,
-							-statEvent.change));
+						if (statEvent.change < 0) {
+							messageLog.push(sprintf("<%1$s>%2$s</%1$s> took %3$d damage!",
+								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+								statEvent.entity.name,
+								-statEvent.change));
 
-						dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
+							dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
 
-						new Promise((resolve, _) => setTimeout(resolve, 1000))
-							.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
-							.then(done);
+							new Promise((resolve, _) => setTimeout(resolve, 1000))
+								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
+								.then(done);
+						} else {
+							messageLog.push(sprintf("<%1$s>%2$s</%1$s> recovered %3$d HP!",
+								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+								statEvent.entity.name,
+								statEvent.change));
+
+							new Promise((resolve, _) => setTimeout(resolve, 1000))
+								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
+								.then(done);
+						}
 						break;
 
 					default:
@@ -410,6 +504,26 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				let messageEvent = proc as Crawl.MessageLogEvent;
 
 				messageLog.push(messageEvent.message);
+				done();
+				break;
+
+			case "item_pickup":
+				let itemPickupEvent = proc as Crawl.ItemPickupLogEvent;
+
+				messageLog.push(sprintf("<%1$s>%2$s</%1$s> picked up the <item>%3$s</item>.",
+					itemPickupEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+					itemPickupEvent.entity.name,
+					itemPickupEvent.item.name));
+				done();
+				break;
+
+			case "item_drop":
+				let itemDropEvent = proc as Crawl.ItemDropLogEvent;
+
+				messageLog.push(sprintf("<%1$s>%2$s</%1$s> dropped the <item>%3$s</item>.",
+					itemDropEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+					itemDropEvent.entity.name,
+					itemDropEvent.item.name));
 				done();
 				break;
 		}

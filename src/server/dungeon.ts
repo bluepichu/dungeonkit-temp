@@ -368,62 +368,123 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
-let reviverSeed: Items.Item = {
+let seedGraphics: Graphics.StaticGraphicsObject = {
+	type: "static",
+	base: "item",
+	frames: [
+		{ texture: "seed", anchor: { x: 16, y: 16 } }
+	]
+};
+
+let berryGraphics: Graphics.StaticGraphicsObject = {
+	type: "static",
+	base: "item",
+	frames: [
+		{ texture: "berry", anchor: { x: 16, y: 16 } }
+	]
+};
+
+let scarfGraphics: Graphics.StaticGraphicsObject = {
+	type: "static",
+	base: "item",
+	frames: [
+		{ texture: "scarf", anchor: { x: 16, y: 16 } }
+	]
+};
+
+let reviverSeed: ItemBlueprint = {
 	name: "Reviver Seed",
 	description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
-	[Items.Hooks.ENTITY_DEFEAT](entity: Crawl.UnplacedCrawlEntity, state: Crawl.InProgressCrawlState) {
-		entity.stats.hp.current = entity.stats.hp.max;
-		crawl.propagateLogEvent(state, {
-			type: "message",
-			entity: {
-				id: entity.id,
-				name: entity.name,
-				graphics: entity.graphics
-			},
-			message: sprintf(
-				"<self>%s</self> was revived by the <item>Reviver Seed</item>!",
-				entity.name)
-		});
-		crawl.propagateLogEvent(state, {
-			type: "message",
-			entity: {
-				id: entity.id,
-				name: entity.name,
-				graphics: entity.graphics
-			},
-			message: sprintf(
-				"The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!",
-				entity.name)
-		});
-		entity.items.held.items = entity.items.held.items.map((heldItem) =>
-			heldItem === this
-				? {
-					name: "Plain Seed",
-					description: "Does nothing in particular.  Fills the belly slightly when eaten."
-				} as Items.Item
-				: heldItem);
-		if (entity.items.bag !== undefined) {
-			entity.items.bag.items = entity.items.bag.items.map((bagItem) =>
-				bagItem === this
-					? {
-						name: "Plain Seed",
-						description: "Does nothing in particular.  Fills the belly slightly when eaten."
-					} as Items.Item
-					: bagItem);
-		}
+	graphics: seedGraphics,
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
 	},
-	graphics: {
-		type: "static",
-		base: "item",
-		frames: [
-			{ texture: "seed", anchor: { x: 16, y: 16 }}
-		]
+	handlers: {
+		[ItemHook.ENTITY_DEFEAT](entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState, item: Item) {
+			entity.stats.hp.current = entity.stats.hp.max;
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: sprintf(
+					"<self>%s</self> was revived by the <item>Reviver Seed</item>!",
+					entity.name)
+			});
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: sprintf(
+					"The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!",
+					entity.name)
+			});
+			item.name = "Plain Seed";
+			item.description = "Does nothing in particular.  Fills the belly slightly when eaten.";
+			item.handlers = { [ItemHook.ITEM_USE]: item.handlers[ItemHook.ITEM_USE] };
+		},
+		[ItemHook.ITEM_USE](entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState) {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: sprintf("<self>%s</self> ate the <item>Reviver Seed</item>!", entity.name)
+			});
+		}
 	}
 };
 
-let antidefenseScarf: Items.Item = {
+let oranBerry: ItemBlueprint = {
+	name: "Oran Berry",
+	description: "A sweet berry.  Heals 20 HP and fills the belly slightly when eaten.",
+	graphics: berryGraphics,
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		[ItemHook.ITEM_USE](entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState) {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: sprintf("<self>%s</self> ate the <item>Oran Berry</item>!", entity.name)
+			});
+			let newHp = Math.min(entity.stats.hp.max, entity.stats.hp.current + 20);
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "hp",
+				change: newHp - entity.stats.hp.current
+			});
+			entity.stats.hp.current = newHp;
+		}
+	}
+};
+
+let antidefenseScarf: ItemBlueprint = {
 	name: "Antidefense Scarf",
 	description: "Why did you equip this?!?",
+	graphics: scarfGraphics,
 	equip(entity: Crawl.UnplacedCrawlEntity) {
 		return deepProxy(entity, "stats.defense.modifier", {
 			get(target: BaseModifierStat, field: any): number {
@@ -435,7 +496,10 @@ let antidefenseScarf: Items.Item = {
 			}
 		});
 	},
-	graphics: undefined
+	handlers: {},
+	actions: {
+		drop: ["drop"]
+	}
 };
 
 export function generatePlayer(socket: SocketIO.Socket): Crawl.UnplacedCrawlEntity {
@@ -447,7 +511,10 @@ export function generatePlayer(socket: SocketIO.Socket): Crawl.UnplacedCrawlEnti
 		items: {
 			held: {
 				capacity: 2,
-				items: [antidefenseScarf, reviverSeed]
+				items: [
+					Object.assign({ id: shortid.generate() }, antidefenseScarf),
+					Object.assign({ id: shortid.generate() }, reviverSeed)
+				]
 			},
 			bag: { capacity: 16, items: [] }
 		},
@@ -489,7 +556,8 @@ export let dungeon: Crawl.Dungeon = {
 					}
 				],
 				items: [
-					{ item: reviverSeed, density: { type: "binomial", n: 100, p: 1 } }
+					{ item: reviverSeed, density: { type: "binomial", n: 20, p: 1 } },
+					{ item: oranBerry, density: { type: "binomial", n: 30, p: 1 } }
 				]
 			}
 		}
