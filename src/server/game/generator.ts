@@ -227,7 +227,12 @@ function placeEnemies(
 					.sort((a, b) => Math.random() * b.weight - Math.random() * a.weight)
 					.slice(0, 4)
 					.map((attackBlueprint) => attackBlueprint.attack),
-				stats: Object.assign({}, enemyBlueprint.stats),
+				stats: {
+					level: enemyBlueprint.stats.level,
+					attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
+					defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 },
+					hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current }
+				},
 				alignment: 0,
 				advances: false,
 				items: {

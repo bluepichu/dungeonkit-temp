@@ -295,8 +295,8 @@ let swift: Attack = {
 let mudkipStats = {
 	level: 10,
 	hp: {
-		max: 48,
-		current: 48
+		max: 10,
+		current: 10
 	},
 	attack: {
 		base: 19,

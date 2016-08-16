@@ -343,7 +343,6 @@ function postExecute(state: Crawl.CrawlState,
 		}));
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
-
 	newState.entities.forEach((entity) => updateMap(newState, entity));
 
 	entity.controller.updateState(getCensoredState(newState, entity));
@@ -702,6 +701,7 @@ function executeStairs(state: Crawl.InProgressCrawlState,
 }
 
 export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Crawl.LogEvent): void {
+	console.log(event);
 	switch (event.type) {
 		case "wait":
 		case "attack":

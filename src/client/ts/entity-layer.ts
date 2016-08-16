@@ -77,6 +77,10 @@ export class EntityLayer extends PIXI.Container {
 	}
 
 	setEntityAnimation(entityId: string, animation: string, direction?: number) {
+		if (!this.spriteMap.has(entityId)) {
+			return;
+		}
+
 		this.spriteMap.get(entityId).setAnimation(animation);
 
 		if (direction !== undefined) {
