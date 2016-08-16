@@ -37,6 +37,7 @@ interface RoomTargetSelector {
 interface FrontTargetSelector {
 	type: "front";
 	includeAllies: boolean;
+	cutsCorners?: boolean;
 }
 
 interface SelfTargetSelector {

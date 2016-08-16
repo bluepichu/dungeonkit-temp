@@ -494,6 +494,13 @@ function getTargets(state: Crawl.InProgressCrawlState,
 		case "front":
 			let offset: [number, number] = utils.decodeDirection(direction);
 			let location = { r: attacker.location.r + offset[0], c: attacker.location.c + offset[1] };
+
+			if (direction % 2 === 1 &&
+				!(selector as FrontTargetSelector).cutsCorners &&
+				(!utils.isLocationInRoom(state.floor.map, attacker.location)
+					|| !utils.isLocationInRoom(state.floor.map, location))) {
+				return [];
+			}
 			return state.entities.filter((entity) => utils.areLocationsEqual(entity.location, location));
 
 		case "room":
@@ -701,7 +708,6 @@ function executeStairs(state: Crawl.InProgressCrawlState,
 }
 
 export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Crawl.LogEvent): void {
-	console.log(event);
 	switch (event.type) {
 		case "wait":
 		case "attack":

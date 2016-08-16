@@ -281,7 +281,8 @@ let swift: Attack = {
 	description: "Inflicts damage on the target. It never misses.",
 	target: {
 		type: "front",
-		includeAllies: false
+		includeAllies: false,
+		cutsCorners: true
 	},
 	uses: {
 		max: 8,
