@@ -1,0 +1,18 @@
+{
+	"frames": {
+		"status-statdown-a": { "frame": { "x": 0, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-b": { "frame": { "x": 24, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-c": { "frame": { "x": 48, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-d": { "frame": { "x": 72, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-e": { "frame": { "x": 96, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-f": { "frame": { "x": 120, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-g": { "frame": { "x": 144, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-h": { "frame": { "x": 168, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-i": { "frame": { "x": 192, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-j": { "frame": { "x": 216, "y": 0, "w": 24, "h": 24 } },
+		"status-statdown-k": { "frame": { "x": 240, "y": 0, "w": 24, "h": 24 } }
+	},
+	"meta": {
+		"image": "markers.png"
+	}
+}

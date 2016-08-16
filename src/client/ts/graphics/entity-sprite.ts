@@ -7,11 +7,15 @@ import * as utils       from "../../../common/utils";
 export class EntitySprite extends AnimatedSprite {
 	private _direction: number;
 	private useReflection: boolean;
+	private statusMarkers: AnimatedSprite[];
+	private statusIndex: number;
 
 	constructor(descriptor: Graphics.EntityGraphics) {
 		super(descriptor.base, descriptor);
 		this.useReflection = descriptor.useReflection;
 		this.direction = 6;
+		this.statusMarkers = [];
+		this.statusIndex = 0;
 	}
 
 	protected handleOffset(sprite: PIXI.Sprite, amount: number): void {
@@ -65,6 +69,33 @@ export class EntitySprite extends AnimatedSprite {
 				layer.scale.x = 1;
 			}
 		}
+	}
+
+	public clearStatusMarkers(): void {
+		this.removeChild(this.statusMarkers[this.statusIndex]);
+		this.statusMarkers = [];
+		this.statusIndex = 0;
+	}
+
+	public addStatusMarker(marker: AnimatedSprite): void {
+		this.statusMarkers.push(marker);
+
+		marker.x = 12;
+		marker.y = -18;
+
+		if (this.statusMarkers.length === 1) {
+			this.addChild(marker);
+			marker.addAnimationEndListener(this.advanceStatusAnimation.bind(this));
+		}
+	}
+
+	private advanceStatusAnimation(): void {
+		this.removeChild(this.statusMarkers[this.statusIndex]);
+		this.statusIndex++;
+		this.statusIndex %= this.statusMarkers.length;
+		this.addChild(this.statusMarkers[this.statusIndex]);
+		this.statusMarkers[this.statusIndex].reset();
+		this.statusMarkers[this.statusIndex].addAnimationEndListener(this.advanceStatusAnimation.bind(this));
 	}
 }
 

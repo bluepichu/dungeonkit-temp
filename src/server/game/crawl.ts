@@ -249,7 +249,11 @@ function censorEntity(entity: Crawl.CrawlEntity): Crawl.CensoredCrawlEntity {
 		location: entity.location,
 		graphics: entity.graphics,
 		alignment: entity.alignment,
-		advances: entity.advances
+		advances: entity.advances,
+		stats: {
+			attack: { modifier: entity.stats.attack.modifier },
+			defense: { modifier: entity.stats.defense.modifier }
+		}
 	};
 }
 

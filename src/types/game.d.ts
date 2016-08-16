@@ -443,6 +443,12 @@ declare namespace Crawl {
 		id: string;
 		alignment: number;
 		advances: boolean;
+		stats: CensoredEntityStats;
+	}
+
+	interface CensoredEntityStats {
+		attack: { modifier: number };
+		defense: { modifier: number };
 	}
 
 	interface CensoredSelfCrawlEntity extends Locatable {

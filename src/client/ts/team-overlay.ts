@@ -180,6 +180,16 @@ class TeamListing extends PIXI.Container {
 
 		this.itemsText = entity.items.held.items.map((item) => new PIXI.Text(item.name, STYLES["def"]));
 
+		if (entity.items.held.items.length < entity.items.held.capacity) {
+			this.itemsText.push(
+				new PIXI.Text(`(Can hold ${entity.items.held.capacity - entity.items.held.items.length} more)`, STYLES["def"]));
+		}
+
+		if (entity.items.bag !== undefined) {
+			this.itemsText.push(
+				new PIXI.Text(`Bag (${entity.items.bag.items.length}/${entity.items.bag.capacity})`, STYLES["def"]));
+		}
+
 		this.itemsText.forEach((text, i) => {
 			text.x = 102;
 			text.y = 70 + 16 * i;

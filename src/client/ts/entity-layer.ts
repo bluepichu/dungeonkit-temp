@@ -1,10 +1,12 @@
 "use strict";
 
-import * as Constants from "./constants";
-import {EntitySprite} from "./graphics/entity-sprite";
-import * as state     from "./state";
-import {TweenHandler} from "./tween-handler";
-import * as utils     from "../../common/utils";
+import {AnimatedSprite} from "./graphics/animated-sprite";
+import * as Constants   from "./constants";
+import {EntitySprite}   from "./graphics/entity-sprite";
+import * as state       from "./state";
+import * as Markers     from "./graphics/markers";
+import {TweenHandler}   from "./tween-handler";
+import * as utils       from "../../common/utils";
 
 export class EntityLayer extends PIXI.Container {
 	public static entityGraphicsCache: Graphics.EntityGrpahicsCache = new Map();
@@ -29,6 +31,13 @@ export class EntityLayer extends PIXI.Container {
 				[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(entity.location, Constants.GRID_SIZE);
 			} else {
 				this.addEntity(entity, entity.location);
+			}
+
+			let entitySprite = this.spriteMap.get(entity.id);
+			entitySprite.clearStatusMarkers();
+
+			if (entity.stats.attack.modifier < 0 || entity.stats.defense.modifier < 0) {
+				entitySprite.addStatusMarker(new AnimatedSprite(Markers.STATUS_STAT_DOWN.base, Markers.STATUS_STAT_DOWN));
 			}
 		});
 

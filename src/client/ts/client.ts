@@ -50,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				.add("ent-mudkip", "/assets/mudkip.json")
 				.add("ent-eevee", "/assets/eevee.json")
 				.add("items", "/assets/items.json")
+				.add("markers", "/assets/markers.json")
 				.once("complete", init);
 
 			PIXI.loader.load();

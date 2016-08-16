@@ -56,6 +56,11 @@ export class AnimatedSprite extends PIXI.Container {
 		}
 	}
 
+	public reset(): void {
+		this.step = 0;
+		this.frame = 0;
+	}
+
 	protected handleOffset(sprite: PIXI.Sprite, amount: number): void { }
 
 	protected getTexture(frame: Graphics.Frame): PIXI.Texture {
