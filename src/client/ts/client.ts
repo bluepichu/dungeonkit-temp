@@ -162,17 +162,34 @@ function init() {
 	attackOverlay = new AttackOverlay(tweenHandler);
 	gameContainer.addChild(attackOverlay);
 
+	let roomQuery = /room=([^&]*)(&|$)/.exec(window.location.search);
+	let room: string = undefined;
+
+	if (roomQuery) {
+		room = roomQuery[1];
+	}
+
+	let nameQuery = /name=([^&]*)(&|$)/.exec(window.location.search);
+	let name: string = undefined;
+
+	if (nameQuery) {
+		name = decodeURI(nameQuery[1]);
+	}
+
 	if (!isMobile()) {
 		inputHandler = new KeyboardInputHandler(socket, commandArea, minimap, dungeonLayer, attackOverlay);
 		gameContainer.addChild(commandArea);
-		if (window.location.pathname !== "/") {
-			socket.emitTempSignal("join", window.location.pathname.substring(1));
-		}
 	} else {
 		inputHandler = new TouchInputHandler(socket, dungeonLayer, messageLog, main, gameContainer);
-		if (window.location.pathname !== "/mobile") {
-			socket.emitTempSignal("join", window.location.pathname.substring(7));
-		}
+
+	}
+
+	if (room) {
+		socket.emitTempSignal("join", room);
+	}
+
+	if (name) {
+		socket.emitTempSignal("name", name);
 	}
 
 	teamOverlay = new TeamOverlay();
@@ -274,9 +291,9 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				commandArea.clearHandlers();
 
 				if (state.getState().floor.map.grid
-						[state.getState().self.location.r]
-						[state.getState().self.location.c]
-							.stairs) {
+				[state.getState().self.location.r]
+				[state.getState().self.location.c]
+					.stairs) {
 					commandArea.addHandler("stairs", {
 						label: "stairs",
 						handler(socket) {
@@ -286,6 +303,15 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						}
 					});
 				}
+
+				commandArea.addHandler("wait", {
+					label: "wait",
+					handler(socket) {
+						socket.sendAction({
+							type: "wait"
+						});
+					}
+				});
 
 				if (state.getState().self.items.bag.items !== undefined) {
 					for (let item of state.getState().self.items.bag.items) {
@@ -365,6 +391,11 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				state.getState().floor.map.width = startEvent.floorInformation.width;
 				state.getState().floor.map.height = startEvent.floorInformation.height;
 
+				floorSignText.text = sprintf("%s\n%s%dF",
+					state.getState().dungeon.name,
+					state.getState().dungeon.direction === "down" ? "B" : "",
+					state.getState().floor.number);
+
 				state.getState().floor.map.grid =
 					utils.tabulate((row) =>
 						utils.tabulate((col) =>
@@ -374,19 +405,14 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.getState().self = startEvent.self;
 
-				floorSignText.text = sprintf("%s\n%s%dF",
-					state.getState().dungeon.name,
-					state.getState().dungeon.direction === "down" ? "B" : "",
-					state.getState().floor.number);
-
 				dungeonLayer.init();
 
 				tweenHandler.tween(floorSign, "alpha", 1, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000))
-					.then(() => {
-						setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
-						setTimeout(done, 400);
-					});
+						.then(() => {
+							setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
+							setTimeout(done, 400);
+						});
 
 				break;
 
@@ -546,7 +572,13 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 	});
 }
 
+// let frameTimes: number[] = [];
+
 function animate() {
+	// frameTimes.unshift(Date.now());
+	// if (frameTimes.length > 50) {
+	// 	console.info("50-frame avg fps:", 50 / (Date.now() - frameTimes.pop()) * 1000);
+	// }
 	inputHandler.handleInput();
 	tweenHandler.step();
 	renderer.render(gameContainer);

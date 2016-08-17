@@ -145,71 +145,37 @@ function placeEntityGroup(
 			state.floor.map.height)
 	};
 
-	let location: Crawl.Location = {
-		r: utils.randint(0, state.floor.map.height - 1),
-		c: utils.randint(0, state.floor.map.width - 1)
-	};
+	let location: Crawl.Location;
 
-	while (!(utils.isLocationInRoom(state.floor.map, location) && utils.isLocationEmpty(state, location))) {
+	do {
 		location = {
 			r: utils.randint(0, state.floor.map.height - 1),
 			c: utils.randint(0, state.floor.map.width - 1)
 		};
-	}
+	} while (!(utils.isLocationInRoom(state.floor.map, location) && utils.isLocationEmpty(state, location)));
 
-	let entity: Crawl.CrawlEntity = Object.assign(entities[0], { location, map });
-	state.entities.push(entity);
-
-	let dr = 0;
-	let dc = 0;
-	let k = 1;
-	let i = 1;
-
-	if (i >= entities.length) {
-		return state;
-	}
-
-	while (true) {
-		for (let j = 0; j < k; j++) {
-			if (k % 2 === 1) {
-				dr--;
-			} else {
-				dr++;
-			}
-
-			if (utils.isLocationInRoom(state.floor.map, { r: location.r + dr, c: location.c + dc })
-				&& utils.isLocationEmpty(state, { r: location.r + dr, c: location.c + dc })) {
-				let entity: Crawl.CrawlEntity = Object.assign(entities[i], { location, map });
-				state.entities.push(entity);
-
-				i++;
-
-				if (i >= entities.length) {
-					return state;
+	let loc = { r: location.r, c: location.c };
+	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
+		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
+			for (let j = 0; j < 2 * i + di; j++) {
+				if (utils.getTile(state.floor.map, loc).type === Crawl.DungeonTileType.FLOOR
+					&& utils.inSameRoom(state.floor.map, location, loc)
+					&& utils.isLocationEmpty(state, loc)) {
+					log.log("Set location to", loc);
+					state.entities.push(Object.assign(entities.pop(), { location: { r: loc.r, c: loc.c }, map }));
+					if (entities.length === 0) {
+						return state;
+					}
 				}
-			}
-		}
-
-		for (let j = 0; j < k; j++) {
-			if (k % 2 === 1) {
-				dc++;
-			} else {
-				dc--;
-			}
-
-			if (utils.isLocationInRoom(state.floor.map, { r: location.r + dr, c: location.c + dc })
-				&& utils.isLocationEmpty(state, { r: location.r + dr, c: location.c + dc })) {
-				let entity: Crawl.CrawlEntity = Object.assign(entities[i], { location, map });
-				state.entities.push(entity);
-
-				i++;
-
-				if (i >= entities.length) {
-					return state;
-				}
+				loc.r += dr;
+				loc.c += dc;
 			}
 		}
 	}
+
+	// welp
+	log.error("Unable to place all entities");
+	return state;
 }
 
 function placeEnemies(

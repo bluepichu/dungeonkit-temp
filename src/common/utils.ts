@@ -74,7 +74,7 @@ export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: C
  */
 export function isLocationEmpty(state: Crawl.CensoredInProgressCrawlState,
 	location: Crawl.Location): boolean {
-	return (getEntityAtLocation(state, location) === undefined);
+	return (isLocationInMap(state.floor.map, location) && getEntityAtLocation(state, location) === undefined);
 }
 
 /**

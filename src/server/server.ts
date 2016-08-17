@@ -15,6 +15,11 @@ import * as crawl                from "./game/crawl";
 import * as controllers          from "./game/controllers";
 import {dungeon, generatePlayer} from "./dungeon";
 
+interface GameInfo {
+	room: string;
+	name: string;
+}
+
 export function start() {
 	sourcemap.install();
 	// Error.stackTraceLimit = Infinity;
@@ -33,11 +38,14 @@ export function start() {
 	});
 
 	const io: SocketIO.Server = socketio(server);
-	let games: Map<string, string> = new Map();
+	let games: Map<string, GameInfo> = new Map();
 
 	io.on("connection", (socket: SocketIO.Socket) => {
 		log.logf("<green>+ %s</green>", socket.id);
-		games.set(socket.id, shortid());
+		games.set(socket.id, {
+			room: shortid(),
+			name: "Eevee"
+		});
 
 		socket.on("disconnect", () => {
 			log.logf("<red>- %s</red>", socket.id);
@@ -47,8 +55,13 @@ export function start() {
 		socket.on("error", (err: Error) => log.error(err.stack));
 
 		socket.on("join", (game: string) => {
-			games.set(socket.id, game);
-			log.logf("<blue>%s --> %s</blue>", socket.id, game);
+			games.get(socket.id).room = game;
+			log.logf("<blue>%s joins %s</blue>", socket.id, game);
+		});
+
+		socket.on("name", (game: string) => {
+			games.get(socket.id).name = game;
+			log.logf("<blue>%s sets name to %s</blue>", socket.id, game);
 		});
 
 		socket.on("start", () => {
@@ -59,14 +72,15 @@ export function start() {
 			}
 
 			let game = games.get(socket.id);
-			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) => games.get(socket) === game);
+			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) => games.get(socket).room === game.room);
 
 			if (socketIds.length === 0) {
 				return;
 			}
 
 			let sockets: SocketIO.Socket[] = socketIds.map((id) => io.sockets.connected[id]);
-			let players: Crawl.UnplacedCrawlEntity[] = sockets.map(generatePlayer);
+			let players: Crawl.UnplacedCrawlEntity[] =
+				socketIds.map((id) => generatePlayer(io.sockets.connected[id], games.get(id).name));
 
 			socketIds.forEach((socket) => games.delete(socket));
 			players.forEach((player) => player.controller.init(player, dungeon));
