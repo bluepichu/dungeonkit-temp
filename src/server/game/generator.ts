@@ -471,6 +471,8 @@ function placeStairs(map: Crawl.Map): Crawl.Map {
 		};
 	} while (!(utils.isLocationInRoom(map, loc)));
 
+	console.log(loc);
+
 	map.grid[loc.r][loc.c].stairs = true;
 	return map;
 }

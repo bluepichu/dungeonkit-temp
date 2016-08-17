@@ -87,6 +87,7 @@ export class EntityLayer extends PIXI.Container {
 
 	setEntityAnimation(entityId: string, animation: string, direction?: number) {
 		if (!this.spriteMap.has(entityId)) {
+			console.error(`No sprite with id ${entityId}, exiting now`);
 			return;
 		}
 
@@ -98,6 +99,11 @@ export class EntityLayer extends PIXI.Container {
 	}
 
 	setAnimationEndListener(entityId: string, f: () => any) {
+		if (!this.spriteMap.has(entityId)) {
+			console.error(`No sprite with id ${entityId}, calling listener now`);
+			f();
+			return;
+		}
 		this.spriteMap.get(entityId).addAnimationEndListener(f);
 	}
 

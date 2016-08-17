@@ -336,15 +336,20 @@ function postExecute(state: Crawl.CrawlState,
 			checkItems(ItemHook.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0));
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
-		.forEach((entity) => propagateLogEvent(newState, {
-			type: "defeat",
-			entity: {
-				id: entity.id,
-				name: entity.name,
-				graphics: entity.graphics
-			},
-			location: entity.location
-		}));
+		.forEach((entity) => {
+			propagateLogEvent(newState, {
+				type: "defeat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location
+			});
+			entity.items.held.items.forEach((item) => {
+				executeItemDrop(newState, entity.location, item);
+			});
+		});
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
 	newState.entities.forEach((entity) => updateMap(newState, entity));

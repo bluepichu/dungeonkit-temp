@@ -60,6 +60,10 @@ export class GroundLayer extends PIXI.Container {
 			return undefined;
 		}
 
+		if (map.grid[loc.r][loc.c].stairs) {
+			return this.generateGraphicsObject(graphics.base, graphics.stairs);
+		}
+
 		if (utils.getTile(map, loc).type === Crawl.DungeonTileType.FLOOR) {
 			return this.generateGraphicsObject(graphics.base, graphics.open);
 		}
@@ -83,10 +87,6 @@ export class GroundLayer extends PIXI.Container {
 			} else {
 				pattern |= 1;
 			}
-		}
-
-		if (map.grid[loc.r][loc.c].stairs) {
-			return this.generateGraphicsObject(graphics.base, graphics.stairs);
 		}
 
 		for (let i = 0; i < graphics.walls.length; i++) {

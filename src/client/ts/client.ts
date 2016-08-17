@@ -182,7 +182,7 @@ function init() {
 
 	floorSign = new PIXI.Container();
 	floorSign.alpha = 0;
-	// gameContainer.addChild(floorSign);
+	gameContainer.addChild(floorSign);
 
 	let g = new PIXI.Graphics();
 	g.beginFill(0x000000);
@@ -272,6 +272,20 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				teamOverlay.update();
 
 				commandArea.clearHandlers();
+
+				if (state.getState().floor.map.grid
+						[state.getState().self.location.r]
+						[state.getState().self.location.c]
+							.stairs) {
+					commandArea.addHandler("stairs", {
+						label: "stairs",
+						handler(socket) {
+							socket.sendAction({
+								type: "stairs"
+							});
+						}
+					});
+				}
 
 				if (state.getState().self.items.bag.items !== undefined) {
 					for (let item of state.getState().self.items.bag.items) {
@@ -367,10 +381,11 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				dungeonLayer.init();
 
-				new Promise((resolve, _) => setTimeout(resolve, 2000))
+				tweenHandler.tween(floorSign, "alpha", 1, .1)
+					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000))
 					.then(() => {
-						done();
 						setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
+						setTimeout(done, 400);
 					});
 
 				break;
