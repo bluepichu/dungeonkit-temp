@@ -219,6 +219,14 @@ function init() {
 	floorSignText.resolution = window.devicePixelRatio;
 	floorSign.addChild(floorSignText);
 
+	frameRateText = new PIXI.Text("", { font: "400 10px Lato", fill: Colors.BLUE });
+	frameRateText.x = 10;
+	frameRateText.y = 10;
+	frameRateText.resolution = window.devicePixelRatio;
+	gameContainer.addChild(frameRateText);
+
+	updateFrameCount();
+
 	window.addEventListener("orientationchange", handleWindowResize);
 	window.addEventListener("resize", handleWindowResize);
 
@@ -408,7 +416,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				dungeonLayer.init();
 
 				tweenHandler.tween(floorSign, "alpha", 1, .1)
-					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000))
+					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
 						.then(() => {
 							setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
 							setTimeout(done, 400);
@@ -572,15 +580,19 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 	});
 }
 
-// let frameTimes: number[] = [];
+let frameCount: number = 0;
+let frameRateText: PIXI.Text;
 
 function animate() {
-	// frameTimes.unshift(Date.now());
-	// if (frameTimes.length > 50) {
-	// 	console.info("50-frame avg fps:", 50 / (Date.now() - frameTimes.pop()) * 1000);
-	// }
+	frameCount++;
 	inputHandler.handleInput();
 	tweenHandler.step();
 	renderer.render(gameContainer);
 	requestAnimationFrame(animate);
+}
+
+function updateFrameCount() {
+	frameRateText.text = `FPS: ${frameCount}`;
+	setTimeout(updateFrameCount, 1000);
+	frameCount = 0;
 }

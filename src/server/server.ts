@@ -59,9 +59,9 @@ export function start() {
 			log.logf("<blue>%s joins %s</blue>", socket.id, game);
 		});
 
-		socket.on("name", (game: string) => {
-			games.get(socket.id).name = game;
-			log.logf("<blue>%s sets name to %s</blue>", socket.id, game);
+		socket.on("name", (name: string) => {
+			games.get(socket.id).name = name;
+			log.logf("<blue>%s sets name to %s</blue>", socket.id, name);
 		});
 
 		socket.on("start", () => {
