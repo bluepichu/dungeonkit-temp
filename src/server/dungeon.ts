@@ -503,7 +503,7 @@ let antidefenseScarf: ItemBlueprint = {
 	}
 };
 
-export function generatePlayer(socket: SocketIO.Socket, name?: string = "Eevee"): Crawl.UnplacedCrawlEntity {
+export function generatePlayer(socket: SocketIO.Socket, name: string = "Eevee"): Crawl.UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
 		name: name,

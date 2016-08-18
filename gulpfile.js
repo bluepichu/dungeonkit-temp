@@ -11,9 +11,10 @@ let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*",
 
 let clientProject = $.typescript.createProject("src/client/tsconfig.json");
 let serverProject = $.typescript.createProject("src/server/tsconfig.json");
-let testProject   = $.typescript.createProject("src/test/tsconfig.json");
+let testProject   = $.typescript.createProject("test/tsconfig.json");
 
 let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
+let test    = (...dirs) => dirs.map((dir) => path.join("test", dir));
 let build   = (dir) => path.join("build", dir);
 let map     = "map";
 let notify  = (message) => $.notify({
@@ -88,7 +89,7 @@ gulp.task("server", () =>
 	    .pipe(gulp.dest(build(""))));
 
 gulp.task("watch-test", () => {
-	gulp.watch(src("test/test.ts"), ["test"]);
+	gulp.watch(test("**/*.ts"), ["test"]);
 });
 
 gulp.task("test", () =>

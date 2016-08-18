@@ -51,7 +51,7 @@ export function getAction(state: Crawl.CensoredEntityCrawlState,
 					power: 7,
 					onHit: []
 				},
-				direction: utils.directionTo(entity.location, controller.attackTarget.location)
+				direction: directionTo(entity.location, controller.attackTarget.location)
 			};
 		}
 	}
@@ -65,10 +65,36 @@ export function getAction(state: Crawl.CensoredEntityCrawlState,
 		// Move towards the move target
 		return {
 			type: "move",
-			direction: utils.directionTo(entity.location, controller.moveTarget)
+			direction: directionTo(entity.location, controller.moveTarget)
 		};
 	}
 
 	// not sure how to pick a new move target yet...
 	return { type: "move", direction: Math.floor(Math.random() * 8) };
+}
+
+function directionTo(from: Crawl.Location, to: Crawl.Location): number {
+	if (from.r < to.r) {
+		if (from.c < to.c) {
+			return 7;
+		} else if (from.c > to.c) {
+			return 5;
+		} else {
+			return 6;
+		}
+	} else if (from.r > to.r) {
+		if (from.c < to.c) {
+			return 1;
+		} else if (from.c > to.c) {
+			return 3;
+		} else {
+			return 2;
+		}
+	} else {
+		if (from.c > to.c) {
+			return 4;
+		} else {
+			return 0;
+		}
+	}
 }

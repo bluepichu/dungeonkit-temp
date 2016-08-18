@@ -61,7 +61,6 @@ export function getEntityAtLocation(state: Crawl.InProgressCrawlState,
  * @param location - The location.
  * @returns The item at the given location in the given state, or undefined if no item occupies that location.
  */
-
 export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: Crawl.Location): Crawl.CrawlItem {
 	return state.items.find((item) => areLocationsEqual(item.location, location));
 }
@@ -74,7 +73,7 @@ export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: C
  */
 export function isLocationEmpty(state: Crawl.CensoredInProgressCrawlState,
 	location: Crawl.Location): boolean {
-	return (isLocationInMap(state.floor.map, location) && getEntityAtLocation(state, location) === undefined);
+	return getEntityAtLocation(state, location) === undefined;
 }
 
 /**
@@ -206,6 +205,7 @@ export function inRange(v: number, min: number, max: number): boolean {
  * @param map - The map.
  * @param observer - The observation location.
  * @param location - The location to check.
+ * @returns Whether or not the given location is visible in the given map if standing at the given observation location.
  */
 export function isVisible(map: Crawl.Map,
 	observer: Crawl.Location,
@@ -248,53 +248,52 @@ export function areAligned(a: Crawl.CensoredCrawlEntity, b: Crawl.CensoredCrawlE
 	return a.alignment !== 0 && a.alignment === b.alignment;
 }
 
+/**
+ * Retreives the tile at the given location in the given map, or an unknown tile if the location is not in the map or
+ *     is invalid.
+ * @param map - The map.
+ * @param location - The location from which to retrieve the tile.
+ * @returns The tile at the given location in the map.
+ */
 export function getTile(map: Crawl.Map, location: Crawl.Location): Crawl.DungeonTile {
 	if (isLocationInMap(map, location)) {
 		return map.grid[location.r][location.c];
 	}
-	return { type: Crawl.DungeonTileType.UNKNOWN }; // defaulting to this prevents errors
+	return { type: Crawl.DungeonTileType.UNKNOWN };
 }
 
+/**
+ * Transforms the given location to display coordinates.
+ * @param location - The location to transform into coordinates.
+ * @param gridSize - The size of each tile.
+ * @returns The display coordinates of the given location in the given grid size.
+ */
 export function locationToCoordinates(location: Crawl.Location, gridSize: number): [number, number] {
 	return [location.c * gridSize, location.r * gridSize];
 }
 
-export function withinNSteps(steps: number,
+/**
+ * Calls the given function on every location within n steps of the given location.
+ * @param n - The number of steps away to check.
+ * @param location - The base location.
+ * @param fn - The function to call on each location.
+ */
+export function withinNSteps(
+	n: number,
 	location: Crawl.Location,
 	fn: (location: Crawl.Location) => any): void {
-	for (let r = location.r - steps; r <= location.r + steps; r++) {
-		for (let c = location.c - steps; c <= location.c + steps; c++) {
+	for (let r = location.r - n; r <= location.r + n; r++) {
+		for (let c = location.c - n; c <= location.c + n; c++) {
 			fn({ r, c });
 		}
 	}
 }
 
-export function directionTo(from: Crawl.Location, to: Crawl.Location): number {
-	if (from.r < to.r) {
-		if (from.c < to.c) {
-			return 7;
-		} else if (from.c > to.c) {
-			return 5;
-		} else {
-			return 6;
-		}
-	} else if (from.r > to.r) {
-		if (from.c < to.c) {
-			return 1;
-		} else if (from.c > to.c) {
-			return 3;
-		} else {
-			return 2;
-		}
-	} else {
-		if (from.c > to.c) {
-			return 4;
-		} else {
-			return 0;
-		}
-	}
-}
-
+/**
+ * Returns whether or not the input is void.
+ * @param v - The object to check.
+ * @returns Whether or not the object is void.
+ */
 export function isVoid<T>(v: T | void): v is void {
 	return v === undefined;
 }
