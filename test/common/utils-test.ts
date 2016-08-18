@@ -1,7 +1,7 @@
 "use strict";
 
-import * as data  from "../test-data.ts";
-import * as test  from "../test-utils.ts";
+import * as data  from "../test-data";
+import * as test  from "../test-utils";
 import * as utils from "../../src/common/utils";
 
 console.log("hi");

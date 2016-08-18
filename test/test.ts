@@ -1,6 +1,6 @@
 "use strict";
 
-import { testUtils } from "./common/utils-test.ts";
+import { testUtils } from "./common/utils-test";
 
 console.log("hi");
 

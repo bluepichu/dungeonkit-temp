@@ -60,11 +60,11 @@ export let testNumberGrid: number[][] = [
 
 export let testFloorGrid: Crawl.DungeonTile[][] = testNumberGrid.map((row, r) => row.map((cell, c) => {
 	if (cell === X) {
-		return { type: Crawl.DungeonTiexport letype.WALL };
+		return { type: Crawl.DungeonTileType.WALL };
 	}
 
 	return {
-		type: Crawl.DungeonTiexport letype.FLOOR,
+		type: Crawl.DungeonTileType.FLOOR,
 		roomId: cell === 0 ? undefined : cell,
 		stairs: r === 17 && c === 2
 	};

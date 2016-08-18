@@ -81,7 +81,7 @@ gulp.task("watch-server", () => {
 });
 
 gulp.task("server", () =>
-	gulp.src(src("{server/**/*.ts,index.ts,common/**/*.*}"))
+	gulp.src(src("{server/**/*.ts,index.ts,common/**/*.ts}"))
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(serverProject))
 	    .pipe($.sourcemaps.write(map))
@@ -93,8 +93,9 @@ gulp.task("watch-test", () => {
 });
 
 gulp.task("test", () =>
-	gulp.src(src("test/test.ts"))
+	gulp.src(test("**/*.ts"))
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(testProject))
+	    .pipe($.replace("../../src/", "../../"))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe(gulp.dest(build("test"))));
