@@ -49,3 +49,8 @@ declare namespace Client {
 		self: CensoredSelfEntity;
 	}
 }
+
+interface Viewport {
+	r: [number, number];
+	c: [number, number];
+}

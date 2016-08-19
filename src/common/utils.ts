@@ -3,7 +3,7 @@
 /**
  * Converts a direction number into a number tuple that describes the direction.
  * @param direction - The number of the direction to decode.
- * @returns A number tuple describing the direction, in the form [dr, dc].
+ * @return A number tuple describing the direction, in the form [dr, dc].
  * @throws {Error} Will throw an error if direction is not an integer.
  */
 export function decodeDirection(direction: number): [number, number] {
@@ -33,7 +33,7 @@ export function decodeDirection(direction: number): [number, number] {
  * Checks two locations for equality.
  * @param a - The first location.
  * @param b - The second location.
- * @returns Whether or not the two locations are equal.
+ * @return Whether or not the two locations are equal.
  */
 export function areLocationsEqual(a: Crawl.Location, b: Crawl.Location): boolean {
 	return (a.r === b.r) && (a.c === b.c);
@@ -43,7 +43,7 @@ export function areLocationsEqual(a: Crawl.Location, b: Crawl.Location): boolean
  * Retrieves the entity at the given location.
  * @param state - The state.
  * @param location - The location.
- * @returns The entity at the given location in the given state, or undefined if no entity occupies that location.
+ * @return The entity at the given location in the given state, or undefined if no entity occupies that location.
  */
 export function getEntityAtLocation(state: Crawl.InProgressCrawlState,
 	location: Crawl.Location): Crawl.CrawlEntity | void;
@@ -59,7 +59,7 @@ export function getEntityAtLocation(state: Crawl.InProgressCrawlState,
  * Retrieves the item at the given location.
  * @param state - The state.
  * @param location - The location.
- * @returns The item at the given location in the given state, or undefined if no item occupies that location.
+ * @return The item at the given location in the given state, or undefined if no item occupies that location.
  */
 export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: Crawl.Location): Crawl.CrawlItem {
 	return state.items.find((item) => areLocationsEqual(item.location, location));
@@ -69,7 +69,7 @@ export function getItemAtLocation(state: Crawl.InProgressCrawlState, location: C
  * Checks if no entity is occupying the given location.
  * @param state - The state.
  * @param location - The location.
- * @returns Whether or not the location is empty in the given state.
+ * @return Whether or not the location is empty in the given state.
  */
 export function isLocationEmpty(state: Crawl.CensoredInProgressCrawlState,
 	location: Crawl.Location): boolean {
@@ -80,7 +80,7 @@ export function isLocationEmpty(state: Crawl.CensoredInProgressCrawlState,
  * Checks if the given location is valid for the given map.
  * @param map - The map.
  * @param location - The location.
- * @returns Whether or not the location is valid for the given map.
+ * @return Whether or not the location is valid for the given map.
  */
 export function isLocationInMap(map: Crawl.Map, location: Crawl.Location): boolean {
 	return isValidLocation(location) && location.r < map.height && location.c < map.width;
@@ -89,7 +89,7 @@ export function isLocationInMap(map: Crawl.Map, location: Crawl.Location): boole
 /**
  * Checks if the given state represents a crawl that has concluded.
  * @param state - The state.
- * @returns Whether or not the crawl is over.
+ * @return Whether or not the crawl is over.
  */
 export function isCrawlOver(state: Crawl.CrawlState): state is Crawl.ConcludedCrawlState {
 	return "success" in state;
@@ -101,7 +101,7 @@ export function isCrawlOver(state: Crawl.CrawlState): state is Crawl.ConcludedCr
  * @param v - The value to bound.
  * @param min - The minimum return value.
  * @param max - The maximum return value.
- * @returns The value, bounded as described.
+ * @return The value, bounded as described.
  * @throws {RangeError} Will throw an error if min > max.
  */
 export function bound(v: number, min: number, max: number): number {
@@ -124,7 +124,7 @@ export function bound(v: number, min: number, max: number): number {
  * Returns a random integer between min and max, inclusive on both ends.
  * @param min - The minimum return value.
  * @param max - The maximum return value.
- * @returns A random integer between minimum and maximum, inclusive on both ends.
+ * @return A random integer between minimum and maximum, inclusive on both ends.
  * @throws {RangeError} Will throw an error if min > max.
  */
 export function randint(min: number, max: number): number {
@@ -139,7 +139,7 @@ export function randint(min: number, max: number): number {
  * Returns the minimum distance between two locations, allowing diagonal moves.
  * @param a - The first location.
  * @param b - The second location.
- * @returns The distance between the two locations.
+ * @return The distance between the two locations.
  */
 export function distance(a: Crawl.Location, b: Crawl.Location): number {
 	return Math.max(Math.abs(a.r - b.r), Math.abs(a.c - b.c));
@@ -149,7 +149,7 @@ export function distance(a: Crawl.Location, b: Crawl.Location): number {
  * Constructs a new list with the given length using the given function to produce each element.
  * @param fn - The function used to produce the elements of the list, which must take a single parameter - the index.
  * @param length - The length of the resulting list (rounded down and set to 0 if negative).
- * @returns The list.
+ * @return The list.
  */
 export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
 	let ret: T[] = [];
@@ -167,7 +167,7 @@ export function tabulate<T>(fn: (i: number) => T, length: number): T[] {
  * Checks if the given location is within a room in the given map.
  * @param map - The map.
  * @param location - The location.
- * @returns Whether or not the location is in a room.
+ * @return Whether or not the location is in a room.
  */
 export function isLocationInRoom(map: Crawl.Map, location: Crawl.Location) {
 	return isLocationInMap(map, location)
@@ -179,7 +179,7 @@ export function isLocationInRoom(map: Crawl.Map, location: Crawl.Location) {
  * @param map - The map.
  * @param a - The first location.
  * @param b - The second location.
- * @returns Whether or not the two locations are in the same room.
+ * @return Whether or not the two locations are in the same room.
  */
 export function inSameRoom(map: Crawl.Map, a: Crawl.Location, b: Crawl.Location): boolean {
 	return isLocationInRoom(map, a)
@@ -193,7 +193,7 @@ export function inSameRoom(map: Crawl.Map, a: Crawl.Location, b: Crawl.Location)
  * @param v - The value to check.
  * @param min - The minimum value of the range.
  * @param max - The maximum vlaue of the range.
- * @returns Whether or not v is in the range [min, max).
+ * @return Whether or not v is in the range [min, max).
  */
 export function inRange(v: number, min: number, max: number): boolean {
 	return min <= v && v < max;
@@ -205,7 +205,7 @@ export function inRange(v: number, min: number, max: number): boolean {
  * @param map - The map.
  * @param observer - The observation location.
  * @param location - The location to check.
- * @returns Whether or not the given location is visible in the given map if standing at the given observation location.
+ * @return Whether or not the given location is visible in the given map if standing at the given observation location.
  */
 export function isVisible(map: Crawl.Map,
 	observer: Crawl.Location,
@@ -232,7 +232,7 @@ export function isVisible(map: Crawl.Map,
 /**
  * Checks whether or not the given location is valid; that is, its row and column are both non-negative integers.
  * @param location - The location to check.
- * @returns Whether or not location is valid.
+ * @return Whether or not location is valid.
  */
 export function isValidLocation(location: Crawl.Location): boolean {
 	return location.r >= 0 && location.c >= 0 && Number.isInteger(location.r) && Number.isInteger(location.c);
@@ -242,7 +242,7 @@ export function isValidLocation(location: Crawl.Location): boolean {
  * Checks whether or not two entities are aligned.
  * @param a - The first entity.
  * @param b - The second entity.
- * @returns Whether or not the two entities are aligned.
+ * @return Whether or not the two entities are aligned.
  */
 export function areAligned(a: Crawl.CensoredCrawlEntity, b: Crawl.CensoredCrawlEntity): boolean {
 	return a.alignment !== 0 && a.alignment === b.alignment;
@@ -253,7 +253,7 @@ export function areAligned(a: Crawl.CensoredCrawlEntity, b: Crawl.CensoredCrawlE
  *     is invalid.
  * @param map - The map.
  * @param location - The location from which to retrieve the tile.
- * @returns The tile at the given location in the map.
+ * @return The tile at the given location in the map.
  */
 export function getTile(map: Crawl.Map, location: Crawl.Location): Crawl.DungeonTile {
 	if (isLocationInMap(map, location)) {
@@ -266,7 +266,7 @@ export function getTile(map: Crawl.Map, location: Crawl.Location): Crawl.Dungeon
  * Transforms the given location to display coordinates.
  * @param location - The location to transform into coordinates.
  * @param gridSize - The size of each tile.
- * @returns The display coordinates of the given location in the given grid size.
+ * @return The display coordinates of the given location in the given grid size.
  */
 export function locationToCoordinates(location: Crawl.Location, gridSize: number): [number, number] {
 	return [location.c * gridSize, location.r * gridSize];
@@ -292,7 +292,7 @@ export function withinNSteps(
 /**
  * Returns whether or not the input is void.
  * @param v - The object to check.
- * @returns Whether or not the object is void.
+ * @return Whether or not the object is void.
  */
 export function isVoid<T>(v: T | void): v is void {
 	return v === undefined;

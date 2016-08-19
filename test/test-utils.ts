@@ -5,6 +5,11 @@ import * as sourcemap from "source-map-support";
 
 sourcemap.install();
 
+/**
+ * Throws an error if the two values aren't equal.
+ * @param test - The first value.
+ * @param answer - The second value.
+ */
 export function eq(test: number, answer: number): void;
 export function eq(test: string, answer: string): void;
 export function eq<T>(test: T, answer: T): void;
@@ -13,7 +18,7 @@ export function eq<T>(test: T[], answer: T[]): void;
 export function eq<T>(test: any, answer: any): void {
 	if ((typeof test === "number") || (typeof test === "string") || (typeof test === "boolean")) {
 		if (test !== answer) {
-			throw new Error(`Expected ${inspect(answer)} but received ${inspect(test)}}`);
+			throw new Error(`Expected ${inspect(answer)} but received ${inspect(test)}`);
 		}
 
 		return;
@@ -58,6 +63,9 @@ export function eq<T>(test: any, answer: any): void {
 	}
 }
 
+/**
+ * Exits cleanly if the function throws an error, or throws an error if the function exits without error.
+ */
 export function error(f: () => any): void {
 	let failed = true;
 

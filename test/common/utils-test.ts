@@ -2,9 +2,8 @@
 
 import * as data  from "../test-data";
 import * as test  from "../test-utils";
-import * as utils from "../../src/common/utils";
 
-console.log("hi");
+import * as utils from "../../src/common/utils";
 
 export function testUtils(): void {
 	describe("utils", () => {
@@ -46,67 +45,67 @@ export function testUtils(): void {
 
 		describe("getEntityAtLocation()", () => {
 			it("should return the entity at the location if there is one", () =>
-				test.eq(utils.getEntityAtLocation(data.testInProgressState, { r: 3, c: 6 }), data.testEntity1));
+				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 3, c: 7 }), data.entity1));
 			it("should return the entity at the location if there is one", () =>
-				test.eq(utils.getEntityAtLocation(data.testInProgressState, { r: 15, c: 3 }), data.testEntity2));
+				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 15, c: 3 }), data.entity2));
 			it("should return the entity at the location if there is one", () =>
-				test.eq(utils.getEntityAtLocation(data.testInProgressState, { r: 13, c: 15 }), data.testEntity3));
+				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 13, c: 15 }), data.entity3));
 			it("should return undefined if there is no entity at the location", () =>
-				test.eq(utils.getEntityAtLocation(data.testInProgressState, { r: 0, c: 0 }), undefined));
+				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 0, c: 0 }), undefined));
 			it("should return undefined if there is no entity at the location", () =>
-				test.eq(utils.getEntityAtLocation(data.testInProgressState, { r: 12, c: 2 }), undefined));
+				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 12, c: 2 }), undefined));
 			it("should return undefined if the location is invalid", () =>
-				test.eq(utils.getEntityAtLocation(data.testInProgressState, { r: 1.2, c: -1 }), undefined));
+				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 1.2, c: -1 }), undefined));
 		});
 
 		describe("getItemAtLocation()", () => {
 			it("should return the item at the location if there is one", () =>
-				test.eq(utils.getItemAtLocation(data.testInProgressState, { r: 12, c: 16 }), data.testItem4));
+				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 12, c: 16 }), data.item4));
 			it("should return the item at the location if there is one", () =>
-				test.eq(utils.getItemAtLocation(data.testInProgressState, { r: 2, c: 6 }), data.testItem3));
+				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 2, c: 6 }), data.item3));
 			it("should return undefined if there is no item at the given location", () =>
-				test.eq(utils.getItemAtLocation(data.testInProgressState, { r: 4, c: 12 }), undefined));
+				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 4, c: 12 }), undefined));
 			it("should return undefined if there is no item at the given location", () =>
-				test.eq(utils.getItemAtLocation(data.testInProgressState, { r: 8, c: 8 }), undefined));
+				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 8, c: 8 }), undefined));
 			it("should return undefined if the location is invalid", () =>
-				test.eq(utils.getItemAtLocation(data.testInProgressState, { r: 0.5, c: -12 }), undefined));
+				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 0.5, c: -12 }), undefined));
 		});
 
 		describe("isLocationEmpty()", () => {
 			it("should return false if there is an entity in the location", () =>
-				test.eq(utils.isLocationEmpty(data.testInProgressState, { r: 3, c: 6 }), false));
+				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 3, c: 7 }), false));
 			it("should return false if there is an entity in the location", () =>
-				test.eq(utils.isLocationEmpty(data.testInProgressState, { r: 15, c: 3 }), false));
+				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 15, c: 3 }), false));
 			it("should return false if there is an entity in the location", () =>
-				test.eq(utils.isLocationEmpty(data.testInProgressState, { r: 13, c: 15 }), false));
+				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 13, c: 15 }), false));
 			it("should return true if there is no entity at the location", () =>
-				test.eq(utils.isLocationEmpty(data.testInProgressState, { r: 0, c: 0 }), true));
+				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 0, c: 0 }), true));
 			it("should return true if there is no entity at the location", () =>
-				test.eq(utils.isLocationEmpty(data.testInProgressState, { r: 12, c: 2 }), true));
+				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 12, c: 2 }), true));
 			it("should return true if there is no entity at the location", () =>
-				test.eq(utils.isLocationEmpty(data.testInProgressState, { r: 1.2, c: -1 }), true));
+				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 1.2, c: -1 }), true));
 		});
 
 		describe("isLocationInMap()", () => {
 			it("should accept in-bounds locations", () =>
-				test.eq(utils.isLocationInMap(data.testMap, { r: 4, c: 12 }), true));
+				test.eq(utils.isLocationInMap(data.map, { r: 4, c: 12 }), true));
 			it("should reject locations with a row that is too high", () =>
-				test.eq(utils.isLocationInMap(data.testMap, { r: 20, c: 8 }), false));
+				test.eq(utils.isLocationInMap(data.map, { r: 20, c: 8 }), false));
 			it("should reject locations with a column that is too high", () =>
-				test.eq(utils.isLocationInMap(data.testMap, { r: 4, c: 22 }), false));
+				test.eq(utils.isLocationInMap(data.map, { r: 4, c: 22 }), false));
 			it("should reject locations with a row that is too low", () =>
-				test.eq(utils.isLocationInMap(data.testMap, { r: -2, c: 4 }), false));
+				test.eq(utils.isLocationInMap(data.map, { r: -2, c: 4 }), false));
 			it("should reject locations with a column that is too low", () =>
-				test.eq(utils.isLocationInMap(data.testMap, { r: 0, c: -1 }), false));
+				test.eq(utils.isLocationInMap(data.map, { r: 0, c: -1 }), false));
 		});
 
 		describe("isCrawlOver()", () => {
 			it("should accept concluded failed crawls", () =>
-				test.eq(utils.isCrawlOver(data.testConcludedFailureState), true));
+				test.eq(utils.isCrawlOver(data.concludedFailureState), true));
 			it("should accept concluded successful crawls", () =>
-				test.eq(utils.isCrawlOver(data.testConcludedSuccessState), true));
+				test.eq(utils.isCrawlOver(data.concludedSuccessState), true));
 			it("should reject in-progress crawl states", () =>
-				test.eq(utils.isCrawlOver(data.testInProgressState), false));
+				test.eq(utils.isCrawlOver(data.inProgressState), false));
 		});
 
 		describe("bound()", () => {
@@ -198,36 +197,36 @@ export function testUtils(): void {
 
 		describe("isLocationInRoom()", () => {
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 2, c: 6 }), true));
+				test.eq(utils.isLocationInRoom(data.map, { r: 2, c: 6 }), true));
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 3, c: 9 }), true));
+				test.eq(utils.isLocationInRoom(data.map, { r: 3, c: 9 }), true));
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 15, c: 6 }), true));
+				test.eq(utils.isLocationInRoom(data.map, { r: 15, c: 6 }), true));
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 15, c: 17 }), true));
+				test.eq(utils.isLocationInRoom(data.map, { r: 15, c: 17 }), true));
 			it("should reject locations that are not in rooms", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 10, c: 2 }), false));
+				test.eq(utils.isLocationInRoom(data.map, { r: 10, c: 2 }), false));
 			it("should reject locations that are not in rooms", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 0, c: 0 }), false));
+				test.eq(utils.isLocationInRoom(data.map, { r: 0, c: 0 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: -3, c: 2 }), false));
+				test.eq(utils.isLocationInRoom(data.map, { r: -3, c: 2 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.isLocationInRoom(data.testMap, { r: 2.4, c: 3.5 }), false));
+				test.eq(utils.isLocationInRoom(data.map, { r: 2.4, c: 3.5 }), false));
 		});
 
 		describe("inSameRoom()", () => {
 			it("should accept locations that are in the same room", () =>
-				test.eq(utils.inSameRoom(data.testMap, { r: 2, c: 6 }, { r: 3, c: 9 }), true));
+				test.eq(utils.inSameRoom(data.map, { r: 2, c: 6 }, { r: 3, c: 9 }), true));
 			it("should accept locations that are in the same room", () =>
-				test.eq(utils.inSameRoom(data.testMap, { r: 15, c: 6 }, { r: 18, c: 1 }), true));
+				test.eq(utils.inSameRoom(data.map, { r: 15, c: 6 }, { r: 18, c: 1 }), true));
 			it("should reject locations that are not in the same room", () =>
-				test.eq(utils.inSameRoom(data.testMap, { r: 15, c: 6 }, { r: 3, c: 9 }), false));
+				test.eq(utils.inSameRoom(data.map, { r: 15, c: 6 }, { r: 3, c: 9 }), false));
 			it("should reject locations that are not in rooms", () =>
-				test.eq(utils.inSameRoom(data.testMap, { r: 10, c: 2 }, { r: 16, c: 10 }), false));
+				test.eq(utils.inSameRoom(data.map, { r: 10, c: 2 }, { r: 16, c: 10 }), false));
 			it("should reject locations that are not in rooms", () =>
-				test.eq(utils.inSameRoom(data.testMap, { r: 0, c: 0 }, { r: 1, c: 1 }), false));
+				test.eq(utils.inSameRoom(data.map, { r: 0, c: 0 }, { r: 1, c: 1 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.inSameRoom(data.testMap, { r: 2.3, c: 4.3 }, { r: -1, c: 3 }), false));
+				test.eq(utils.inSameRoom(data.map, { r: 2.3, c: 4.3 }, { r: -1, c: 3 }), false));
 		});
 
 		describe("inRange()", () => {
@@ -241,13 +240,13 @@ export function testUtils(): void {
 
 		describe("isVisible()", () => {
 			it("should accept locations that are in the same room", () =>
-				test.eq(utils.isVisible(data.testMap, { r: 2, c: 6 }, { r: 3, c: 9 }), true));
+				test.eq(utils.isVisible(data.map, { r: 2, c: 6 }, { r: 3, c: 9 }), true));
 			it("should accept locations that are within a 2-tile distance", () =>
-				test.eq(utils.isVisible(data.testMap, { r: 8, c: 8 }, { r: 10, c: 8 }), true));
+				test.eq(utils.isVisible(data.map, { r: 8, c: 8 }, { r: 10, c: 8 }), true));
 			it("should reject locations that aren't within a 2-tile distance or in the same room", () =>
-				test.eq(utils.isVisible(data.testMap, { r: 14, c: 18 }, { r: 2, c: 2 }), false));
+				test.eq(utils.isVisible(data.map, { r: 14, c: 18 }, { r: 2, c: 2 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.isVisible(data.testMap, { r: 0, c: 0 }, { r: -1, c: 0 }), false));
+				test.eq(utils.isVisible(data.map, { r: 0, c: 0 }, { r: -1, c: 0 }), false));
 		});
 
 		describe("isValidLocation()", () => {
@@ -263,22 +262,22 @@ export function testUtils(): void {
 
 		describe("areAligned()", () => {
 			it("should accept entities that are aligned", () =>
-				test.eq(utils.areAligned(data.testEntity1, data.testEntity2), true));
+				test.eq(utils.areAligned(data.entity1, data.entity2), true));
 			it("should reject entities that are not aligned", () =>
-				test.eq(utils.areAligned(data.testEntity1, data.testEntity3), false));
+				test.eq(utils.areAligned(data.entity1, data.entity3), false));
 			it("should reject entities that both have no alignment", () =>
-				test.eq(utils.areAligned(data.testEntity3, data.testEntity4), false));
+				test.eq(utils.areAligned(data.entity3, data.entity4), false));
 		});
 
 		describe("getTile()", () => {
 			it("should return the tile at the given location", () =>
-				test.eq(utils.getTile(data.testMap, { r: 17, c: 2 }), data.testMap.grid[17][2]));
+				test.eq(utils.getTile(data.map, { r: 17, c: 2 }), data.map.grid[17][2]));
 			it("should return the tile at the given location", () =>
-				test.eq(utils.getTile(data.testMap, { r: 0, c: 0 }), data.testMap.grid[0][0]));
+				test.eq(utils.getTile(data.map, { r: 0, c: 0 }), data.map.grid[0][0]));
 			it("should return an unknown tile if the location is outside the map", () =>
-				test.eq(utils.getTile(data.testMap, { r: 25, c: 10 }), { type: Crawl.DungeonTileType.UNKNOWN }));
+				test.eq(utils.getTile(data.map, { r: 25, c: 10 }), { type: Crawl.DungeonTileType.UNKNOWN }));
 			it("should return an unknown tile if the location is outside the map", () =>
-				test.eq(utils.getTile(data.testMap, { r: 1.2, c: -1 }), { type: Crawl.DungeonTileType.UNKNOWN }));
+				test.eq(utils.getTile(data.map, { r: 1.2, c: -1 }), { type: Crawl.DungeonTileType.UNKNOWN }));
 		});
 
 		describe("locationToCoordinates()", () => {

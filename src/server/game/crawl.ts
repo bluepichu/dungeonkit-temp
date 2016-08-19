@@ -8,10 +8,17 @@ import * as clone           from "clone";
 import * as log             from "beautiful-log";
 import {sprintf}            from "sprintf-js";
 
-export function startCrawl(dungeon: Crawl.Dungeon,
+/**
+ * Starts a new crawl in the given dungeon with the given entities.
+ * @param dungeon - The dungeon for the crawl.
+ * @param entities - The entities performing the crawl.
+ * @return A promise for a concluded crawl.
+ */
+export function startCrawl(
+	dungeon: Crawl.Dungeon,
 	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.ConcludedCrawlState> {
 	if (validateDungeonBlueprint(dungeon)) {
-		return advanceToFloor(dungeon, 1, entities.map(wrap))
+		return advanceToFloor(dungeon, 1, entities)
 			.then((state) => {
 				if (utils.isCrawlOver(state)) {
 					return Promise.resolve(state);
@@ -24,22 +31,11 @@ export function startCrawl(dungeon: Crawl.Dungeon,
 	}
 }
 
-export function wrap(entity: Crawl.UnplacedCrawlEntity): Crawl.UnplacedCrawlEntity {
-	return new Proxy(entity, {
-		get(target: Crawl.UnplacedCrawlEntity, field: string | number | symbol): any {
-			let base = entity;
-
-			for (let item of entity.items.held.items) {
-				if (item.equip !== undefined) {
-					base = item.equip(base);
-				}
-			}
-
-			return (base as any)[field];
-		}
-	});
-}
-
+/**
+ * Steps a crawl until it is completed.
+ * @param state - The game state to advance by one step.
+ * @return A promise for a concluded crawl.
+ */
 function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlState> {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
@@ -76,6 +72,14 @@ function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlSt
 		});
 }
 
+/**
+ * Checks all of an entity's items to see if any of them pertain to a particular item hook, as long as the given
+ *     condition holds.
+ * @param hook - The hook to check.
+ * @param entity - The entity to check.
+ * @param state - The game state.
+ * @param condition - The condition that must hold for more items to be checked.
+ */
 function checkItems(
 	hook: ItemHook,
 	entity: Crawl.CrawlEntity,
@@ -102,12 +106,22 @@ function checkItems(
 	}
 }
 
+/**
+ * Retrieves the next entity to move in the given state.
+ * @param state - The state.
+ * @return The next entity to move.
+ */
 function nextEntity(state: Crawl.InProgressCrawlState): Crawl.CrawlEntity {
 	let next = state.entities.shift();
 	state.entities.push(next);
 	return next;
 }
 
+/**
+ * Checks a dungeon blueprint's validity.
+ * @param dungeon - The dungeon whose blueprint should be verified.
+ * @return Whether or not the dungeon has a legal blueprint.
+ */
 function validateDungeonBlueprint(dungeon: Crawl.Dungeon): boolean {
 	if (dungeon.blueprint.length === 0) {
 		return false;
@@ -132,7 +146,16 @@ function validateDungeonBlueprint(dungeon: Crawl.Dungeon): boolean {
 	return true;
 }
 
-function advanceToFloor(dungeon: Crawl.Dungeon,
+/**
+ * Returns an in-progress crawl state on the given floor in the given dungeon, with the given entities performing the
+ *     crawl.
+ * @param dungeon - The dungeon in which the crawl is occuring.
+ * @param floor - The floor to initialize.  Must be valid for the given dungeon.
+ * @param entities - The entities performing the crawl.
+ * @return An in-progress crawl state with the given entities performing a crawl on the given floor.
+ */
+function advanceToFloor(
+	dungeon: Crawl.Dungeon,
 	floor: number,
 	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.CrawlState> {
 	if (floor > dungeon.blueprint[dungeon.blueprint.length - 1].range[1]) {
@@ -171,15 +194,12 @@ function advanceToFloor(dungeon: Crawl.Dungeon,
 	}
 }
 
-function createPlacedEntity(unplacedEntity: Crawl.UnplacedCrawlEntity,
-	location: Crawl.Location,
-	map: Crawl.Map): Crawl.CrawlEntity {
-	let ret = unplacedEntity as Crawl.CrawlEntity;
-	ret.location = location;
-	ret.map = map;
-	return ret;
-}
-
+/**
+ * Returns the floor blueprint for the given floor in the given dungeon.
+ * @param dungeon - The dungeon whose blueprint should be retreived.
+ * @param floor - The floor number whose blueprint should be retreived.
+ * @return The floor blueprint for the given floor in the given dungeon.
+ */
 function getFloorBlueprint(dungeon: Crawl.Dungeon, floor: number): Crawl.FloorBlueprint {
 	if (floor < 0 || floor > dungeon.floors) {
 		throw new RangeError(sprintf("[Code 2] Floor %d is out of range for dungeon '%s'.", floor, dungeon.name));
@@ -205,7 +225,16 @@ function getFloorBlueprint(dungeon: Crawl.Dungeon, floor: number): Crawl.FloorBl
 		dungeon.name));
 }
 
-function getCensoredState(state: Crawl.InProgressCrawlState,
+/**
+ * Censors in an in-progress crawl state for a given entity.  This removes entities and items that the entity can't
+ *     currently see and replaces the floor map with the entity's map.  It also adds a "self" field to the state for
+ *     the entity to identify itself.
+ * @param state - The in-progress crawl state to censor.
+ * @param entity - The entity for which the state should be censored.
+ * @return The given state censored for the given entity.
+ */
+function getCensoredState(
+	state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity): Crawl.CensoredEntityCrawlState {
 	function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
 		return new Proxy(obj, {
@@ -242,6 +271,11 @@ function getCensoredState(state: Crawl.InProgressCrawlState,
 	});
 }
 
+/**
+ * Censors a single entity.  This removes, for example, its items, stats, and attacks.
+ * @param entity - The entity to censor.
+ * @return The censored entity.
+ */
 function censorEntity(entity: Crawl.CrawlEntity): Crawl.CensoredCrawlEntity {
 	return {
 		id: entity.id,
@@ -257,6 +291,12 @@ function censorEntity(entity: Crawl.CrawlEntity): Crawl.CensoredCrawlEntity {
 	};
 }
 
+/**
+ * Censors an entity for themself.  Currently only removes the controller for serialization, but may remove other
+ *     server-only data in the future.
+ * @param entity - The entity to censor.
+ * @return The censored entity.
+ */
 function censorSelf(entity: Crawl.CrawlEntity): Crawl.CensoredSelfCrawlEntity {
 	return {
 		id: entity.id,
@@ -272,7 +312,15 @@ function censorSelf(entity: Crawl.CrawlEntity): Crawl.CensoredSelfCrawlEntity {
 	};
 }
 
-export function isValidAction(state: Crawl.CensoredInProgressCrawlState,
+/**
+ * Checks if a given action is legal for a given entity in a given state.
+ * @param state - The state in which to check the action.
+ * @param entity - The entity for which to check the action.
+ * @param action - The action to check.
+ * @return Whether or not the action is legal.
+ */
+export function isValidAction(
+	state: Crawl.CensoredInProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.Action): boolean {
 	switch (action.type) {
@@ -293,7 +341,16 @@ export function isValidAction(state: Crawl.CensoredInProgressCrawlState,
 	}
 }
 
-function execute(state: Crawl.InProgressCrawlState,
+/**
+ * Executes the given action for the given entity in the given state.  Action legality should first be verified with
+ *     isValidAction().
+ * @param state - The state in which to perform the action.
+ * @param entity - The entity performing the action.
+ * @param action - The action to execute.
+ * @return A promise for a crawl state after the action was executed.
+ */
+function execute(
+	state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.Action): Promise<Crawl.CrawlState> {
 	let result: Promise<Crawl.CrawlState> = undefined;
@@ -323,6 +380,12 @@ function execute(state: Crawl.InProgressCrawlState,
 	return result.then((newState) => postExecute(newState, entity));
 }
 
+/**
+ * Gets run after an action is executed.  Checks, among other things, for defeated entities.
+ * @param state - The state to check.
+ * @param entity - The last entity to perform an action.
+ * @return The state after these checks.
+ */
 function postExecute(state: Crawl.CrawlState,
 	entity: Crawl.CrawlEntity): Crawl.CrawlState {
 	if (utils.isCrawlOver(state)) {
@@ -359,7 +422,15 @@ function postExecute(state: Crawl.CrawlState,
 	return newState;
 }
 
-function executeMove(state: Crawl.InProgressCrawlState,
+/**
+ * Executes a move action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return A promise for the state after performing the action.
+ */
+function executeMove(
+	state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.MoveAction): Promise<Crawl.CrawlState> {
 	let start = entity.location;
@@ -388,6 +459,13 @@ function executeMove(state: Crawl.InProgressCrawlState,
 	return executeItemPickup(state, entity);
 }
 
+/**
+ * Executes an item pickup action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return A promise for the state after performing the action.
+ */
 function executeItemPickup(state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity): Promise<Crawl.CrawlState> {
 	let item = utils.getItemAtLocation(state, entity.location);
@@ -417,7 +495,15 @@ function executeItemPickup(state: Crawl.InProgressCrawlState,
 	return Promise.resolve(state);
 }
 
-function executeItemDrop(state: Crawl.InProgressCrawlState,
+/**
+ * Executes an item drop action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return A promise for the state after performing the action.
+ */
+function executeItemDrop(
+	state: Crawl.InProgressCrawlState,
 	location: Crawl.Location,
 	item: Item): Promise<Crawl.CrawlState> {
 	let loc = { r: location.r, c: location.c };
@@ -437,7 +523,15 @@ function executeItemDrop(state: Crawl.InProgressCrawlState,
 	}
 }
 
-function isValidMove(state: Crawl.CensoredInProgressCrawlState,
+/**
+ * Checks if a move action is legal.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param direciton - The direction in which to move.
+ * @return Whether or not the action is legal.
+ */
+function isValidMove(
+	state: Crawl.CensoredInProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	direction: number): boolean {
 	let offset: [number, number] = utils.decodeDirection(direction);
@@ -465,7 +559,15 @@ function isValidMove(state: Crawl.CensoredInProgressCrawlState,
 	return true;
 }
 
-function executeAttack(state: Crawl.InProgressCrawlState,
+/**
+ * Executes an attack action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return A promise for the state after performing the action.
+ */
+function executeAttack(
+	state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.AttackAction): Promise<Crawl.CrawlState> {
 	propagateLogEvent(state, {
@@ -487,7 +589,16 @@ function executeAttack(state: Crawl.InProgressCrawlState,
 	return Promise.resolve(state);
 }
 
-function getTargets(state: Crawl.InProgressCrawlState,
+/**
+ * Retreives the targets for an attack.
+ * @param state - The state.
+ * @param attacker - The attacking entity.
+ * @param direction - The direction that the attacker is facing.
+ * @param selector - The attack's target selector.
+ * @return A list of crawl entities targeted by the attack.
+ */
+function getTargets(
+	state: Crawl.InProgressCrawlState,
 	attacker: Crawl.CrawlEntity,
 	direction: number,
 	selector: TargetSelector): Crawl.CrawlEntity[] {
@@ -530,7 +641,15 @@ function getTargets(state: Crawl.InProgressCrawlState,
 	}
 }
 
-function applyAttack(state: Crawl.InProgressCrawlState,
+/**
+ * Applies an attack to a single entity.
+ * @param state - The state.
+ * @param attack - The attack being performed.
+ * @param attacker - The attacking entity.
+ * @param defender - The defending entity.
+ */
+function applyAttack(
+	state: Crawl.InProgressCrawlState,
 	attack: Attack,
 	attacker: Crawl.CrawlEntity,
 	defender: Crawl.CrawlEntity): void {
@@ -589,6 +708,13 @@ function applyAttack(state: Crawl.InProgressCrawlState,
 	});
 }
 
+/**
+ * Computes the damage for an attack.
+ * @param attacker - The attacking entity.
+ * @param defender - The defending entity.
+ * @param attack - The attack being used.
+ * @return The resulting damage on the defender.
+ */
 function computeDamage(attacker: Entity, defender: Entity, attack: Attack): number {
 	let a = getModifiedStat(attacker.stats.attack) + attack.power;
 	let b = attacker.stats.level;
@@ -604,6 +730,11 @@ function computeDamage(attacker: Entity, defender: Entity, attack: Attack): numb
 	return Math.round(baseDamage * multiplier);
 }
 
+/**
+ * Retreives a stat, as modified by stat modifiers.
+ * @param stat - The stat to retrieve.
+ * @return The modified stat.
+ */
 function getModifiedStat(stat: BaseModifierStat): number {
 	let multiplier = 1;
 
@@ -616,7 +747,15 @@ function getModifiedStat(stat: BaseModifierStat): number {
 	return stat.base * multiplier;
 }
 
-function executeItem(state: Crawl.InProgressCrawlState,
+/**
+ * Executes an item action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return A promise for the state after performing the action.
+ */
+function executeItem(
+	state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.ItemAction): Promise<Crawl.CrawlState> {
 	let item: Item;
@@ -692,6 +831,13 @@ function executeItem(state: Crawl.InProgressCrawlState,
 	return Promise.resolve(state); // TODO
 }
 
+/**
+ * Executes a stairs action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return The promise for the state after performing the action.
+ */
 function executeStairs(state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity,
 	action: Crawl.StairsAction): Promise<Crawl.CrawlState> {
@@ -716,6 +862,11 @@ function executeStairs(state: Crawl.InProgressCrawlState,
 	return Promise.resolve(state);
 }
 
+/**
+ * Delivers a log event to all entities that should receive it (usually based on location and/or alignment).
+ * @param state - The state.
+ * @param event - The event.
+ */
 export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Crawl.LogEvent): void {
 	switch (event.type) {
 		case "wait":
@@ -757,6 +908,11 @@ export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Craw
 	}
 }
 
+/**
+ * Updates an entity's map.
+ * @param state - The state.
+ * @param entity - The entity.
+ */
 function updateMap(state: Crawl.InProgressCrawlState, entity: Crawl.CrawlEntity): void {
 	let changed = false;
 

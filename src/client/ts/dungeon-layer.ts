@@ -13,7 +13,7 @@ export class DungeonLayer extends PIXI.Container {
 	public itemLayer: ItemLayer;
 	public entityLayer: EntityLayer;
 	public tweenHandler: TweenHandler;
-	private _viewport: { r: [number, number], c: [number, number] };
+	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
 	constructor(tweenHandler: TweenHandler) {
@@ -39,7 +39,8 @@ export class DungeonLayer extends PIXI.Container {
 		[this.entityLayer.x, this.entityLayer.y] = [-offsetX, -offsetY];
 	}
 
-	moveEntity(entity: Crawl.CondensedEntity,
+	moveEntity(
+		entity: Crawl.CondensedEntity,
 		from: Crawl.Location,
 		to: Crawl.Location,
 		isSelf: boolean,
@@ -55,7 +56,7 @@ export class DungeonLayer extends PIXI.Container {
 		return prm;
 	}
 
-	private updateViewport(nextView: { r: [number, number], c: [number, number] }) {
+	private updateViewport(nextView: Viewport) {
 		let center = {
 			r: (nextView.r[0] + nextView.r[1]) / 2,
 			c: (nextView.c[0] + nextView.c[1]) / 2
@@ -88,29 +89,24 @@ export class DungeonLayer extends PIXI.Container {
 		this._zoomOut = zoom;
 	}
 
-	updatePosition(entityLocation: Crawl.Location): void {
-		let nextView: { r: [number, number], c: [number, number] } = {
-			r: [entityLocation.r, entityLocation.r],
-			c: [entityLocation.c, entityLocation.c]
-		};
+	updatePosition(location: Crawl.Location): void {
+		let room = utils.getTile(state.getState().floor.map, location).roomId;
 
-		let inRoom = utils.getTile(state.getState().floor.map, entityLocation).roomId > 0;
-
-		for (let i = 0; i < state.getState().floor.map.height; i++) {
-			for (let j = 0; j < state.getState().floor.map.width; j++) {
-				if (utils.isVisible(state.getState().floor.map, entityLocation, { r: i, c: j })) {
-					nextView.r[0] = Math.min(nextView.r[0], i);
-					nextView.r[1] = Math.max(nextView.r[1], i);
-					nextView.c[0] = Math.min(nextView.c[0], j);
-					nextView.c[1] = Math.max(nextView.c[1], j);
-				}
-			}
+		if (utils.isVoid(room)) { // in a hallway
+			this._viewport = {
+				r: [location.r - 2, location.r + 2],
+				c: [location.c - 2, location.c + 2]
+			};
+		} else { // in a room
+			let roomBounds = this.groundLayer.getRoomBounds(room);
+			this._viewport = {
+				r: [roomBounds.r[0] - 2, roomBounds.r[1] + 2],
+				c: [roomBounds.c[0] - 2, roomBounds.c[1] + 2]
+			};
 		}
 
-		this._viewport = nextView;
-
 		if (!this._zoomOut) {
-			this.updateViewport(nextView);
+			this.updateViewport(this._viewport);
 		}
 	}
 

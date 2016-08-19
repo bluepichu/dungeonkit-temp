@@ -4,7 +4,6 @@ import * as log         from "beautiful-log";
 import * as shortid     from "shortid";
 
 import * as controllers from "./controllers";
-import {wrap}           from "./crawl";
 import * as printer     from "./printer";
 import * as utils       from "../../common/utils";
 
@@ -162,7 +161,7 @@ function placeEntityGroup(
 					&& utils.inSameRoom(state.floor.map, location, loc)
 					&& utils.isLocationEmpty(state, loc)) {
 					log.log("Set location to", loc);
-					state.entities.push(Object.assign(entities.pop(), { location: { r: loc.r, c: loc.c }, map }));
+					state.entities.push(Object.assign(wrap(entities.pop()), { location: { r: loc.r, c: loc.c }, map }));
 					if (entities.length === 0) {
 						return state;
 					}
@@ -437,8 +436,6 @@ function placeStairs(map: Crawl.Map): Crawl.Map {
 		};
 	} while (!(utils.isLocationInRoom(map, loc)));
 
-	console.log(loc);
-
 	map.grid[loc.r][loc.c].stairs = true;
 	return map;
 }
@@ -457,4 +454,47 @@ function evaluateDistribution(distribution: Distribution) {
 		default:
 			throw new Error(`[Error X] Unknown probability distribution type "${distribution.type}".`);
 	}
+}
+
+interface WrappedUnplacedCrawlEntity extends Crawl.UnplacedCrawlEntity {
+	wrapped: boolean;
+}
+
+/**
+ * Wraps an entity in a proxy to handle equipped items.
+ * @param entity - The entity to wrap.
+ * @return The wrapped entity.
+ */
+export function wrap(entity: Crawl.UnplacedCrawlEntity): WrappedUnplacedCrawlEntity {
+	if (isWrapped(entity)) {
+		// Don't double-wrap the entity
+		return entity;
+	}
+
+	return new Proxy(entity, {
+		get(target: Crawl.UnplacedCrawlEntity, field: string | number | symbol): any {
+			let base = entity;
+
+			if (field === "wrapped") {
+				return true;
+			}
+
+			for (let item of entity.items.held.items) {
+				if (item.equip !== undefined) {
+					base = item.equip(base);
+				}
+			}
+
+			return (base as any)[field];
+		}
+	}) as WrappedUnplacedCrawlEntity;
+}
+
+/**
+ * Determines if the input is a wrapped.
+ * @param entity - The entity to check.
+ * @return Whether or not the entity is wrapped.
+ */
+function isWrapped(entity: Crawl.UnplacedCrawlEntity): entity is WrappedUnplacedCrawlEntity {
+	return "wrapped" in entity;
 }

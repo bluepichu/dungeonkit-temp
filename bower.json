@@ -16,9 +16,9 @@
   ],
   "dependencies": {
     "howler.js": "howler#^1.1.29",
-    "pixi.js": "pixi#^3.0.11",
     "keymaster": "^1.6.3",
     "sprintf": "sprintf.js#^1.0.3",
-    "hammerjs": "hammer.js#^2.0.8"
+    "hammerjs": "hammer.js#^2.0.8",
+    "pixi.js": "^3.0.11"
   }
 }

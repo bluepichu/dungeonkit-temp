@@ -1,9 +1,9 @@
 "use strict";
 
-import { testUtils } from "./common/utils-test";
+import { testClient } from "./client";
+import { testCommon } from "./common";
+import { testServer } from "./server";
 
-console.log("hi");
-
-describe("common", () => {
-	testUtils();
-});
+testClient();
+testCommon();
+testServer();

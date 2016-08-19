@@ -10,6 +10,7 @@ export class GroundLayer extends PIXI.Container {
 	private tweenHandler: TweenHandler;
 	private tileLayer: PIXI.Container;
 	private lightingLayer: PIXI.Container;
+	private roomBounds: Map<number, Viewport>;
 
 	constructor(tweenHandler: TweenHandler) {
 		super();
@@ -21,6 +22,8 @@ export class GroundLayer extends PIXI.Container {
 
 		this.lightingLayer = new PIXI.Container();
 		this.addChild(this.lightingLayer);
+
+		this.roomBounds = new Map();
 	}
 
 	update(location: Crawl.Location) {
@@ -41,6 +44,19 @@ export class GroundLayer extends PIXI.Container {
 				[dtile.x, dtile.y] = utils.locationToCoordinates({ r: i, c: j }, Constants.GRID_SIZE);
 				this.tileLayer.addChild(dtile);
 			}
+		}
+
+		let roomId = utils.getTile(state.getState().floor.map, location).roomId;
+
+		if (roomId > 0) {
+			if (!this.roomBounds.has(roomId)) {
+				this.roomBounds.set(roomId, { r: [location.r, location.r], c: [location.c, location.c] });
+			}
+			let roomBounds = this.roomBounds.get(roomId);
+			roomBounds.r[0] = Math.min(roomBounds.r[0], location.r);
+			roomBounds.r[1] = Math.max(roomBounds.r[1], location.r);
+			roomBounds.c[0] = Math.min(roomBounds.c[0], location.c);
+			roomBounds.c[1] = Math.max(roomBounds.c[1], location.c);
 		}
 	}
 
@@ -99,6 +115,7 @@ export class GroundLayer extends PIXI.Container {
 	clear(): void {
 		this.tileLayer.removeChildren();
 		this.lightingLayer.removeChildren();
+		this.roomBounds.clear();
 	}
 
 	generateGraphicsObject(base: string, obj: Graphics.GraphicsObject): PIXI.DisplayObject {
@@ -139,5 +156,9 @@ export class GroundLayer extends PIXI.Container {
 		// 		}
 		// 	}
 		// }
+	}
+
+	public getRoomBounds(roomId: number): Viewport {
+		return this.roomBounds.get(roomId);
 	}
 }

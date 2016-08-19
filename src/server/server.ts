@@ -72,7 +72,8 @@ export function start() {
 			}
 
 			let game = games.get(socket.id);
-			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) => games.get(socket).room === game.room);
+			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) =>
+				games.has(socket) && games.get(socket).room === game.room);
 
 			if (socketIds.length === 0) {
 				return;

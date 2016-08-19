@@ -35,6 +35,8 @@ let attackOverlay: AttackOverlay = undefined;
 let inputHandler: InputHandler = undefined;
 let teamOverlay: TeamOverlay = undefined;
 
+PIXI.ticker.shared.autoStart = false;
+
 document.addEventListener("DOMContentLoaded", () => {
 	WebFont.load({
 		google: {
