@@ -8,7 +8,7 @@ install: package.json typings.json
 	typings install
 	bower install
 
-build: src/**/*.*
+build: install
 	cp -r src build
 	gulp
 	rm -f build/**/*.ts
