@@ -328,7 +328,7 @@ eeveeGraphics.animations["growl"] = eeveeGraphics.animations["tackle"];
 eeveeGraphics.animations["tail-whip"] = eeveeGraphics.animations["tackle"];
 eeveeGraphics.animations["swift"] = eeveeGraphics.animations["tackle"];
 
-export const graphics: Graphics.EntityGrpahicsCache = new Map([
+export const graphics: Graphics.EntityGraphicsCache = new Map([
 	["mudkip", mudkipGraphics],
 	["eevee", eeveeGraphics]
 ]);

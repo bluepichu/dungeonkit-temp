@@ -9,7 +9,7 @@ import {TweenHandler}   from "./tween-handler";
 import * as utils       from "../../common/utils";
 
 export class EntityLayer extends PIXI.Container {
-	public static entityGraphicsCache: Graphics.EntityGrpahicsCache = new Map();
+	public static entityGraphicsCache: Graphics.EntityGraphicsCache = new Map();
 	public spriteMap: Map<string, EntitySprite>;
 	private tweenHandler: TweenHandler;
 
