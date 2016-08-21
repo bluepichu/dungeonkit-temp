@@ -1,8 +1,14 @@
+/**
+ * The main state object for the entire game.
+ */
 interface State {
 	story: Story.StoryState;
 	crawl: Crawl.CrawlState;
 }
 
+/**
+ * An entity, either in the overworld or in a crawl.
+ */
 interface Entity {
 	name: string;
 	graphics: string;
@@ -14,6 +20,9 @@ interface Entity {
 	};
 }
 
+/**
+ * An attack.
+ */
 interface Attack {
 	name: string;
 	animation: string;
@@ -26,37 +35,61 @@ interface Attack {
 	// onMiss
 }
 
+/**
+ * Describes the enemies targeted by an attack.
+ */
 type TargetSelector = RoomTargetSelector | FrontTargetSelector | SelfTargetSelector | TeamTargetSelector;
 
+/**
+ * A target selector that selects entities in the same room as the attacker.
+ */
 interface RoomTargetSelector {
 	type: "room";
 	includeSelf: boolean;
 	includeAllies: boolean;
 }
 
+/**
+ * A target selector that selects a target directly in front of the attacker.
+ */
 interface FrontTargetSelector {
 	type: "front";
 	includeAllies: boolean;
 	cutsCorners?: boolean;
 }
 
+/**
+ * A target selector that selects the attacker itself.
+ */
 interface SelfTargetSelector {
 	type: "self";
 }
 
+/**
+ * A target selector that selects members of the attacker's team.
+ */
 interface TeamTargetSelector {
 	type: "team";
 	includeSelf: boolean;
 }
 
+/**
+ * Describes an effect other than damage caused by an attack.
+ */
 type SecondaryEffect = SecondaryStatEffect;
 
+/**
+ * A secondary effect that affects a stat.
+ */
 interface SecondaryStatEffect {
 	type: "stat";
 	stat: string;
 	amount: number;
 }
 
+/**
+ * Describes an entity's stats.
+ */
 interface EntityStats {
 	level: number;
 	hp: MaxCurrentStat;
@@ -64,21 +97,33 @@ interface EntityStats {
 	defense: BaseModifierStat;
 }
 
+/**
+ * A stat consisting of a maximum value and a current value.
+ */
 interface MaxCurrentStat {
 	max: number;
 	current: number;
 }
 
+/**
+ * A stat consisting of a base value and a modifier value.
+ */
 interface BaseModifierStat {
 	base: number;
 	modifier: number;
 }
 
 declare namespace Story {
+	/**
+	 * The story state.  TODO.
+	 */
 	type StoryState = void;
 }
 
 declare namespace Graphics {
+	/**
+	 * Describes the graphics for a dungeon.
+	 */
 	interface DungeonGraphics {
 		base: string;
 		walls: DungeonTileSelector[];
@@ -86,25 +131,43 @@ declare namespace Graphics {
 		stairs: GraphicsObject;
 	}
 
+	/**
+	 * Describes the graphics for a dungeon tile given the wall pattern around it.
+	 */
 	interface DungeonTileSelector {
 		pattern: number;
 		object: GraphicsObject;
 	}
 
+	/**
+	 * A graphics object.
+	 */
 	type GraphicsObject = AnimatedGraphicsObject | StaticGraphicsObject;
 
-	type EntityGrpahicsCache = Map<string, EntityGraphics>;
+	/**
+	 * The cache for entity graphics.
+	 */
+	type EntityGraphicsCache = Map<string, EntityGraphics>;
 
+	/**
+	 * Describes an entity's graphics.
+	 */
 	interface EntityGraphics extends AnimatedGraphicsObject {
 		useReflection?: boolean;
 	}
 
+	/**
+	 * Describes a non-animated graphics object.
+	 */
 	interface StaticGraphicsObject {
 		type: "static";
 		base?: string;
 		frames: Frame[];
 	}
 
+	/**
+	 * Describes an animated graphics object.
+	 */
 	interface AnimatedGraphicsObject {
 		type: "animated";
 		base?: string;
@@ -112,21 +175,33 @@ declare namespace Graphics {
 		default: string;
 	}
 
+	/**
+	 * Describes an animation.
+	 */
 	interface Animation {
 		steps: AnimationFrame[];
 	}
 
+	/**
+	 * Describes a single frame of an animation.
+	 */
 	interface AnimationFrame {
 		frames: Frame[];
 		duration: number;
 	}
 
+	/**
+	 * Describes a single frame.
+	 */
 	interface Frame {
 		texture: string;
 		anchor: Point;
 		offset?: number;
 	}
 
+	/**
+	 * A point in 2D space.
+	 */
 	interface Point {
 		x: number;
 		y: number;

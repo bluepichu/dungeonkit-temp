@@ -90,15 +90,14 @@ export class DungeonLayer extends PIXI.Container {
 	}
 
 	updatePosition(location: Crawl.Location): void {
-		let room = utils.getTile(state.getState().floor.map, location).roomId;
+		let roomBounds = this.groundLayer.getRoomBounds(utils.getTile(state.getState().floor.map, location).roomId);
 
-		if (utils.isVoid(room)) { // in a hallway
+		if (utils.isVoid(roomBounds)) { // in a hallway or don't know the bounds of the current room
 			this._viewport = {
 				r: [location.r - 2, location.r + 2],
 				c: [location.c - 2, location.c + 2]
 			};
-		} else { // in a room
-			let roomBounds = this.groundLayer.getRoomBounds(room);
+		} else { // in a room whose bounds we know
 			this._viewport = {
 				r: [roomBounds.r[0] - 2, roomBounds.r[1] + 2],
 				c: [roomBounds.c[0] - 2, roomBounds.c[1] + 2]

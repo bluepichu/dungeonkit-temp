@@ -33,7 +33,7 @@ export function startCrawl(
 
 /**
  * Steps a crawl until it is completed.
- * @param state - The game state to advance by one step.
+ * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
 function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlState> {

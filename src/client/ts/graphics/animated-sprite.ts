@@ -1,6 +1,7 @@
 "use strict";
 
 import * as Constants from "../constants";
+import {isMobile}     from "../is-mobile";
 
 export class AnimatedSprite extends PIXI.Container {
 	protected descriptor: Graphics.AnimatedGraphicsObject;
@@ -69,6 +70,9 @@ export class AnimatedSprite extends PIXI.Container {
 
 	private prerender() {
 		this.frame++;
+		if (isMobile()) {
+			this.frame++;
+		}
 
 		if (this.frame >= this.descriptor.animations[this.animation].steps[this.step].duration) {
 			this.frame = 0;

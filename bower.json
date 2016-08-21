@@ -19,6 +19,7 @@
     "keymaster": "^1.6.3",
     "sprintf": "sprintf.js#^1.0.3",
     "hammerjs": "hammer.js#^2.0.8",
-    "pixi.js": "^3.0.11"
+    "pixi.js": "^3.0.11",
+    "stats.js": "*"
   }
 }

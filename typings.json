@@ -20,6 +20,7 @@
     "socket.io-client": "registry:dt/socket.io-client#1.4.4+20160317120654",
     "source-map-support": "registry:dt/source-map-support#0.2.10+20160316155526",
     "sprintf-js": "registry:dt/sprintf-js#0.0.0+20160317120654",
+    "stats": "registry:dt/stats#0.16.0+20160505160752",
     "webfontloader": "registry:dt/webfontloader#1.6.4+20160317120654"
   }
 }

@@ -65,6 +65,8 @@ key.filter = (event: KeyboardEvent) => commandArea ? commandArea.active : false;
 function init() {
 	socket = new GameSocket();
 
+	document.body.appendChild(stats.dom);
+
 	socket.onInit((dungeon: Crawl.CensoredDungeon) => {
 		console.info("init");
 
@@ -131,9 +133,9 @@ function init() {
 	dungeonLayer.y = window.innerHeight / 2;
 	gameContainer.addChild(dungeonLayer);
 
-	minimap = new MiniMap(300, 200);
-	minimap.x = 50;
-	minimap.y = 50;
+	// minimap = new MiniMap(300, 200);
+	// minimap.x = 50;
+	// minimap.y = 50;
 	// gameContainer.addChild(minimap);
 
 	messageLog = new MessageLog(tweenHandler);
@@ -183,7 +185,6 @@ function init() {
 		gameContainer.addChild(commandArea);
 	} else {
 		inputHandler = new TouchInputHandler(socket, dungeonLayer, messageLog, main, gameContainer);
-
 	}
 
 	if (room) {
@@ -220,14 +221,6 @@ function init() {
 	floorSignText.y = window.innerHeight / 2;
 	floorSignText.resolution = window.devicePixelRatio;
 	floorSign.addChild(floorSignText);
-
-	frameRateText = new PIXI.Text("", { font: "400 10px Lato", fill: Colors.BLUE });
-	frameRateText.x = 10;
-	frameRateText.y = 10;
-	frameRateText.resolution = window.devicePixelRatio;
-	gameContainer.addChild(frameRateText);
-
-	updateFrameCount();
 
 	window.addEventListener("orientationchange", handleWindowResize);
 	window.addEventListener("resize", handleWindowResize);
@@ -294,7 +287,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				dungeonLayer.updatePosition(state.getState().self.location);
 				dungeonLayer.entityLayer.update();
 				dungeonLayer.itemLayer.update();
-				minimap.update();
+				// minimap.update();
 				attackOverlay.update();
 				teamOverlay.update();
 
@@ -545,7 +538,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				new Promise((resolve, _) => setTimeout(resolve, 600))
 					.then(() => tweenHandler.tween(floorSign, "alpha", 1, .1))
 					.then(() => {
-						minimap.clear();
+						// minimap.clear();
 						dungeonLayer.clear();
 						messageLog.clear();
 						setTimeout(done, 1000);
@@ -582,19 +575,18 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 	});
 }
 
-let frameCount: number = 0;
-let frameRateText: PIXI.Text;
+let stats = new Stats();
+let time = Date.now();
 
 function animate() {
-	frameCount++;
+	if (isMobile() && Date.now() - time < 1000 / 30) { // throttle to 30fps on mobile
+		requestAnimationFrame(animate);
+		return;
+	}
+	stats.begin();
 	inputHandler.handleInput();
 	tweenHandler.step();
 	renderer.render(gameContainer);
+	stats.end();
 	requestAnimationFrame(animate);
-}
-
-function updateFrameCount() {
-	frameRateText.text = `FPS: ${frameCount}`;
-	setTimeout(updateFrameCount, 1000);
-	frameCount = 0;
 }

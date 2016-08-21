@@ -7,6 +7,15 @@ import * as controllers from "./controllers";
 import * as printer     from "./printer";
 import * as utils       from "../../common/utils";
 
+/*
+ * Generates a new crawl state on the given floor of the given dungeon with the given entities.
+ * @param dungeon - The dungeon.
+ * @param floor - The floor number.
+ * @param blueprint - The floor blueprint.
+ * @param entities - A list of entites to place on the floor.  These entities are all treated as a single group and are
+ *     placed near each other, regardless of alignment.
+ * @return A new crawl state on the generated floor.
+ */
 export function generateFloor(
 	dungeon: Crawl.Dungeon,
 	floor: number,
@@ -21,12 +30,16 @@ export function generateFloor(
 		.then((state) => placeItems(state, blueprint));
 }
 
+/*
+ * Generates a new map.
+ * @param options - The generator parameters.
+ * @return The generated map.
+ */
 function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
 	let open = 0;
 	let width = evaluateDistribution(options.width);
 	let height = evaluateDistribution(options.height);
 	let roomId = 1;
-	let choices: [number, number][] = [];
 
 	let grid: number[][] = utils.tabulate((i) => utils.tabulate((j) => 0, width), height);
 	// in this grid
@@ -48,12 +61,12 @@ function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
 	let r = utils.randint(0, height - init.height);
 	let c = utils.randint(0, width - init.width);
 
-	placeFeature(grid, r, c, init, choices, roomId);
+	let choices = placeFeature(grid, {r, c}, init, roomId);
 
 	roomId++;
 
 	for (let t = 0; t < options.limit; t++) {
-		let [r, c] = choices[utils.randint(0, choices.length - 1)];
+		let {r, c} = choices[utils.randint(0, choices.length - 1)];
 
 		if (0 < grid[r][c] && grid[r][c] < 9) {
 			let placed: boolean = false;
@@ -69,8 +82,9 @@ function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
 
 			for (let i = 0; i < feature.height; i++) {
 				for (let j = 0; j < feature.width; j++) {
-					if (canPlaceFeature(grid, r - i, c - j, feature, isRoom)) {
-						placeFeature(grid, r - i, c - j, feature, choices, isRoom ? roomId++ : 0);
+					if (canPlaceFeature(grid, {r: r - i, c: c - j}, feature, isRoom)) {
+						choices =
+							choices.concat(placeFeature(grid, {r: r - i, c: c - j}, feature, isRoom ? roomId++ : 0));
 						placed = true;
 						break;
 					}
@@ -116,6 +130,13 @@ function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
 	return gridToMap(grid);
 }
 
+/**
+ * Initializes a state object.
+ * @param dungeon - The dungeon.
+ * @param floor - The floor number.
+ * @param map - The map.
+ * @return The state object.
+ */
 function initializeState(
 	dungeon: Crawl.Dungeon,
 	floor: number,
@@ -131,6 +152,13 @@ function initializeState(
 	};
 }
 
+/**
+ * Places a group of entities.  A random location is chosen in a room for the first entity, and other entities are
+ *     placed within the same room spiraling out from the first entity.
+ * @param state - The state.
+ * @param entities - The entities to place.
+ * @returns The state with the entities placed.
+ */
 function placeEntityGroup(
 	state: Crawl.InProgressCrawlState,
 	...entities: Crawl.UnplacedCrawlEntity[]): Crawl.InProgressCrawlState {
@@ -172,11 +200,16 @@ function placeEntityGroup(
 		}
 	}
 
-	// welp
-	log.error("Unable to place all entities");
-	return state;
+	// We need to do something with the remaining entities... let's try again.
+	return placeEntityGroup(state, ...entities);
 }
 
+/**
+ * Places the enemies for a floor.
+ * @param state - The state.
+ * @param blueprint - The floor blueprint.
+ * @return The state with the entities placed.
+ */
 function placeEnemies(
 	state: Crawl.InProgressCrawlState,
 	blueprint: Crawl.FloorBlueprint): Crawl.InProgressCrawlState {
@@ -211,6 +244,12 @@ function placeEnemies(
 	return state;
 }
 
+/**
+ * Places the items for a floor.
+ * @param state - The state.
+ * @param blueprint - The floor blueprint.
+ * @return The state with the items placed.
+ */
 function placeItems(
 	state: Crawl.InProgressCrawlState,
 	blueprint: Crawl.FloorBlueprint): Crawl.InProgressCrawlState {
@@ -236,6 +275,11 @@ function placeItems(
 	return state;
 }
 
+/**
+ * Selects a feature to place in the map.
+ * @param features - The list of features that can be placed.  Must be nonempty.
+ * @return The feature selected for placement.
+ */
 function selectFeature(features: Crawl.Feature[]): Crawl.Feature {
 	let sum = features.map((feature) => feature.weight).reduce((a, b) => a + b, 0);
 	let v = Math.random() * sum;
@@ -251,12 +295,21 @@ function selectFeature(features: Crawl.Feature[]): Crawl.Feature {
 	return features[features.length - 1];
 }
 
-function canPlaceFeature(grid: number[][],
-	r: number,
-	c: number,
+/**
+ * Checks if a given feature can be placed in the grid at the given location.
+ * @param grid - The current grid.
+ * @param location - The location to place the feature.
+ * @param feature - The feature to place.
+ * @param isRoom - Whether or not the feature is a room.
+ * @return Whether or not the feature can be placed in that location.
+ */
+function canPlaceFeature(
+	grid: number[][],
+	location: Crawl.Location,
 	feature: Crawl.Feature,
 	isRoom: boolean): boolean {
 	let matched: boolean = false;
+	let { r, c } = location;
 
 	if (r < 0 || r + feature.height >= grid.length || c < 0 || c + feature.width >= grid[0].length) {
 		return false;
@@ -340,12 +393,22 @@ function canPlaceFeature(grid: number[][],
 	return matched;
 }
 
-function placeFeature(grid: number[][],
-	r: number,
-	c: number,
+/**
+ * Places a feature in the grid.
+ * @param grid - The current grid.
+ * @param location - The location to place the feature.
+ * @param feature - The feature to place.
+ * @param roomId - The room ID of the feature being placed.
+ * @return An array of locations at which future features can be placed.
+ */
+function placeFeature(
+	grid: number[][],
+	location: Crawl.Location,
 	feature: Crawl.Feature,
-	choices: [number, number][],
-	roomId: number): void {
+	roomId: number): Crawl.Location[] {
+	let { r, c } = location;
+	let choices: Crawl.Location[] = [];
+
 	for (let i = 0; i < feature.height; i++) {
 		for (let j = 0; j < feature.width; j++) {
 			switch (feature.grid[i][j]) {
@@ -356,7 +419,7 @@ function placeFeature(grid: number[][],
 				case ">":
 					if (grid[r + i][j + c] === 0) {
 						grid[r + i][j + c] = (roomId > 0) ? 1 : 5;
-						choices.push([r + i, j + c]);
+						choices.push({r: r + i, c: j + c});
 					} else {
 						grid[r + i][j + c] = 9;
 					}
@@ -365,7 +428,7 @@ function placeFeature(grid: number[][],
 				case "^":
 					if (grid[r + i][j + c] === 0) {
 						grid[r + i][j + c] = (roomId > 0) ? 2 : 6;
-						choices.push([r + i, j + c]);
+						choices.push({r: r + i, c: j + c});
 					} else {
 						grid[r + i][j + c] = 9;
 					}
@@ -374,7 +437,7 @@ function placeFeature(grid: number[][],
 				case "<":
 					if (grid[r + i][j + c] === 0) {
 						grid[r + i][j + c] = (roomId > 0) ? 3 : 7;
-						choices.push([r + i, j + c]);
+						choices.push({r: r + i, c: j + c});
 					} else {
 						grid[r + i][j + c] = 9;
 					}
@@ -383,7 +446,7 @@ function placeFeature(grid: number[][],
 				case "v":
 					if (grid[r + i][j + c] === 0) {
 						grid[r + i][j + c] = (roomId > 0) ? 4 : 8;
-						choices.push([r + i, j + c]);
+						choices.push({r: r + i, c: j + c});
 					} else {
 						grid[r + i][j + c] = 9;
 					}
@@ -399,8 +462,15 @@ function placeFeature(grid: number[][],
 			}
 		}
 	}
+
+	return choices;
 }
 
+/**
+ * Converts a number grid to a map.
+ * @param grid - The grid of numbers to convert.
+ * @return The map.
+ */
 function gridToMap(grid: number[][]): Crawl.Map {
 	return {
 		width: grid[0].length,
@@ -409,6 +479,11 @@ function gridToMap(grid: number[][]): Crawl.Map {
 	};
 }
 
+/**
+ * Converts a number to a tile.
+ * @param val - The number to convert.
+ * @return The corresponding dungeon tile.
+ */
 function numberToTile(val: number): Crawl.DungeonTile {
 	switch (val) {
 		case 0:
@@ -426,6 +501,11 @@ function numberToTile(val: number): Crawl.DungeonTile {
 	}
 }
 
+/**
+ * Places the stairs on a map.
+ * @param map - The map on which to place the stairs.
+ * @return The map with the stairs.
+ */
 function placeStairs(map: Crawl.Map): Crawl.Map {
 	let loc: Crawl.Location;
 
@@ -440,7 +520,12 @@ function placeStairs(map: Crawl.Map): Crawl.Map {
 	return map;
 }
 
-function evaluateDistribution(distribution: Distribution) {
+/**
+ * Selects a value from a distribution.
+ * @param distribution - The distribution.
+ * @return The selected value.
+ */
+function evaluateDistribution(distribution: Distribution): number {
 	switch (distribution.type) {
 		case "binomial":
 			let v = 0;

@@ -27,6 +27,19 @@ export class GroundLayer extends PIXI.Container {
 	}
 
 	update(location: Crawl.Location) {
+		let roomId = utils.getTile(state.getState().floor.map, location).roomId;
+
+		if (roomId > 0) {
+			if (!this.roomBounds.has(roomId)) {
+				this.roomBounds.set(roomId, { r: [location.r, location.r], c: [location.c, location.c] });
+			}
+			let roomBounds = this.roomBounds.get(roomId);
+			roomBounds.r[0] = Math.min(roomBounds.r[0], location.r);
+			roomBounds.r[1] = Math.max(roomBounds.r[1], location.r);
+			roomBounds.c[0] = Math.min(roomBounds.c[0], location.c);
+			roomBounds.c[1] = Math.max(roomBounds.c[1], location.c);
+		}
+
 		for (let i = location.r - 1; i <= location.r + 1; i++) {
 			for (let j = location.c - 1; j <= location.c + 1; j++) {
 				if (i < 0 || i >= state.getState().floor.map.height || j < 0 || j >= state.getState().floor.map.width) {
@@ -45,19 +58,6 @@ export class GroundLayer extends PIXI.Container {
 				this.tileLayer.addChild(dtile);
 			}
 		}
-
-		let roomId = utils.getTile(state.getState().floor.map, location).roomId;
-
-		if (roomId > 0) {
-			if (!this.roomBounds.has(roomId)) {
-				this.roomBounds.set(roomId, { r: [location.r, location.r], c: [location.c, location.c] });
-			}
-			let roomBounds = this.roomBounds.get(roomId);
-			roomBounds.r[0] = Math.min(roomBounds.r[0], location.r);
-			roomBounds.r[1] = Math.max(roomBounds.r[1], location.r);
-			roomBounds.c[0] = Math.min(roomBounds.c[0], location.c);
-			roomBounds.c[1] = Math.max(roomBounds.c[1], location.c);
-		}
 	}
 
 	moveTo(loc: Crawl.Location): Thenable {
@@ -72,11 +72,18 @@ export class GroundLayer extends PIXI.Container {
 	private getFloorTile(map: Crawl.Map,
 		loc: Crawl.Location,
 		graphics: Graphics.DungeonGraphics): PIXI.DisplayObject | void {
-		if (utils.getTile(map, loc).type === Crawl.DungeonTileType.UNKNOWN) {
+		let canPlace: boolean = true;
+
+		utils.withinNSteps(1, loc, (location) =>
+			canPlace = canPlace &&
+				(!utils.isLocationInMap(map, location)
+				|| utils.getTile(map, location).type !== Crawl.DungeonTileType.UNKNOWN));
+
+		if (!canPlace) {
 			return undefined;
 		}
 
-		if (map.grid[loc.r][loc.c].stairs) {
+		if (utils.getTile(map, loc).stairs) {
 			return this.generateGraphicsObject(graphics.base, graphics.stairs);
 		}
 
@@ -92,15 +99,8 @@ export class GroundLayer extends PIXI.Container {
 			pattern <<= 1;
 			let [r, c] = [loc.r + dr, loc.c + dc];
 
-			if (0 <= r && r < map.height && 0 <= c && c < map.width) {
-				switch (utils.getTile(map, { r, c }).type) {
-					case Crawl.DungeonTileType.UNKNOWN:
-						return undefined;
-
-					case Crawl.DungeonTileType.WALL:
-						pattern |= 1;
-				}
-			} else {
+			if (utils.getTile(map, { r, c }).type === Crawl.DungeonTileType.WALL
+				|| !utils.isLocationInMap(map, { r, c })) {
 				pattern |= 1;
 			}
 		}
