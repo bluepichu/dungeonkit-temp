@@ -117,7 +117,7 @@ function init() {
 
 	let resolution = window.devicePixelRatio || 1;
 
-	renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, {
+	renderer = PIXI.autoDetectRenderer(800, 600, {
 		resolution: resolution,
 		antialias: false
 	});
@@ -129,8 +129,6 @@ function init() {
 	tweenHandler = new TweenHandler();
 
 	dungeonLayer = new DungeonLayer(tweenHandler);
-	dungeonLayer.x = window.innerWidth / 2;
-	dungeonLayer.y = window.innerHeight / 2;
 	gameContainer.addChild(dungeonLayer);
 
 	// minimap = new MiniMap(300, 200);
@@ -139,15 +137,11 @@ function init() {
 	// gameContainer.addChild(minimap);
 
 	messageLog = new MessageLog(tweenHandler);
-	messageLog.x = window.innerWidth;
-	messageLog.y = window.innerHeight;
 	gameContainer.addChild(messageLog);
 
 	requestAnimationFrame(animate);
 
 	commandArea = new CommandArea(socket, messageLog);
-	commandArea.x = window.innerWidth - 350;
-	commandArea.y = 50;
 
 	commandArea.addHandler("start", {
 		label: "start",
@@ -196,8 +190,6 @@ function init() {
 	}
 
 	teamOverlay = new TeamOverlay();
-	teamOverlay.x = 10;
-	teamOverlay.y = window.innerHeight;
 	gameContainer.addChild(teamOverlay);
 
 	floorSign = new PIXI.Container();
@@ -227,26 +219,43 @@ function init() {
 
 	messageLog.push(Messages.WELCOME, 10000);
 	messageLog.push(Messages.START_HELP, 10000);
+
+	handleWindowResize();
 }
 
 function handleWindowResize(): void {
-	renderer.view.style.width = window.innerWidth + "px";
-	renderer.view.style.height = window.innerHeight + "px";
+	let windowWidth = window.innerWidth;
+	let windowHeight = window.innerHeight;
 
-	renderer.resize(window.innerWidth, window.innerHeight);
+	let rendererWidth = windowWidth;
+	let rendererHeight = windowHeight;
 
-	messageLog.x = window.innerWidth;
-	messageLog.y = window.innerHeight;
+	if (isMobile()) {
+		rendererHeight = 640;
+		rendererWidth = windowWidth / windowHeight * rendererHeight;
+	}
 
-	commandArea.x = window.innerWidth - 350;
+	renderer.view.style.width = `${windowWidth}px`;
+	renderer.view.style.height = `${windowHeight}px`;
 
-	floorSignText.x = window.innerWidth / 2;
-	floorSignText.y = window.innerHeight / 2;
+	renderer.resize(rendererWidth, rendererHeight);
 
-	dungeonLayer.x = window.innerWidth / 2;
-	dungeonLayer.y = window.innerHeight / 2;
+	messageLog.x = rendererWidth;
+	messageLog.y = rendererHeight;
 
-	teamOverlay.y = window.innerHeight;
+	commandArea.x = rendererWidth - 310;
+	commandArea.y = 10;
+
+	floorSignText.x = rendererWidth / 2;
+	floorSignText.y = rendererHeight / 2;
+
+	dungeonLayer.x = rendererWidth / 2;
+	dungeonLayer.y = rendererHeight / 2;
+
+	teamOverlay.x = 10;
+	teamOverlay.y = rendererHeight;
+
+	// (renderer.view.requestFullscreen || renderer.view.webkitRequestFullscreen || (() => undefined))();
 }
 
 function processAll(updates: Processable[]): void {
@@ -579,10 +588,6 @@ let stats = new Stats();
 let time = Date.now();
 
 function animate() {
-	if (isMobile() && Date.now() - time < 1000 / 30) { // throttle to 30fps on mobile
-		requestAnimationFrame(animate);
-		return;
-	}
 	stats.begin();
 	inputHandler.handleInput();
 	tweenHandler.step();
