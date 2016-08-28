@@ -29,7 +29,7 @@ export function start() {
 	const app: express.Express = express();
 	const PORT: number = nconf.get("port") || 6918;
 
-	app.use(express.static("client"));
+	app.use("/", express.static(path.join(__dirname, "../client")));
 
 	app.get("/mobile", (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
 
