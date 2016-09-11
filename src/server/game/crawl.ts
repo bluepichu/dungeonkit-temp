@@ -226,6 +226,25 @@ function getFloorBlueprint(dungeon: Crawl.Dungeon, floor: number): Crawl.FloorBl
 }
 
 /**
+ * Makes an object read-only.
+ * @param obj - The object.
+ * @return The read-only copy of the object.
+ */
+function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
+	return new Proxy(obj, {
+		get(target: T, field: string | number | symbol): any {
+			if (typeof (target as any)[field] === "object") {
+				return makeReadOnly((target as any)[field], logstr + "." + field.toString());
+			}
+			return (target as any)[field];
+		},
+		set(target: T, field: string | number | symbol, value: any): boolean {
+			throw new TypeError(`Attempted illegal set action on field "${field}" of read-only object.`);
+		}
+	});
+}
+
+/**
  * Censors in an in-progress crawl state for a given entity.  This removes entities and items that the entity can't
  *     currently see and replaces the floor map with the entity's map.  It also adds a "self" field to the state for
  *     the entity to identify itself.
@@ -236,20 +255,6 @@ function getFloorBlueprint(dungeon: Crawl.Dungeon, floor: number): Crawl.FloorBl
 function getCensoredState(
 	state: Crawl.InProgressCrawlState,
 	entity: Crawl.CrawlEntity): Crawl.CensoredEntityCrawlState {
-	function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
-		return new Proxy(obj, {
-			get(target: T, field: string | number | symbol): any {
-				if (typeof (target as any)[field] === "object") {
-					return makeReadOnly((target as any)[field], logstr + "." + field.toString());
-				}
-				return (target as any)[field];
-			},
-			set(target: T, field: string | number | symbol, value: any): boolean {
-				throw new TypeError(`Attempted illegal set action on field "${field}" of read-only object.`);
-			}
-		});
-	}
-
 	return makeReadOnly({
 		self: censorSelf(entity),
 		dungeon: {
