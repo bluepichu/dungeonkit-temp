@@ -19,10 +19,13 @@ Once you've pulled down your forked copy of DungeonKit, do the following steps t
 	- Go to [Node's website](https://nodejs.org) and download the latest version for your OS from there.
 	- Make sure to also get NPM (which should get downloaded with Node).
 - Install the required Node packages.
-	- I recommend installing `ts-node`, `typescript`, and `typings` globally.  To do this, run `npm install -g ts-node
-		typescript typings`.
+	- Install `bower`, `typescript`, `typings`, and `gulp` globally.  To do this, run `npm install -g bower typescript typings gulp`.
 	- To install all other required Node modules, simply run `npm install`.
 - Install the required Typescript bindings: `typings install`.
+
+## Building
+
+To build DungeonKit, run `gulp`.
 
 ## Running
 

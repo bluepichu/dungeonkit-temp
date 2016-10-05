@@ -21,10 +21,11 @@ my sanity and readable code, please follow the follow the following guidelines w
 		your forked repo, you can `git checkout -b <branch-name>` to branch off of master.
 - Make sure to stick to existing style guidelines.
 	- Note that running with `./run` will run `tslint` on the code with the options specified in `tslint.json`.  Your
-		code should pass `tslint` without error.  This includes, among many other things, using smart tabs-style
+		code should pass `tslint` without error.  This includes, among many other things, using smart-tabs-style
 		indentation (that is, tabs for indentation but spaces for alignment) and limiting lines to 120 characters (with
 		a tab having a width of 4 characters).
 - Make commits in logical units, and make sure to comment well.
+- Add unit tests to test your change, if possible (and reasonable).
 - Make sure nothing is broken from your fixes.
 - Make sure to update the documentation as needed.
 
