@@ -10,9 +10,10 @@ let sorcery       = require("sorcery");
 
 let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
 
-let clientProject = $.typescript.createProject("src/client/tsconfig.json");
-let serverProject = $.typescript.createProject("src/server/tsconfig.json");
-let testProject   = $.typescript.createProject("test/tsconfig.json");
+const TS_CONFIG = {
+	target: "es6",
+	moduleResolution: "node"
+};
 
 let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
 let test    = (...dirs) => dirs.map((dir) => path.join("test", dir));
@@ -48,7 +49,7 @@ gulp.task("client-html", () =>
 gulp.task("client-ts", () =>
 	gulp.src(src("{client/ts/**/*.ts,common/**/*.ts}"))
 	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(clientProject))
+	    .pipe($.typescript(TS_CONFIG))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe($.intermediate({ output: "out" }, (dir, cb) => {
 			rollup({
@@ -83,7 +84,7 @@ gulp.task("watch-server", () => {
 gulp.task("server", () =>
 	gulp.src(src("{server/**/*.ts,index.ts,common/**/*.ts}"))
 	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(serverProject))
+	    .pipe($.typescript(TS_CONFIG))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe(gulp.dest(build("")).on("end", () => notify("The server is ready!"))));
 
@@ -94,7 +95,7 @@ gulp.task("watch-test", () => {
 gulp.task("test", () =>
 	gulp.src(test("**/*.ts"))
 	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(testProject))
+	    .pipe($.typescript(TS_CONFIG))
 	    .pipe($.replace("../../src/", "../../"))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe(gulp.dest(build("test"))));
