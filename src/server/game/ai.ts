@@ -4,13 +4,13 @@ import * as log       from "beautiful-log";
 import {AIController} from "./controllers";
 import * as utils     from "../../common/utils";
 
-export function getAction(state: Crawl.CensoredEntityCrawlState,
-                          entity: Crawl.CrawlEntity,
-                          controller: AIController): Crawl.Action {
+export function getAction(state: CensoredEntityCrawlState,
+                          entity: CrawlEntity,
+                          controller: AIController): Action {
 	log.logf("<blue>AI %s is moving!</blue>", entity.id);
 
 	// Update our attack target if needed
-	let attackTarget: Crawl.CensoredCrawlEntity = undefined;
+	let attackTarget: CensoredCrawlEntity = undefined;
 
 	if (!utils.isVoid(controller.attackTarget)) {
 		state.entities.forEach((ent) => {
@@ -57,7 +57,7 @@ export function getAction(state: Crawl.CensoredEntityCrawlState,
 	}
 
 	// Clear the move target if we've already reached it
-	if (!utils.isVoid(controller.moveTarget) && utils.areLocationsEqual(entity.location, controller.moveTarget)) {
+	if (!utils.isVoid(controller.moveTarget) && utils.areCrawlLocationsEqual(entity.location, controller.moveTarget)) {
 		controller.moveTarget = undefined;
 	}
 
@@ -73,7 +73,7 @@ export function getAction(state: Crawl.CensoredEntityCrawlState,
 	return { type: "move", direction: Math.floor(Math.random() * 8) };
 }
 
-function directionTo(from: Crawl.Location, to: Crawl.Location): number {
+function directionTo(from: CrawlLocation, to: CrawlLocation): number {
 	if (from.r < to.r) {
 		if (from.c < to.c) {
 			return 7;

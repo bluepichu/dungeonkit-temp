@@ -141,7 +141,7 @@ let corridorFeatures = [
 	}
 ];
 
-function std(pattern: number): Graphics.DungeonTileSelector {
+function std(pattern: number): DungeonTileSelector {
 	return {
 		pattern: pattern,
 		object: {
@@ -153,7 +153,7 @@ function std(pattern: number): Graphics.DungeonTileSelector {
 	};
 }
 
-let dungeonGraphics: Graphics.DungeonGraphics = {
+let dungeonGraphics: DungeonGraphics = {
 	base: "dng-proto",
 	walls: [
 		std(0xff), // surrounded
@@ -369,7 +369,7 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
-let seedGraphics: Graphics.StaticGraphicsObject = {
+let seedGraphics: StaticGraphicsObject = {
 	type: "static",
 	base: "item",
 	frames: [
@@ -377,7 +377,7 @@ let seedGraphics: Graphics.StaticGraphicsObject = {
 	]
 };
 
-let berryGraphics: Graphics.StaticGraphicsObject = {
+let berryGraphics: StaticGraphicsObject = {
 	type: "static",
 	base: "item",
 	frames: [
@@ -385,7 +385,7 @@ let berryGraphics: Graphics.StaticGraphicsObject = {
 	]
 };
 
-let scarfGraphics: Graphics.StaticGraphicsObject = {
+let scarfGraphics: StaticGraphicsObject = {
 	type: "static",
 	base: "item",
 	frames: [
@@ -403,7 +403,7 @@ let reviverSeed: ItemBlueprint = {
 		throw: ["throw"]
 	},
 	handlers: {
-		[ItemHook.ENTITY_DEFEAT](entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState, item: Item) {
+		[ItemHook.ENTITY_DEFEAT](entity: CrawlEntity, state: InProgressCrawlState, item: Item) {
 			entity.stats.hp.current = entity.stats.hp.max;
 			crawl.propagateLogEvent(state, {
 				type: "message",
@@ -431,7 +431,7 @@ let reviverSeed: ItemBlueprint = {
 			item.description = "Does nothing in particular.  Fills the belly slightly when eaten.";
 			item.handlers = { [ItemHook.ITEM_USE]: item.handlers[ItemHook.ITEM_USE] };
 		},
-		[ItemHook.ITEM_USE](entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState) {
+		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState) {
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -455,7 +455,7 @@ let oranBerry: ItemBlueprint = {
 		throw: ["throw"]
 	},
 	handlers: {
-		[ItemHook.ITEM_USE](entity: Crawl.CrawlEntity, state: Crawl.InProgressCrawlState) {
+		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState) {
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -486,7 +486,7 @@ let antidefenseScarf: ItemBlueprint = {
 	name: "Antidefense Scarf",
 	description: "Why did you equip this?!?",
 	graphics: scarfGraphics,
-	equip(entity: Crawl.UnplacedCrawlEntity) {
+	equip(entity: UnplacedCrawlEntity) {
 		return deepProxy(entity, "stats.defense.modifier", {
 			get(target: BaseModifierStat, field: any): number {
 				return target.modifier - 6;
@@ -503,7 +503,7 @@ let antidefenseScarf: ItemBlueprint = {
 	}
 };
 
-export function generatePlayer(socket: SocketIO.Socket, name: string = "Eevee"): Crawl.UnplacedCrawlEntity {
+export function generatePlayer(socket: SocketIO.Socket, name: string = "Eevee"): UnplacedCrawlEntity {
 	return {
 		id: shortid.generate(),
 		name: name,
@@ -526,7 +526,7 @@ export function generatePlayer(socket: SocketIO.Socket, name: string = "Eevee"):
 	};
 }
 
-export let dungeon: Crawl.Dungeon = {
+export let dungeon: Dungeon = {
 	name: "Prototypical Forest",
 	floors: 4,
 	direction: "up",

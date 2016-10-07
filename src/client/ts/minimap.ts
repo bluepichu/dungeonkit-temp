@@ -4,7 +4,7 @@ import * as Colors from "./colors";
 import * as state  from "./state";
 import * as utils  from "../../common/utils";
 
-export class MiniMap extends PIXI.Container {
+export class MiniFloorMap extends PIXI.Container {
 	private mapMask: PIXI.Graphics;
 	private mapBackground: PIXI.Graphics;
 	private mapContent: PIXI.Graphics;
@@ -66,7 +66,7 @@ export class MiniMap extends PIXI.Container {
 
 		for (let i = 0; i < state.getState().floor.map.height; i++) {
 			for (let j = 0; j < state.getState().floor.map.width; j++) {
-				if (utils.getTile(state.getState().floor.map, { r: i, c: j }).type === Crawl.DungeonTileType.FLOOR) {
+				if (utils.getTile(state.getState().floor.map, { r: i, c: j }).type === DungeonTileType.FLOOR) {
 					this.mapContent.beginFill(state.getState().floor.map.grid[i][j].roomId === undefined ? Colors.GRAY_2 : Colors.GRAY_3);
 
 					this.mapContent.drawRect(this.gridSize * j,
@@ -79,7 +79,7 @@ export class MiniMap extends PIXI.Container {
 					this.mapContent.beginFill(Colors.GRAY_1);
 
 					if (0 <= i - 1
-						&& utils.getTile(state.getState().floor.map, { r: i - 1, c: j }).type === Crawl.DungeonTileType.UNKNOWN) {
+						&& utils.getTile(state.getState().floor.map, { r: i - 1, c: j }).type === DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * j,
 						                         this.gridSize * i,
 												 this.gridSize,
@@ -87,7 +87,7 @@ export class MiniMap extends PIXI.Container {
 					}
 
 					if (0 <= j - 1
-					 && utils.getTile(state.getState().floor.map, { r: i, c: j - 1 }).type === Crawl.DungeonTileType.UNKNOWN) {
+					 && utils.getTile(state.getState().floor.map, { r: i, c: j - 1 }).type === DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * j,
 						                         this.gridSize * i,
 												 this.gridSize * .25,
@@ -95,7 +95,7 @@ export class MiniMap extends PIXI.Container {
 					}
 
 					if (i + 1 < state.getState().floor.map.height
-						&& utils.getTile(state.getState().floor.map, { r: i + 1, c: j }).type === Crawl.DungeonTileType.UNKNOWN) {
+						&& utils.getTile(state.getState().floor.map, { r: i + 1, c: j }).type === DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * j,
 							                     this.gridSize * (i + .75),
 												 this.gridSize,
@@ -103,7 +103,7 @@ export class MiniMap extends PIXI.Container {
 					}
 
 					if (j + 1 < state.getState().floor.map.width
-						&& utils.getTile(state.getState().floor.map, { r: i, c: j + 1 }).type === Crawl.DungeonTileType.UNKNOWN) {
+						&& utils.getTile(state.getState().floor.map, { r: i, c: j + 1 }).type === DungeonTileType.UNKNOWN) {
 						this.mapContent.drawRect(this.gridSize * (j + .75),
 						                         this.gridSize * i,
 												 this.gridSize * .25,
@@ -126,7 +126,7 @@ export class MiniMap extends PIXI.Container {
 			}
 		}
 
-		state.getState().entities.forEach((entity: Crawl.CensoredCrawlEntity) => {
+		state.getState().entities.forEach((entity: CensoredCrawlEntity) => {
 			this.mapContent.beginFill(entity.id === state.getState().self.id
 				? Colors.YELLOW
 				: (entity.alignment === state.getState().self.alignment

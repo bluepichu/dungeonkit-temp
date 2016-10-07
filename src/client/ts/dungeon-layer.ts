@@ -40,9 +40,9 @@ export class DungeonLayer extends PIXI.Container {
 	}
 
 	moveEntity(
-		entity: Crawl.CondensedEntity,
-		from: Crawl.Location,
-		to: Crawl.Location,
+		entity: CondensedEntity,
+		from: CrawlLocation,
+		to: CrawlLocation,
 		isSelf: boolean,
 		animation?: string,
 		direction?: number): Thenable {
@@ -89,7 +89,7 @@ export class DungeonLayer extends PIXI.Container {
 		this._zoomOut = zoom;
 	}
 
-	updatePosition(location: Crawl.Location): void {
+	updatePosition(location: CrawlLocation): void {
 		let roomBounds = this.groundLayer.getRoomBounds(utils.getTile(state.getState().floor.map, location).roomId);
 
 		if (utils.isVoid(roomBounds)) { // in a hallway or don't know the bounds of the current room
@@ -115,7 +115,7 @@ export class DungeonLayer extends PIXI.Container {
 	}
 
 	getEntityDirection(entityId: string): number {
-		return this.entityLayer.spriteMap.get(entityId).direction;
+		return this.entityLayer.spriteFloorMap.get(entityId).direction;
 	}
 
 	clear(): void {

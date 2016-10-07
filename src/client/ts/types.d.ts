@@ -1,2 +1,2 @@
-type Processable = Crawl.LogEvent | { type: "done", move: boolean, state: Client.StateUpdate };
+type Processable = LogEvent | { type: "done", move: boolean, state: StateUpdate };
 type Thenable = PromiseLike<any>;

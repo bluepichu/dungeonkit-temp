@@ -4,6 +4,7 @@ let es2015        = require("babel-preset-es2015");
 let gulp          = require("gulp");
 let path          = require("path");
 let merge         = require("merge-stream");
+let notifier      = require("node-notifier");
 let rollup        = require("rollup").rollup;
 let sorcery       = require("sorcery");
 
@@ -17,7 +18,7 @@ let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
 let test    = (...dirs) => dirs.map((dir) => path.join("test", dir));
 let build   = (dir) => path.join("build", dir);
 let map     = "map";
-let notify  = (message) => $.notify({
+let notify  = (message) => notifier.notify({
 			title: "Dungeonkit Build Notice",
 			message: message,
 			icon: path.join(__dirname, "icon.png")
@@ -67,8 +68,7 @@ gulp.task("client-ts", () =>
 		.pipe($.sourcemaps.init({ loadMaps: true }))
 		.pipe($.babel({ presets: [es2015] }))
 		.pipe($.sourcemaps.write(map))
-		.pipe(notify("The client is ready!"))
-	    .pipe(gulp.dest(build("client/js"))))
+	    .pipe(gulp.dest(build("client/js")).on("end", () => notify("The client is ready!"))));
 
 gulp.task("client-lib", () =>
 	merge(gulp.src($.mainBowerFiles())
@@ -85,8 +85,7 @@ gulp.task("server", () =>
 	    .pipe($.sourcemaps.init())
 	    .pipe($.typescript(serverProject))
 	    .pipe($.sourcemaps.write(map))
-	    .pipe(notify("The server is ready!"))
-	    .pipe(gulp.dest(build(""))));
+	    .pipe(gulp.dest(build("")).on("end", () => notify("The server is ready!"))));
 
 gulp.task("watch-test", () => {
 	gulp.watch(test("**/*.ts"), ["test"]);

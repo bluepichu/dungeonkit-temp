@@ -11,7 +11,7 @@ export function testCrawl() {
 	describe("crawl", () => {
 		describe("isValidMove()", () => {
 			let isValidMove = crawl.__get__("isValidMove") as
-				(state: Crawl.InProgressCrawlState, entity: Crawl.CrawlEntity, direction: number) => boolean;
+				(state: InProgressCrawlState, entity: CrawlEntity, direction: number) => boolean;
 
 			it("should accept valid moves within rooms", () =>
 				test.eq(isValidMove(data.inProgressState, data.entity1, 0), true));

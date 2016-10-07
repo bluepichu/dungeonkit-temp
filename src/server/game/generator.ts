@@ -17,12 +17,12 @@ import * as utils       from "../../common/utils";
  * @return A new crawl state on the generated floor.
  */
 export function generateFloor(
-	dungeon: Crawl.Dungeon,
+	dungeon: Dungeon,
 	floor: number,
-	blueprint: Crawl.FloorBlueprint,
-	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.InProgressCrawlState> {
+	blueprint: FloorBlueprint,
+	entities: UnplacedCrawlEntity[]): Promise<InProgressCrawlState> {
 	return new Promise((resolve, _) => setTimeout(resolve, 0)) // don't block computation
-		.then(() => generateMap(blueprint.generatorOptions))
+		.then(() => generateFloorMap(blueprint.generatorOptions))
 		.then((map) => placeStairs(map))
 		.then((map) => initializeState(dungeon, floor, map))
 		.then((state) => placeEntityGroup(state, ...entities))
@@ -35,7 +35,7 @@ export function generateFloor(
  * @param options - The generator parameters.
  * @return The generated map.
  */
-function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
+function generateFloorMap(options: GeneratorOptions): FloorMap {
 	let open = 0;
 	let width = evaluateDistribution(options.width);
 	let height = evaluateDistribution(options.height);
@@ -70,7 +70,7 @@ function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
 
 		if (0 < grid[r][c] && grid[r][c] < 9) {
 			let placed: boolean = false;
-			let feature: Crawl.Feature = undefined;
+			let feature: Feature = undefined;
 			let isRoom: boolean = false;
 
 			if (grid[r][c] < 5 || Math.random() < .5) {
@@ -127,7 +127,7 @@ function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
 		}
 	}
 
-	return gridToMap(grid);
+	return gridToFloorMap(grid);
 }
 
 /**
@@ -138,9 +138,9 @@ function generateMap(options: Crawl.GeneratorOptions): Crawl.Map {
  * @return The state object.
  */
 function initializeState(
-	dungeon: Crawl.Dungeon,
+	dungeon: Dungeon,
 	floor: number,
-	map: Crawl.Map): Crawl.InProgressCrawlState {
+	map: FloorMap): InProgressCrawlState {
 	return {
 		dungeon,
 		floor: {
@@ -160,34 +160,34 @@ function initializeState(
  * @returns The state with the entities placed.
  */
 function placeEntityGroup(
-	state: Crawl.InProgressCrawlState,
-	...entities: Crawl.UnplacedCrawlEntity[]): Crawl.InProgressCrawlState {
-	let map: Crawl.Map = {
+	state: InProgressCrawlState,
+	...entities: UnplacedCrawlEntity[]): InProgressCrawlState {
+	let map: FloorMap = {
 		width: state.floor.map.width,
 		height: state.floor.map.height,
 		grid: utils.tabulate((row) =>
 			utils.tabulate((col) =>
-				({ type: Crawl.DungeonTileType.UNKNOWN }),
+				({ type: DungeonTileType.UNKNOWN }),
 				state.floor.map.width),
 			state.floor.map.height)
 	};
 
-	let location: Crawl.Location;
+	let location: CrawlLocation;
 
 	do {
 		location = {
 			r: utils.randint(0, state.floor.map.height - 1),
 			c: utils.randint(0, state.floor.map.width - 1)
 		};
-	} while (!(utils.isLocationInRoom(state.floor.map, location) && utils.isLocationEmpty(state, location)));
+	} while (!(utils.isCrawlLocationInRoom(state.floor.map, location) && utils.isCrawlLocationEmpty(state, location)));
 
 	let loc = { r: location.r, c: location.c };
 	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
 		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
 			for (let j = 0; j < 2 * i + di; j++) {
-				if (utils.getTile(state.floor.map, loc).type === Crawl.DungeonTileType.FLOOR
+				if (utils.getTile(state.floor.map, loc).type === DungeonTileType.FLOOR
 					&& utils.inSameRoom(state.floor.map, location, loc)
-					&& utils.isLocationEmpty(state, loc)) {
+					&& utils.isCrawlLocationEmpty(state, loc)) {
 					log.log("Set location to", loc);
 					state.entities.push(Object.assign(wrap(entities.pop()), { location: { r: loc.r, c: loc.c }, map }));
 					if (entities.length === 0) {
@@ -211,8 +211,8 @@ function placeEntityGroup(
  * @return The state with the entities placed.
  */
 function placeEnemies(
-	state: Crawl.InProgressCrawlState,
-	blueprint: Crawl.FloorBlueprint): Crawl.InProgressCrawlState {
+	state: InProgressCrawlState,
+	blueprint: FloorBlueprint): InProgressCrawlState {
 	blueprint.enemies.forEach((enemyBlueprint) => {
 		let count = evaluateDistribution(enemyBlueprint.density);
 
@@ -251,23 +251,23 @@ function placeEnemies(
  * @return The state with the items placed.
  */
 function placeItems(
-	state: Crawl.InProgressCrawlState,
-	blueprint: Crawl.FloorBlueprint): Crawl.InProgressCrawlState {
+	state: InProgressCrawlState,
+	blueprint: FloorBlueprint): InProgressCrawlState {
 	blueprint.items.forEach((itemBlueprint) => {
 		let count = evaluateDistribution(itemBlueprint.density);
 
 		for (let i = 0; i < count; i++) {
-			let location: Crawl.Location;
+			let location: CrawlLocation;
 
 			do {
 				location = {
 					r: utils.randint(0, state.floor.map.height),
 					c: utils.randint(0, state.floor.map.width)
 				};
-			} while (!utils.isLocationInRoom(state.floor.map, location)
-				|| utils.getItemAtLocation(state, location) !== undefined);
+			} while (!utils.isCrawlLocationInRoom(state.floor.map, location)
+				|| utils.getItemAtCrawlLocation(state, location) !== undefined);
 
-			let item: Crawl.CrawlItem = Object.assign({ id: shortid.generate(), location }, itemBlueprint.item);
+			let item: CrawlItem = Object.assign({ id: shortid.generate(), location }, itemBlueprint.item);
 			state.items.push(item);
 		}
 	});
@@ -280,7 +280,7 @@ function placeItems(
  * @param features - The list of features that can be placed.  Must be nonempty.
  * @return The feature selected for placement.
  */
-function selectFeature(features: Crawl.Feature[]): Crawl.Feature {
+function selectFeature(features: Feature[]): Feature {
 	let sum = features.map((feature) => feature.weight).reduce((a, b) => a + b, 0);
 	let v = Math.random() * sum;
 
@@ -305,8 +305,8 @@ function selectFeature(features: Crawl.Feature[]): Crawl.Feature {
  */
 function canPlaceFeature(
 	grid: number[][],
-	location: Crawl.Location,
-	feature: Crawl.Feature,
+	location: CrawlLocation,
+	feature: Feature,
 	isRoom: boolean): boolean {
 	let matched: boolean = false;
 	let { r, c } = location;
@@ -403,11 +403,11 @@ function canPlaceFeature(
  */
 function placeFeature(
 	grid: number[][],
-	location: Crawl.Location,
-	feature: Crawl.Feature,
-	roomId: number): Crawl.Location[] {
+	location: CrawlLocation,
+	feature: Feature,
+	roomId: number): CrawlLocation[] {
 	let { r, c } = location;
-	let choices: Crawl.Location[] = [];
+	let choices: CrawlLocation[] = [];
 
 	for (let i = 0; i < feature.height; i++) {
 		for (let j = 0; j < feature.width; j++) {
@@ -471,7 +471,7 @@ function placeFeature(
  * @param grid - The grid of numbers to convert.
  * @return The map.
  */
-function gridToMap(grid: number[][]): Crawl.Map {
+function gridToFloorMap(grid: number[][]): FloorMap {
 	return {
 		width: grid[0].length,
 		height: grid.length,
@@ -484,19 +484,19 @@ function gridToMap(grid: number[][]): Crawl.Map {
  * @param val - The number to convert.
  * @return The corresponding dungeon tile.
  */
-function numberToTile(val: number): Crawl.DungeonTile {
+function numberToTile(val: number): DungeonTile {
 	switch (val) {
 		case 0:
-			return { type: Crawl.DungeonTileType.WALL };
+			return { type: DungeonTileType.WALL };
 		case 10:
-			return { type: Crawl.DungeonTileType.WALL };
+			return { type: DungeonTileType.WALL };
 		case 9:
-			return { type: Crawl.DungeonTileType.FLOOR };
+			return { type: DungeonTileType.FLOOR };
 		default:
 			if (val > 0) {
-				return { type: Crawl.DungeonTileType.WALL };
+				return { type: DungeonTileType.WALL };
 			} else {
-				return { type: Crawl.DungeonTileType.FLOOR, roomId: -(val + 1) };
+				return { type: DungeonTileType.FLOOR, roomId: -(val + 1) };
 			}
 	}
 }
@@ -506,15 +506,15 @@ function numberToTile(val: number): Crawl.DungeonTile {
  * @param map - The map on which to place the stairs.
  * @return The map with the stairs.
  */
-function placeStairs(map: Crawl.Map): Crawl.Map {
-	let loc: Crawl.Location;
+function placeStairs(map: FloorMap): FloorMap {
+	let loc: CrawlLocation;
 
 	do {
 		loc = {
 			r: utils.randint(0, map.height - 1),
 			c: utils.randint(0, map.width - 1)
 		};
-	} while (!(utils.isLocationInRoom(map, loc)));
+	} while (!(utils.isCrawlLocationInRoom(map, loc)));
 
 	map.grid[loc.r][loc.c].stairs = true;
 	return map;
@@ -541,7 +541,7 @@ function evaluateDistribution(distribution: Distribution): number {
 	}
 }
 
-interface WrappedUnplacedCrawlEntity extends Crawl.UnplacedCrawlEntity {
+interface WrappedUnplacedCrawlEntity extends UnplacedCrawlEntity {
 	wrapped: boolean;
 }
 
@@ -550,14 +550,14 @@ interface WrappedUnplacedCrawlEntity extends Crawl.UnplacedCrawlEntity {
  * @param entity - The entity to wrap.
  * @return The wrapped entity.
  */
-export function wrap(entity: Crawl.UnplacedCrawlEntity): WrappedUnplacedCrawlEntity {
+export function wrap(entity: UnplacedCrawlEntity): WrappedUnplacedCrawlEntity {
 	if (isWrapped(entity)) {
 		// Don't double-wrap the entity
 		return entity;
 	}
 
 	return new Proxy(entity, {
-		get(target: Crawl.UnplacedCrawlEntity, field: string | number | symbol): any {
+		get(target: UnplacedCrawlEntity, field: string | number | symbol): any {
 			let base = entity;
 
 			if (field === "wrapped") {
@@ -580,6 +580,6 @@ export function wrap(entity: Crawl.UnplacedCrawlEntity): WrappedUnplacedCrawlEnt
  * @param entity - The entity to check.
  * @return Whether or not the entity is wrapped.
  */
-function isWrapped(entity: Crawl.UnplacedCrawlEntity): entity is WrappedUnplacedCrawlEntity {
+function isWrapped(entity: UnplacedCrawlEntity): entity is WrappedUnplacedCrawlEntity {
 	return "wrapped" in entity;
 }

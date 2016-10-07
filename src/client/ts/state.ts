@@ -1,11 +1,11 @@
 "use strict";
 
-let _state: Client.CensoredClientCrawlState = undefined;
+let _state: CensoredClientCrawlState = undefined;
 
-export function getState(): Client.CensoredClientCrawlState {
+export function getState(): CensoredClientCrawlState {
 	return _state;
 }
 
-export function setState(state: Client.CensoredClientCrawlState): void {
+export function setState(state: CensoredClientCrawlState): void {
 	_state = state;
 }

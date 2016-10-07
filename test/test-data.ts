@@ -1,6 +1,6 @@
 "use strict";
 
-export let floorBlueprint: Crawl.FloorBlueprint = {
+export let floorBlueprint: FloorBlueprint = {
 	generatorOptions: {
 		width: { type: "binomial", n: 10, p: 1 },
 		height: { type: "binomial", n: 10, p: 1 },
@@ -15,7 +15,7 @@ export let floorBlueprint: Crawl.FloorBlueprint = {
 	items: []
 };
 
-export let dungeon: Crawl.Dungeon = {
+export let dungeon: Dungeon = {
 	name: "<Dungeon Name>",
 	floors: 5,
 	direction: "down",
@@ -58,19 +58,19 @@ let numberGrid: number[][] = [
 	[X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X, X]
 ];
 
-let floorGrid: Crawl.DungeonTile[][] = numberGrid.map((row, r) => row.map((cell, c) => {
+let floorGrid: DungeonTile[][] = numberGrid.map((row, r) => row.map((cell, c) => {
 	if (cell === X) {
-		return { type: Crawl.DungeonTileType.WALL };
+		return { type: DungeonTileType.WALL };
 	}
 
 	return {
-		type: Crawl.DungeonTileType.FLOOR,
+		type: DungeonTileType.FLOOR,
 		roomId: cell === 0 ? undefined : cell,
 		stairs: r === 17 && c === 2
 	};
 }));
 
-export let map: Crawl.Map = {
+export let map: FloorMap = {
 	width: 20,
 	height: 20,
 	grid: floorGrid
@@ -92,7 +92,7 @@ export let item2: Item = {
 	graphics: undefined
 };
 
-export let item3: Crawl.CrawlItem = {
+export let item3: CrawlItem = {
 	id: "<Item 3 id>",
 	name: "<Item 3 name>",
 	description: "<Item 3 description>",
@@ -101,7 +101,7 @@ export let item3: Crawl.CrawlItem = {
 	location: { r: 2, c: 6 }
 };
 
-export let item4: Crawl.CrawlItem = {
+export let item4: CrawlItem = {
 	id: "<Item 4 id>",
 	name: "<Item 4 name>",
 	description: "<Item 4 description>",
@@ -115,7 +115,7 @@ export let bag: ItemSet = {
 	items: [item2]
 };
 
-export let entity1: Crawl.CrawlEntity = {
+export let entity1: CrawlEntity = {
 	name: "<Entity 1 name>",
 	id: "<Entity 1 id>",
 	stats: undefined,
@@ -132,7 +132,7 @@ export let entity1: Crawl.CrawlEntity = {
 	advances: true
 };
 
-export let entity2: Crawl.CrawlEntity = {
+export let entity2: CrawlEntity = {
 	name: "<Entity 2 name>",
 	id: "<Entity 2 id>",
 	stats: undefined,
@@ -149,7 +149,7 @@ export let entity2: Crawl.CrawlEntity = {
 	advances: true
 };
 
-export let entity3: Crawl.CrawlEntity = {
+export let entity3: CrawlEntity = {
 	name: "<Entity 3 name>",
 	id: "<Entity 3 id>",
 	stats: undefined,
@@ -165,7 +165,7 @@ export let entity3: Crawl.CrawlEntity = {
 	advances: false
 };
 
-export let entity4: Crawl.CrawlEntity = {
+export let entity4: CrawlEntity = {
 	name: "<Entity 4 name>",
 	id: "<Entity 4 id>",
 	stats: undefined,
@@ -181,7 +181,7 @@ export let entity4: Crawl.CrawlEntity = {
 	advances: false
 };
 
-export let entity5: Crawl.CrawlEntity = {
+export let entity5: CrawlEntity = {
 	name: "<Entity 5 name>",
 	id: "<Entity 5 id>",
 	stats: undefined,
@@ -197,7 +197,7 @@ export let entity5: Crawl.CrawlEntity = {
 	advances: false
 };
 
-export let entity6: Crawl.CrawlEntity = {
+export let entity6: CrawlEntity = {
 	name: "<Entity 6 name>",
 	id: "<Entity 6 id>",
 	stats: undefined,
@@ -213,7 +213,7 @@ export let entity6: Crawl.CrawlEntity = {
 	advances: true
 };
 
-export let entity7: Crawl.CrawlEntity = {
+export let entity7: CrawlEntity = {
 	name: "<Entity 7 name>",
 	id: "<Entity 7 id>",
 	stats: undefined,
@@ -229,7 +229,7 @@ export let entity7: Crawl.CrawlEntity = {
 	advances: true
 };
 
-export let inProgressState: Crawl.InProgressCrawlState = {
+export let inProgressState: InProgressCrawlState = {
 	dungeon: dungeon,
 	floor: {
 		number: 2,
@@ -239,13 +239,13 @@ export let inProgressState: Crawl.InProgressCrawlState = {
 	items: [item3, item4]
 };
 
-export let concludedSuccessState: Crawl.ConcludedCrawlState = {
+export let concludedSuccessState: ConcludedCrawlState = {
 	dungeon: dungeon,
 	success: true,
 	floor: 5
 };
 
-export let concludedFailureState: Crawl.ConcludedCrawlState = {
+export let concludedFailureState: ConcludedCrawlState = {
 	dungeon: dungeon,
 	success: false,
 	floor: 4

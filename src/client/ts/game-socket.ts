@@ -8,13 +8,13 @@ export class GameSocket {
 		this.socket = io();
 		this.listeners = new Map();
 
-		this.socket.on("init", (dungeon: Crawl.CensoredDungeon) =>
+		this.socket.on("init", (dungeon: CensoredDungeon) =>
 			this.execute("init", dungeon));
 		this.socket.on("invalid", () =>
 			this.execute("invalid"));
-		this.socket.on("graphics", (key: string, graphics: Graphics.EntityGraphics) =>
+		this.socket.on("graphics", (key: string, graphics: EntityGraphics) =>
 			this.execute("graphics", key, graphics));
-		this.socket.on("update", (message: Client.UpdateMessage) =>
+		this.socket.on("update", (message: UpdateMessage) =>
 			this.execute("update", message));
 	}
 
@@ -22,7 +22,7 @@ export class GameSocket {
 		this.socket.emit(hook, ...args);
 	}
 
-	sendAction(action: Crawl.Action, options?: Client.ActionOptions) {
+	sendAction(action: Action, options?: ActionOptions) {
 		this.socket.emit("action", action, options);
 	}
 
@@ -32,7 +32,7 @@ export class GameSocket {
 
 	// These functions are used instead of the generic on() method to allow for better typechecking.
 
-	onInit(fn: (dungeon: Crawl.CensoredDungeon) => void): void {
+	onInit(fn: (dungeon: CensoredDungeon) => void): void {
 		this.addListener("init", fn);
 	}
 
@@ -40,11 +40,11 @@ export class GameSocket {
 		this.addListener("invalid", fn);
 	}
 
-	onGraphics(fn: (key: string, graphics: Graphics.EntityGraphics) => void): void {
+	onGraphics(fn: (key: string, graphics: EntityGraphics) => void): void {
 		this.addListener("graphics", fn);
 	}
 
-	onUpdate(fn: (message: Client.UpdateMessage) => void): void {
+	onUpdate(fn: (message: UpdateMessage) => void): void {
 		this.addListener("update", fn);
 	}
 

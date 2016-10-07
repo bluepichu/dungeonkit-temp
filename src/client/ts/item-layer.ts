@@ -25,7 +25,7 @@ export class ItemLayer extends PIXI.Container {
 		}
 	}
 
-	moveTo(loc: Crawl.Location): Thenable {
+	moveTo(loc: CrawlLocation): Thenable {
 		let [x, y] = utils.locationToCoordinates(loc, Constants.GRID_SIZE);
 
 		let xPrm = this.tweenHandler.tween(this, "x", -x, Constants.VIEW_MOVE_VELOCITY, "smooth");
@@ -38,10 +38,10 @@ export class ItemLayer extends PIXI.Container {
 		this.removeChildren();
 	}
 
-	generateGraphicsObject(obj: Graphics.GraphicsObject): PIXI.DisplayObject {
+	generateGraphicsObject(obj: GraphicsObject): PIXI.DisplayObject {
 		switch (obj.type) {
 			case "static":
-				let sgo: Graphics.StaticGraphicsObject = obj as Graphics.StaticGraphicsObject;
+				let sgo: StaticGraphicsObject = obj as StaticGraphicsObject;
 				let ret = new PIXI.Container();
 
 				sgo.frames.reverse().forEach((frame) => {
@@ -57,7 +57,7 @@ export class ItemLayer extends PIXI.Container {
 				return ret;
 
 			case "animated":
-				return new AnimatedSprite(obj.base, obj as Graphics.AnimatedGraphicsObject);
+				return new AnimatedSprite(obj.base, obj as AnimatedGraphicsObject);
 		}
 	}
 }

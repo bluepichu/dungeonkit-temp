@@ -9,31 +9,31 @@ import {TweenHandler}   from "./tween-handler";
 import * as utils       from "../../common/utils";
 
 export class EntityLayer extends PIXI.Container {
-	public static entityGraphicsCache: Graphics.EntityGraphicsCache = new Map();
-	public spriteMap: Map<string, EntitySprite>;
+	public static entityGraphicsCache: EntityGraphicsCache = new Map();
+	public spriteFloorMap: Map<string, EntitySprite>;
 	private tweenHandler: TweenHandler;
 
 	constructor(tweenHandler: TweenHandler) {
 		super();
-		this.spriteMap = new Map();
+		this.spriteFloorMap = new Map();
 		this.tweenHandler = tweenHandler;
 	}
 
 	update() {
-		let keys: Set<string> = new Set(this.spriteMap.keys());
+		let keys: Set<string> = new Set(this.spriteFloorMap.keys());
 
 		state.getState().entities.forEach((entity) => {
 			keys.delete(entity.id);
 
-			if (this.spriteMap.has(entity.id)) {
-				let entitySprite = this.spriteMap.get(entity.id);
+			if (this.spriteFloorMap.has(entity.id)) {
+				let entitySprite = this.spriteFloorMap.get(entity.id);
 
 				[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(entity.location, Constants.GRID_SIZE);
 			} else {
 				this.addEntity(entity, entity.location);
 			}
 
-			let entitySprite = this.spriteMap.get(entity.id);
+			let entitySprite = this.spriteFloorMap.get(entity.id);
 			entitySprite.clearStatusMarkers();
 
 			if (entity.stats.attack.modifier < 0 || entity.stats.defense.modifier < 0) {
@@ -42,30 +42,30 @@ export class EntityLayer extends PIXI.Container {
 		});
 
 		keys.forEach((id) => {
-			this.removeChild(this.spriteMap.get(id));
-			this.spriteMap.delete(id);
+			this.removeChild(this.spriteFloorMap.get(id));
+			this.spriteFloorMap.delete(id);
 		});
 	}
 
-	addEntity(entity: Crawl.CondensedEntity, location: Crawl.Location) {
+	addEntity(entity: CondensedEntity, location: CrawlLocation) {
 		let entitySprite = this.getEntitySprite(entity.graphics);
 
 		[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
 
 		this.addChild(entitySprite);
-		this.spriteMap.set(entity.id, entitySprite);
+		this.spriteFloorMap.set(entity.id, entitySprite);
 	}
 
 	getEntitySprite(entityGraphicsKey: string): EntitySprite {
 		return new EntitySprite(EntityLayer.entityGraphicsCache.get(entityGraphicsKey));
 	}
 
-	moveEntity(entity: Crawl.CondensedEntity, from: Crawl.Location, to: Crawl.Location): Thenable {
-		if (!this.spriteMap.has(entity.id)) {
+	moveEntity(entity: CondensedEntity, from: CrawlLocation, to: CrawlLocation): Thenable {
+		if (!this.spriteFloorMap.has(entity.id)) {
 			this.addEntity(entity, from);
 		}
 
-		let entitySprite = this.spriteMap.get(entity.id);
+		let entitySprite = this.spriteFloorMap.get(entity.id);
 		[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(from, Constants.GRID_SIZE);
 
 		let [xTarget, yTarget] = utils.locationToCoordinates(to, Constants.GRID_SIZE);
@@ -76,7 +76,7 @@ export class EntityLayer extends PIXI.Container {
 		return Promise.all([xPrm, yPrm]);
 	}
 
-	moveTo(location: Crawl.Location): Thenable {
+	moveTo(location: CrawlLocation): Thenable {
 		let [xTarget, yTarget] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
 
 		let xPrm = this.tweenHandler.tween(this, "x", -xTarget, Constants.VIEW_MOVE_VELOCITY, "smooth");
@@ -86,30 +86,30 @@ export class EntityLayer extends PIXI.Container {
 	}
 
 	setEntityAnimation(entityId: string, animation: string, direction?: number) {
-		if (!this.spriteMap.has(entityId)) {
+		if (!this.spriteFloorMap.has(entityId)) {
 			console.error(`No sprite with id ${entityId}, exiting now`);
 			return;
 		}
 
-		this.spriteMap.get(entityId).setAnimation(animation);
+		this.spriteFloorMap.get(entityId).setAnimation(animation);
 
 		if (direction !== undefined) {
-			this.spriteMap.get(entityId).direction = direction;
+			this.spriteFloorMap.get(entityId).direction = direction;
 		}
 	}
 
 	setAnimationEndListener(entityId: string, f: () => any) {
-		if (!this.spriteMap.has(entityId)) {
+		if (!this.spriteFloorMap.has(entityId)) {
 			console.error(`No sprite with id ${entityId}, calling listener now`);
 			f();
 			return;
 		}
-		this.spriteMap.get(entityId).addAnimationEndListener(f);
+		this.spriteFloorMap.get(entityId).addAnimationEndListener(f);
 	}
 
 	clear(): void {
 		this.removeChildren();
-		this.spriteMap.clear();
+		this.spriteFloorMap.clear();
 	}
 
 	prerender(): void {

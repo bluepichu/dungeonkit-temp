@@ -80,7 +80,7 @@ export function start() {
 			}
 
 			let sockets: SocketIO.Socket[] = socketIds.map((id) => io.sockets.connected[id]);
-			let players: Crawl.UnplacedCrawlEntity[] =
+			let players: UnplacedCrawlEntity[] =
 				socketIds.map((id) => generatePlayer(io.sockets.connected[id], games.get(id).name));
 
 			socketIds.forEach((socket) => games.delete(socket));

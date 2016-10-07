@@ -9,25 +9,25 @@ import { graphics }  from "./graphics";
 import * as printer  from "./printer";
 import * as utils    from "../../common/utils";
 
-export class AIController implements Crawl.Controller {
+export class AIController implements Controller {
 	await: boolean = false;
-	attackTarget: Crawl.CensoredCrawlEntity;
-	moveTarget: Crawl.Location;
+	attackTarget: CensoredCrawlEntity;
+	moveTarget: CrawlLocation;
 
 	constructor() {
 	}
 
-	getAction(state: Crawl.CensoredEntityCrawlState, entity: Crawl.CrawlEntity): Promise<Crawl.Action> {
+	getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Promise<Action> {
 		return new Promise((resolve, reject) => {
 			resolve(ai.getAction(state, entity, this));
 		});
 	}
 
-	updateState(state: Crawl.CensoredEntityCrawlState): void {
+	updateState(state: CensoredEntityCrawlState): void {
 		// TODO
 	}
 
-	pushEvent(event: Crawl.LogEvent): void {
+	pushEvent(event: LogEvent): void {
 		// TODO
 	}
 
@@ -35,17 +35,17 @@ export class AIController implements Crawl.Controller {
 		// TODO
 	}
 
-	init(entity: Crawl.UnplacedCrawlEntity, dungeon: Crawl.CensoredDungeon): void {
+	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {
 		// TODO
 	}
 }
 
-export class SocketController implements Crawl.Controller {
+export class SocketController implements Controller {
 	await: boolean = true;
 	socket: SocketIO.Socket;
-	log: Crawl.LogEvent[];
-	lastMap: Crawl.Map;
-	currentState: Crawl.CensoredEntityCrawlState;
+	log: LogEvent[];
+	lastMap: FloorMap;
+	currentState: CensoredEntityCrawlState;
 	flushTimeout: NodeJS.Timer;
 	dashing: boolean;
 	dashPattern: number;
@@ -64,8 +64,8 @@ export class SocketController implements Crawl.Controller {
 		this.knownGraphics = new Set();
 	}
 
-	getAction(state: Crawl.CensoredEntityCrawlState,
-	          entity: Crawl.CrawlEntity): Promise<Crawl.Action> {
+	getAction(state: CensoredEntityCrawlState,
+	          entity: CrawlEntity): Promise<Action> {
 		log.logf("<yellow>W %s</yellow>", this.socket.id);
 
 		let pattern = 0;
@@ -79,7 +79,7 @@ export class SocketController implements Crawl.Controller {
 			let [r, c] = [loc.r + dr, loc.c + dc];
 
 			if (0 <= r && r < state.floor.map.height && 0 <= c && c < state.floor.map.width) {
-				if (state.floor.map.grid[r][c].type === Crawl.DungeonTileType.WALL) {
+				if (state.floor.map.grid[r][c].type === DungeonTileType.WALL) {
 					pattern |= 1;
 				}
 			} else {
@@ -98,7 +98,7 @@ export class SocketController implements Crawl.Controller {
 		return new Promise((resolve, reject) => {
 			this.currentState = state;
 			this.flushLog(true);
-			this.socket.on("action", (action: Crawl.Action, options: Client.ActionOptions) => {
+			this.socket.on("action", (action: Action, options: ActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
 				if (crawl.isValidAction(state, entity, action)) {
 					this.socket.removeAllListeners("action");
@@ -106,7 +106,7 @@ export class SocketController implements Crawl.Controller {
 					if (action.type === "move" && options.dash) {
 						this.dashPattern = pattern;
 						this.dashing = true;
-						this.dashDirection = (action as Crawl.MoveAction).direction;
+						this.dashDirection = (action as MoveAction).direction;
 					}
 
 					resolve(action);
@@ -125,7 +125,7 @@ export class SocketController implements Crawl.Controller {
 		}
 	}
 
-	pushEvent(event: Crawl.LogEvent): void {
+	pushEvent(event: LogEvent): void {
 		if (event.type === "start") {
 			this.lastMap = undefined;
 		}
@@ -138,7 +138,7 @@ export class SocketController implements Crawl.Controller {
 		this.log.push(event);
 	}
 
-	updateState(state: Crawl.CensoredEntityCrawlState): void {
+	updateState(state: CensoredEntityCrawlState): void {
 		this.currentState = state;
 		this.flushTimeout = setTimeout(() => this.flushLog(false), 50);
 	}
@@ -152,12 +152,12 @@ export class SocketController implements Crawl.Controller {
 			clearTimeout(this.flushTimeout);
 		}
 
-		let mapUpdates: Client.MapUpdate[] =
+		let mapUpdates: MapUpdate[] =
 			this.currentState.floor.map.grid
 				.map((row, r) =>
 					row.map((tile, c) => {
 						if (this.lastMap === undefined) {
-							if (tile.type !== Crawl.DungeonTileType.UNKNOWN) {
+							if (tile.type !== DungeonTileType.UNKNOWN) {
 								return { location: { r, c }, tile };
 							}
 						} else if (tile.type !== utils.getTile(this.lastMap, { r, c }).type
@@ -176,7 +176,7 @@ export class SocketController implements Crawl.Controller {
 			grid: this.currentState.floor.map.grid.map((row) => row.map((tile) => Object.assign({}, tile)))
 		};
 
-		let stateUpdate: Client.StateUpdate = {
+		let stateUpdate: StateUpdate = {
 			entities: this.currentState.entities,
 			items: this.currentState.items,
 			floor: {
@@ -198,7 +198,7 @@ export class SocketController implements Crawl.Controller {
 
 		stateUpdate.entities.forEach((entity) => this.checkGraphics(entity.graphics));
 
-		let update: Client.UpdateMessage = {
+		let update: UpdateMessage = {
 			stateUpdate,
 			log: this.log,
 			move
@@ -209,7 +209,7 @@ export class SocketController implements Crawl.Controller {
 		this.log = [];
 	}
 
-	init(entity: Crawl.UnplacedCrawlEntity, dungeon: Crawl.CensoredDungeon): void {
+	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {
 		this.socket.emit("init", dungeon);
 	}
 }

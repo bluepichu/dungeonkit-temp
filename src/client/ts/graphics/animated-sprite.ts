@@ -4,7 +4,7 @@ import * as Constants from "../constants";
 import {isMobile}     from "../is-mobile";
 
 export class AnimatedSprite extends PIXI.Container {
-	protected descriptor: Graphics.AnimatedGraphicsObject;
+	protected descriptor: AnimatedGraphicsObject;
 	private animation: string;
 	private step: number;
 	private frame: number;
@@ -13,7 +13,7 @@ export class AnimatedSprite extends PIXI.Container {
 	protected sprites: PIXI.Sprite[];
 	protected animationEndListeners: (() => any)[];
 
-	constructor(base: string, descriptor: Graphics.AnimatedGraphicsObject) {
+	constructor(base: string, descriptor: AnimatedGraphicsObject) {
 		super();
 		this.descriptor = descriptor;
 		this.animation = descriptor.default;
@@ -64,7 +64,7 @@ export class AnimatedSprite extends PIXI.Container {
 
 	protected handleOffset(sprite: PIXI.Sprite, amount: number): void { }
 
-	protected getTexture(frame: Graphics.Frame): PIXI.Texture {
+	protected getTexture(frame: Frame): PIXI.Texture {
 		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, frame.texture));
 	}
 
@@ -113,7 +113,7 @@ export class AnimatedSprite extends PIXI.Container {
 		this.changed = false;
 	}
 
-	protected prerenderLayer(layer: PIXI.Sprite, frame: Graphics.Frame): void {
+	protected prerenderLayer(layer: PIXI.Sprite, frame: Frame): void {
 		// do nothing
 	}
 

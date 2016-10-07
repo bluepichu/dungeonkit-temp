@@ -14,7 +14,7 @@ import {GroundLayer}                                           from "./ground-la
 import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
 import {isMobile}                                              from "./is-mobile";
 import {MessageLog}                                            from "./message-log";
-import {MiniMap}                                               from "./minimap";
+import {MiniFloorMap}                                               from "./minimap";
 import * as state                                              from "./state";
 import {TeamOverlay}                                           from "./team-overlay";
 import {TweenHandler}                                          from "./tween-handler";
@@ -23,7 +23,7 @@ import * as utils                                              from "../../commo
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
 let gameContainer: PIXI.Container = undefined;
 let socket: GameSocket = undefined;
-let minimap: MiniMap = undefined;
+let minimap: MiniFloorMap = undefined;
 let commandArea: CommandArea = undefined;
 let dungeonLayer: DungeonLayer = undefined;
 let messageLog: MessageLog = undefined;
@@ -67,7 +67,7 @@ function init() {
 
 	document.body.appendChild(stats.dom);
 
-	socket.onInit((dungeon: Crawl.CensoredDungeon) => {
+	socket.onInit((dungeon: CensoredDungeon) => {
 		console.info("init");
 
 		state.setState({
@@ -91,11 +91,11 @@ function init() {
 		inputHandler.awaitingMove = true;
 	});
 
-	socket.onGraphics((key: string, graphics: Graphics.EntityGraphics) => {
+	socket.onGraphics((key: string, graphics: EntityGraphics) => {
 		EntityLayer.entityGraphicsCache.set(key, graphics);
 	});
 
-	socket.onUpdate(({stateUpdate, log, move}: Client.UpdateMessage) => {
+	socket.onUpdate(({stateUpdate, log, move}: UpdateMessage) => {
 		let updates: Processable[] = log;
 
 		console.info("update");
@@ -131,7 +131,7 @@ function init() {
 	dungeonLayer = new DungeonLayer(tweenHandler);
 	gameContainer.addChild(dungeonLayer);
 
-	// minimap = new MiniMap(300, 200);
+	// minimap = new MiniFloorMap(300, 200);
 	// minimap.x = 50;
 	// minimap.y = 50;
 	// gameContainer.addChild(minimap);
@@ -282,7 +282,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 		switch (proc.type) {
 			case "done":
 				console.log("done");
-				let doneEvent = proc as { type: "done", move: boolean, state: Client.StateUpdate };
+				let doneEvent = proc as { type: "done", move: boolean, state: StateUpdate };
 
 				doneEvent.state.floor.mapUpdates.forEach((update) => {
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
@@ -397,7 +397,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				return done();
 
 			case "start":
-				let startEvent = proc as Crawl.StartLogEvent;
+				let startEvent = proc as StartLogEvent;
 
 				state.getState().floor.number = startEvent.floorInformation.number;
 				state.getState().floor.map.width = startEvent.floorInformation.width;
@@ -411,7 +411,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				state.getState().floor.map.grid =
 					utils.tabulate((row) =>
 						utils.tabulate((col) =>
-							({ type: Crawl.DungeonTileType.UNKNOWN }),
+							({ type: DungeonTileType.UNKNOWN }),
 							startEvent.floorInformation.width),
 						startEvent.floorInformation.height);
 
@@ -433,7 +433,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "move":
-				let getMovePromise = (evt: Crawl.MoveLogEvent) =>
+				let getMovePromise = (evt: MoveLogEvent) =>
 					dungeonLayer.moveEntity(
 						evt.entity,
 						evt.start,
@@ -450,7 +450,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				while (processes.length > 0) {
 					if (processes[0].type === "move") {
-						movePromises.push(getMovePromise(processes.shift() as Crawl.MoveLogEvent));
+						movePromises.push(getMovePromise(processes.shift() as MoveLogEvent));
 					} else if (processes[0].type === "done" || processes[0].type === "item_pickup") {
 						deferred.push(processes.shift());
 					} else {
@@ -464,7 +464,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "attack":
-				let attackEvent = proc as Crawl.AttackLogEvent;
+				let attackEvent = proc as AttackLogEvent;
 
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> used <attack>%3$s</attack>!",
 					attackEvent.entity.id === state.getState().self.id ? "self" : "enemy",
@@ -478,7 +478,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "stat":
-				let statEvent = proc as Crawl.StatLogEvent;
+				let statEvent = proc as StatLogEvent;
 
 				switch (statEvent.stat) {
 					case "hp":
@@ -519,7 +519,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "miss":
-				let missEvent = proc as Crawl.MissLogEvent;
+				let missEvent = proc as MissLogEvent;
 
 				messageLog.push(sprintf("The attack missed <%1$s>%2$s</%1$s>!",
 					missEvent.entity.id === state.getState().self.id ? "self" : "enemy",
@@ -528,7 +528,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "defeat":
-				let defeatEvent = proc as Crawl.DefeatLogEvent;
+				let defeatEvent = proc as DefeatLogEvent;
 
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> was defeated!",
 					defeatEvent.entity.id === state.getState().self.id ? "self" : "enemy",
@@ -539,7 +539,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "stairs":
-				let stairsEvent = proc as Crawl.StairsLogEvent;
+				let stairsEvent = proc as StairsLogEvent;
 
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> went up the stairs!",
 					stairsEvent.entity.id === state.getState().self.id ? "self" : "enemy",
@@ -555,14 +555,14 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "message":
-				let messageEvent = proc as Crawl.MessageLogEvent;
+				let messageEvent = proc as MessageLogEvent;
 
 				messageLog.push(messageEvent.message);
 				done();
 				break;
 
 			case "item_pickup":
-				let itemPickupEvent = proc as Crawl.ItemPickupLogEvent;
+				let itemPickupEvent = proc as ItemPickupLogEvent;
 
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> picked up the <item>%3$s</item>.",
 					itemPickupEvent.entity.id === state.getState().self.id ? "self" : "enemy",
@@ -572,7 +572,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "item_drop":
-				let itemDropEvent = proc as Crawl.ItemDropLogEvent;
+				let itemDropEvent = proc as ItemDropLogEvent;
 
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> dropped the <item>%3$s</item>.",
 					itemDropEvent.entity.id === state.getState().self.id ? "self" : "enemy",

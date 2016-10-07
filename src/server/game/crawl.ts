@@ -15,15 +15,15 @@ import {sprintf}            from "sprintf-js";
  * @return A promise for a concluded crawl.
  */
 export function startCrawl(
-	dungeon: Crawl.Dungeon,
-	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.ConcludedCrawlState> {
+	dungeon: Dungeon,
+	entities: UnplacedCrawlEntity[]): Promise<ConcludedCrawlState> {
 	if (validateDungeonBlueprint(dungeon)) {
 		return advanceToFloor(dungeon, 1, entities)
 			.then((state) => {
 				if (utils.isCrawlOver(state)) {
 					return Promise.resolve(state);
 				} else {
-					return step(state as Crawl.InProgressCrawlState);
+					return step(state as InProgressCrawlState);
 				}
 			});
 	} else {
@@ -36,7 +36,7 @@ export function startCrawl(
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlState> {
+function step(state: InProgressCrawlState): Promise<ConcludedCrawlState> {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
@@ -49,7 +49,7 @@ function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlSt
 	}
 
 	return entity.controller.getAction(censoredState, entity)
-		.then((action: Crawl.Action) => {
+		.then((action: Action) => {
 			return execute(state, entity, action)
 				.then((newState) => {
 					if (!state.entities.some((entity) => entity.advances)) {
@@ -82,8 +82,8 @@ function step(state: Crawl.InProgressCrawlState): Promise<Crawl.ConcludedCrawlSt
  */
 function checkItems(
 	hook: ItemHook,
-	entity: Crawl.CrawlEntity,
-	state: Crawl.InProgressCrawlState,
+	entity: CrawlEntity,
+	state: InProgressCrawlState,
 	condition: () => boolean): void {
 	if (entity.items.bag !== undefined) {
 		for (let item of entity.items.bag.items) {
@@ -111,7 +111,7 @@ function checkItems(
  * @param state - The state.
  * @return The next entity to move.
  */
-function nextEntity(state: Crawl.InProgressCrawlState): Crawl.CrawlEntity {
+function nextEntity(state: InProgressCrawlState): CrawlEntity {
 	let next = state.entities.shift();
 	state.entities.push(next);
 	return next;
@@ -122,7 +122,7 @@ function nextEntity(state: Crawl.InProgressCrawlState): Crawl.CrawlEntity {
  * @param dungeon - The dungeon whose blueprint should be verified.
  * @return Whether or not the dungeon has a legal blueprint.
  */
-function validateDungeonBlueprint(dungeon: Crawl.Dungeon): boolean {
+function validateDungeonBlueprint(dungeon: Dungeon): boolean {
 	if (dungeon.blueprint.length === 0) {
 		return false;
 	}
@@ -155,9 +155,9 @@ function validateDungeonBlueprint(dungeon: Crawl.Dungeon): boolean {
  * @return An in-progress crawl state with the given entities performing a crawl on the given floor.
  */
 function advanceToFloor(
-	dungeon: Crawl.Dungeon,
+	dungeon: Dungeon,
 	floor: number,
-	entities: Crawl.UnplacedCrawlEntity[]): Promise<Crawl.CrawlState> {
+	entities: UnplacedCrawlEntity[]): Promise<CrawlState> {
 	if (floor > dungeon.blueprint[dungeon.blueprint.length - 1].range[1]) {
 		return Promise.resolve({
 			dungeon: dungeon,
@@ -169,7 +169,7 @@ function advanceToFloor(
 		return generator.generateFloor(dungeon, floor, blueprint, entities)
 			.then((state) => {
 				state.entities.forEach((entity) => {
-					updateMap(state, entity);
+					updateFloorMap(state, entity);
 
 					entity.controller.pushEvent({
 						type: "start",
@@ -200,7 +200,7 @@ function advanceToFloor(
  * @param floor - The floor number whose blueprint should be retreived.
  * @return The floor blueprint for the given floor in the given dungeon.
  */
-function getFloorBlueprint(dungeon: Crawl.Dungeon, floor: number): Crawl.FloorBlueprint {
+function getFloorBlueprint(dungeon: Dungeon, floor: number): FloorBlueprint {
 	if (floor < 0 || floor > dungeon.floors) {
 		throw new RangeError(sprintf("[Code 2] Floor %d is out of range for dungeon '%s'.", floor, dungeon.name));
 	}
@@ -253,8 +253,8 @@ function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
  * @return The given state censored for the given entity.
  */
 function getCensoredState(
-	state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity): Crawl.CensoredEntityCrawlState {
+	state: InProgressCrawlState,
+	entity: CrawlEntity): CensoredEntityCrawlState {
 	return makeReadOnly({
 		self: censorSelf(entity),
 		dungeon: {
@@ -268,10 +268,10 @@ function getCensoredState(
 			number: state.floor.number,
 			map: entity.map
 		},
-		entities: state.entities.filter((ent: Crawl.CrawlEntity) =>
+		entities: state.entities.filter((ent: CrawlEntity) =>
 			utils.isVisible(state.floor.map, entity.location, ent.location)).map((ent) =>
 				ent.alignment === entity.alignment ? censorSelf(ent) : censorEntity(ent)),
-		items: state.items.filter((item: Crawl.CrawlItem) =>
+		items: state.items.filter((item: CrawlItem) =>
 			utils.isVisible(state.floor.map, entity.location, item.location))
 	});
 }
@@ -281,7 +281,7 @@ function getCensoredState(
  * @param entity - The entity to censor.
  * @return The censored entity.
  */
-function censorEntity(entity: Crawl.CrawlEntity): Crawl.CensoredCrawlEntity {
+function censorEntity(entity: CrawlEntity): CensoredCrawlEntity {
 	return {
 		id: entity.id,
 		name: entity.name,
@@ -302,7 +302,7 @@ function censorEntity(entity: Crawl.CrawlEntity): Crawl.CensoredCrawlEntity {
  * @param entity - The entity to censor.
  * @return The censored entity.
  */
-function censorSelf(entity: Crawl.CrawlEntity): Crawl.CensoredSelfCrawlEntity {
+function censorSelf(entity: CrawlEntity): CensoredSelfCrawlEntity {
 	return {
 		id: entity.id,
 		name: entity.name,
@@ -325,15 +325,15 @@ function censorSelf(entity: Crawl.CrawlEntity): Crawl.CensoredSelfCrawlEntity {
  * @return Whether or not the action is legal.
  */
 export function isValidAction(
-	state: Crawl.CensoredInProgressCrawlState,
-	entity: Crawl.CrawlEntity,
-	action: Crawl.Action): boolean {
+	state: CensoredInProgressCrawlState,
+	entity: CrawlEntity,
+	action: Action): boolean {
 	switch (action.type) {
 		case "wait":
 			return true;
 
 		case "move":
-			return isValidMove(state, entity, (action as Crawl.MoveAction).direction);
+			return isValidMove(state, entity, (action as MoveAction).direction);
 
 		case "attack":
 			return true;
@@ -355,26 +355,26 @@ export function isValidAction(
  * @return A promise for a crawl state after the action was executed.
  */
 function execute(
-	state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity,
-	action: Crawl.Action): Promise<Crawl.CrawlState> {
-	let result: Promise<Crawl.CrawlState> = undefined;
+	state: InProgressCrawlState,
+	entity: CrawlEntity,
+	action: Action): Promise<CrawlState> {
+	let result: Promise<CrawlState> = undefined;
 
 	switch (action.type) {
 		case "move":
-			result = executeMove(state, entity, action as Crawl.MoveAction);
+			result = executeMove(state, entity, action as MoveAction);
 			break;
 
 		case "attack":
-			result = executeAttack(state, entity, action as Crawl.AttackAction);
+			result = executeAttack(state, entity, action as AttackAction);
 			break;
 
 		case "item":
-			result = executeItem(state, entity, action as Crawl.ItemAction);
+			result = executeItem(state, entity, action as ItemAction);
 			break;
 
 		case "stairs":
-			result = executeStairs(state, entity, action as Crawl.StairsAction);
+			result = executeStairs(state, entity, action as StairsAction);
 			break;
 
 		default:
@@ -391,13 +391,13 @@ function execute(
  * @param entity - The last entity to perform an action.
  * @return The state after these checks.
  */
-function postExecute(state: Crawl.CrawlState,
-	entity: Crawl.CrawlEntity): Crawl.CrawlState {
+function postExecute(state: CrawlState,
+	entity: CrawlEntity): CrawlState {
 	if (utils.isCrawlOver(state)) {
 		return state;
 	}
 
-	let newState = state as Crawl.InProgressCrawlState;
+	let newState = state as InProgressCrawlState;
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
 		.forEach((entity) =>
@@ -420,7 +420,7 @@ function postExecute(state: Crawl.CrawlState,
 		});
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
-	newState.entities.forEach((entity) => updateMap(newState, entity));
+	newState.entities.forEach((entity) => updateFloorMap(newState, entity));
 
 	entity.controller.updateState(getCensoredState(newState, entity));
 
@@ -435,9 +435,9 @@ function postExecute(state: Crawl.CrawlState,
  * @return A promise for the state after performing the action.
  */
 function executeMove(
-	state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity,
-	action: Crawl.MoveAction): Promise<Crawl.CrawlState> {
+	state: InProgressCrawlState,
+	entity: CrawlEntity,
+	action: MoveAction): Promise<CrawlState> {
 	let start = entity.location;
 
 	if (!isValidMove(state, entity, action.direction)) {
@@ -471,9 +471,9 @@ function executeMove(
  * @param action - The action.
  * @return A promise for the state after performing the action.
  */
-function executeItemPickup(state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity): Promise<Crawl.CrawlState> {
-	let item = utils.getItemAtLocation(state, entity.location);
+function executeItemPickup(state: InProgressCrawlState,
+	entity: CrawlEntity): Promise<CrawlState> {
+	let item = utils.getItemAtCrawlLocation(state, entity.location);
 
 	if (item !== undefined) {
 		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
@@ -508,15 +508,15 @@ function executeItemPickup(state: Crawl.InProgressCrawlState,
  * @return A promise for the state after performing the action.
  */
 function executeItemDrop(
-	state: Crawl.InProgressCrawlState,
-	location: Crawl.Location,
-	item: Item): Promise<Crawl.CrawlState> {
+	state: InProgressCrawlState,
+	location: CrawlLocation,
+	item: Item): Promise<CrawlState> {
 	let loc = { r: location.r, c: location.c };
 	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
 		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
 			for (let j = 0; j < 2 * i + di; j++) {
-				if (utils.getTile(state.floor.map, loc).type === Crawl.DungeonTileType.FLOOR
-					&& utils.getItemAtLocation(state, loc) === undefined) {
+				if (utils.getTile(state.floor.map, loc).type === DungeonTileType.FLOOR
+					&& utils.getItemAtCrawlLocation(state, loc) === undefined) {
 					let crawlItem = Object.assign(item, { location: loc });
 					state.items.push(crawlItem);
 					return;
@@ -536,26 +536,26 @@ function executeItemDrop(
  * @return Whether or not the action is legal.
  */
 function isValidMove(
-	state: Crawl.CensoredInProgressCrawlState,
-	entity: Crawl.CrawlEntity,
+	state: CensoredInProgressCrawlState,
+	entity: CrawlEntity,
 	direction: number): boolean {
 	let offset: [number, number] = utils.decodeDirection(direction);
 	let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
 
-	if (!utils.isLocationInMap(state.floor.map, location)) {
+	if (!utils.isCrawlLocationInFloorMap(state.floor.map, location)) {
 		return false;
 	}
 
-	if (!utils.isLocationEmpty(state, location)) {
+	if (!utils.isCrawlLocationEmpty(state, location)) {
 		return false;
 	}
 
-	if (state.floor.map.grid[location.r][location.c].type === Crawl.DungeonTileType.WALL) {
+	if (state.floor.map.grid[location.r][location.c].type === DungeonTileType.WALL) {
 		return false;
 	}
 
-	let startInCooridor = !utils.isLocationInRoom(state.floor.map, entity.location);
-	let endInCooridor = !utils.isLocationInRoom(state.floor.map, location);
+	let startInCooridor = !utils.isCrawlLocationInRoom(state.floor.map, entity.location);
+	let endInCooridor = !utils.isCrawlLocationInRoom(state.floor.map, location);
 
 	if (direction % 2 === 1 && (startInCooridor || endInCooridor)) {
 		return false;
@@ -572,9 +572,9 @@ function isValidMove(
  * @return A promise for the state after performing the action.
  */
 function executeAttack(
-	state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity,
-	action: Crawl.AttackAction): Promise<Crawl.CrawlState> {
+	state: InProgressCrawlState,
+	entity: CrawlEntity,
+	action: AttackAction): Promise<CrawlState> {
 	propagateLogEvent(state, {
 		type: "attack",
 		entity: {
@@ -603,10 +603,10 @@ function executeAttack(
  * @return A list of crawl entities targeted by the attack.
  */
 function getTargets(
-	state: Crawl.InProgressCrawlState,
-	attacker: Crawl.CrawlEntity,
+	state: InProgressCrawlState,
+	attacker: CrawlEntity,
 	direction: number,
-	selector: TargetSelector): Crawl.CrawlEntity[] {
+	selector: TargetSelector): CrawlEntity[] {
 	switch (selector.type) {
 		case "self":
 			return [attacker];
@@ -622,11 +622,11 @@ function getTargets(
 
 			if (direction % 2 === 1 &&
 				!(selector as FrontTargetSelector).cutsCorners &&
-				(!utils.isLocationInRoom(state.floor.map, attacker.location)
-					|| !utils.isLocationInRoom(state.floor.map, location))) {
+				(!utils.isCrawlLocationInRoom(state.floor.map, attacker.location)
+					|| !utils.isCrawlLocationInRoom(state.floor.map, location))) {
 				return [];
 			}
-			return state.entities.filter((entity) => utils.areLocationsEqual(entity.location, location));
+			return state.entities.filter((entity) => utils.areCrawlLocationsEqual(entity.location, location));
 
 		case "room":
 			let room = state.floor.map.grid[attacker.location.r][attacker.location.c].roomId;
@@ -654,10 +654,10 @@ function getTargets(
  * @param defender - The defending entity.
  */
 function applyAttack(
-	state: Crawl.InProgressCrawlState,
+	state: InProgressCrawlState,
 	attack: Attack,
-	attacker: Crawl.CrawlEntity,
-	defender: Crawl.CrawlEntity): void {
+	attacker: CrawlEntity,
+	defender: CrawlEntity): void {
 	if (attack.accuracy !== "always" && Math.random() * 100 > attack.accuracy) {
 		propagateLogEvent(state, {
 			type: "miss",
@@ -760,9 +760,9 @@ function getModifiedStat(stat: BaseModifierStat): number {
  * @return A promise for the state after performing the action.
  */
 function executeItem(
-	state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity,
-	action: Crawl.ItemAction): Promise<Crawl.CrawlState> {
+	state: InProgressCrawlState,
+	entity: CrawlEntity,
+	action: ItemAction): Promise<CrawlState> {
 	let item: Item;
 	let held: boolean;
 
@@ -843,9 +843,9 @@ function executeItem(
  * @param action - The action.
  * @return The promise for the state after performing the action.
  */
-function executeStairs(state: Crawl.InProgressCrawlState,
-	entity: Crawl.CrawlEntity,
-	action: Crawl.StairsAction): Promise<Crawl.CrawlState> {
+function executeStairs(state: InProgressCrawlState,
+	entity: CrawlEntity,
+	action: StairsAction): Promise<CrawlState> {
 	if (state.floor.map.grid[entity.location.r][entity.location.c].stairs) {
 		propagateLogEvent(state, {
 			type: "stairs",
@@ -872,15 +872,15 @@ function executeStairs(state: Crawl.InProgressCrawlState,
  * @param state - The state.
  * @param event - The event.
  */
-export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Crawl.LogEvent): void {
+export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent): void {
 	switch (event.type) {
 		case "wait":
 		case "attack":
 		case "stat":
 		case "miss":
-			let evt: Crawl.Locatable = event as
-				Crawl.WaitLogEvent | Crawl.AttackLogEvent | Crawl.StatLogEvent | Crawl.MissLogEvent as
-				Crawl.Locatable;
+			let evt: Locatable = event as
+				WaitLogEvent | AttackLogEvent | StatLogEvent | MissLogEvent as
+				Locatable;
 
 			state.entities.forEach((entity) => {
 				if (utils.isVisible(state.floor.map, entity.location, evt.location)) {
@@ -892,7 +892,7 @@ export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Craw
 
 
 		case "move":
-			let moveEvent = event as Crawl.MoveLogEvent;
+			let moveEvent = event as MoveLogEvent;
 
 			state.entities.forEach((entity) => {
 				if (utils.isVisible(state.floor.map, entity.location, moveEvent.start)
@@ -918,20 +918,20 @@ export function propagateLogEvent(state: Crawl.InProgressCrawlState, event: Craw
  * @param state - The state.
  * @param entity - The entity.
  */
-function updateMap(state: Crawl.InProgressCrawlState, entity: Crawl.CrawlEntity): void {
+function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void {
 	let changed = false;
 
 	let {r, c} = entity.location;
 
 	utils.withinNSteps(2, entity.location, (loc) => {
-		if (utils.isLocationInMap(state.floor.map, loc)
+		if (utils.isCrawlLocationInFloorMap(state.floor.map, loc)
 			&& utils.getTile(state.floor.map, loc) !== utils.getTile(entity.map, loc)) {
 			entity.map.grid[loc.r][loc.c] = state.floor.map.grid[loc.r][loc.c];
 			changed = true;
 		}
 	});
 
-	if (utils.isLocationInRoom(state.floor.map, entity.location) && changed) {
+	if (utils.isCrawlLocationInRoom(state.floor.map, entity.location) && changed) {
 		for (let i = 0; i < state.floor.map.height; i++) {
 			for (let j = 0; j < state.floor.map.width; j++) {
 				if (utils.isVisible(state.floor.map, entity.location, { r: i, c: j })) {

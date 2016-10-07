@@ -32,71 +32,71 @@ export function testUtils(): void {
 				test.error(() => utils.decodeDirection(3.14)));
 		});
 
-		describe("areLocationsEqual()", () => {
+		describe("areCrawlLocationsEqual()", () => {
 			it("should accept equal valid locations", () =>
-				test.eq(utils.areLocationsEqual({ r: 3, c: 8 }, { r: 3, c: 8 }), true));
+				test.eq(utils.areCrawlLocationsEqual({ r: 3, c: 8 }, { r: 3, c: 8 }), true));
 			it("should accept equal invalid locations", () =>
-				test.eq(utils.areLocationsEqual({ r: -6, c: 2.2 }, { r: -6, c: 2.2 }), true));
+				test.eq(utils.areCrawlLocationsEqual({ r: -6, c: 2.2 }, { r: -6, c: 2.2 }), true));
 			it("should reject unequal valid locations", () =>
-				test.eq(utils.areLocationsEqual({ r: 3, c: 8 }, { r: 1, c: 2 }), false));
+				test.eq(utils.areCrawlLocationsEqual({ r: 3, c: 8 }, { r: 1, c: 2 }), false));
 			it("should reject unequal invalid locations", () =>
-				test.eq(utils.areLocationsEqual({ r: 3.14, c: -5 }, { r: -4, c: 2.17 }), false));
+				test.eq(utils.areCrawlLocationsEqual({ r: 3.14, c: -5 }, { r: -4, c: 2.17 }), false));
 		});
 
-		describe("getEntityAtLocation()", () => {
+		describe("getEntityAtCrawlLocation()", () => {
 			it("should return the entity at the location if there is one", () =>
-				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 3, c: 7 }), data.entity1));
+				test.eq(utils.getEntityAtCrawlLocation(data.inProgressState, { r: 3, c: 7 }), data.entity1));
 			it("should return the entity at the location if there is one", () =>
-				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 15, c: 3 }), data.entity2));
+				test.eq(utils.getEntityAtCrawlLocation(data.inProgressState, { r: 15, c: 3 }), data.entity2));
 			it("should return the entity at the location if there is one", () =>
-				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 13, c: 15 }), data.entity3));
+				test.eq(utils.getEntityAtCrawlLocation(data.inProgressState, { r: 13, c: 15 }), data.entity3));
 			it("should return undefined if there is no entity at the location", () =>
-				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 0, c: 0 }), undefined));
+				test.eq(utils.getEntityAtCrawlLocation(data.inProgressState, { r: 0, c: 0 }), undefined));
 			it("should return undefined if there is no entity at the location", () =>
-				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 12, c: 2 }), undefined));
+				test.eq(utils.getEntityAtCrawlLocation(data.inProgressState, { r: 12, c: 2 }), undefined));
 			it("should return undefined if the location is invalid", () =>
-				test.eq(utils.getEntityAtLocation(data.inProgressState, { r: 1.2, c: -1 }), undefined));
+				test.eq(utils.getEntityAtCrawlLocation(data.inProgressState, { r: 1.2, c: -1 }), undefined));
 		});
 
-		describe("getItemAtLocation()", () => {
+		describe("getItemAtCrawlLocation()", () => {
 			it("should return the item at the location if there is one", () =>
-				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 12, c: 16 }), data.item4));
+				test.eq(utils.getItemAtCrawlLocation(data.inProgressState, { r: 12, c: 16 }), data.item4));
 			it("should return the item at the location if there is one", () =>
-				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 2, c: 6 }), data.item3));
+				test.eq(utils.getItemAtCrawlLocation(data.inProgressState, { r: 2, c: 6 }), data.item3));
 			it("should return undefined if there is no item at the given location", () =>
-				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 4, c: 12 }), undefined));
+				test.eq(utils.getItemAtCrawlLocation(data.inProgressState, { r: 4, c: 12 }), undefined));
 			it("should return undefined if there is no item at the given location", () =>
-				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 8, c: 8 }), undefined));
+				test.eq(utils.getItemAtCrawlLocation(data.inProgressState, { r: 8, c: 8 }), undefined));
 			it("should return undefined if the location is invalid", () =>
-				test.eq(utils.getItemAtLocation(data.inProgressState, { r: 0.5, c: -12 }), undefined));
+				test.eq(utils.getItemAtCrawlLocation(data.inProgressState, { r: 0.5, c: -12 }), undefined));
 		});
 
-		describe("isLocationEmpty()", () => {
+		describe("isCrawlLocationEmpty()", () => {
 			it("should return false if there is an entity in the location", () =>
-				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 3, c: 7 }), false));
+				test.eq(utils.isCrawlLocationEmpty(data.inProgressState, { r: 3, c: 7 }), false));
 			it("should return false if there is an entity in the location", () =>
-				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 15, c: 3 }), false));
+				test.eq(utils.isCrawlLocationEmpty(data.inProgressState, { r: 15, c: 3 }), false));
 			it("should return false if there is an entity in the location", () =>
-				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 13, c: 15 }), false));
+				test.eq(utils.isCrawlLocationEmpty(data.inProgressState, { r: 13, c: 15 }), false));
 			it("should return true if there is no entity at the location", () =>
-				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 0, c: 0 }), true));
+				test.eq(utils.isCrawlLocationEmpty(data.inProgressState, { r: 0, c: 0 }), true));
 			it("should return true if there is no entity at the location", () =>
-				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 12, c: 2 }), true));
+				test.eq(utils.isCrawlLocationEmpty(data.inProgressState, { r: 12, c: 2 }), true));
 			it("should return true if there is no entity at the location", () =>
-				test.eq(utils.isLocationEmpty(data.inProgressState, { r: 1.2, c: -1 }), true));
+				test.eq(utils.isCrawlLocationEmpty(data.inProgressState, { r: 1.2, c: -1 }), true));
 		});
 
-		describe("isLocationInMap()", () => {
+		describe("isCrawlLocationInFloorMap()", () => {
 			it("should accept in-bounds locations", () =>
-				test.eq(utils.isLocationInMap(data.map, { r: 4, c: 12 }), true));
+				test.eq(utils.isCrawlLocationInFloorMap(data.map, { r: 4, c: 12 }), true));
 			it("should reject locations with a row that is too high", () =>
-				test.eq(utils.isLocationInMap(data.map, { r: 20, c: 8 }), false));
+				test.eq(utils.isCrawlLocationInFloorMap(data.map, { r: 20, c: 8 }), false));
 			it("should reject locations with a column that is too high", () =>
-				test.eq(utils.isLocationInMap(data.map, { r: 4, c: 22 }), false));
+				test.eq(utils.isCrawlLocationInFloorMap(data.map, { r: 4, c: 22 }), false));
 			it("should reject locations with a row that is too low", () =>
-				test.eq(utils.isLocationInMap(data.map, { r: -2, c: 4 }), false));
+				test.eq(utils.isCrawlLocationInFloorMap(data.map, { r: -2, c: 4 }), false));
 			it("should reject locations with a column that is too low", () =>
-				test.eq(utils.isLocationInMap(data.map, { r: 0, c: -1 }), false));
+				test.eq(utils.isCrawlLocationInFloorMap(data.map, { r: 0, c: -1 }), false));
 		});
 
 		describe("isCrawlOver()", () => {
@@ -167,7 +167,7 @@ export function testUtils(): void {
 				test.eq(utils.distance({ r: -1, c: 2.3 }, { r: 3.2, c: -9 }), 11.3));
 		});
 
-		// Tests for printMap omitted
+		// Tests for printFloorMap omitted
 
 		// Tests for printState omitted
 
@@ -195,23 +195,23 @@ export function testUtils(): void {
 				test.eq(utils.tabulate((i) => "sub".substring(i), 4), ["sub", "ub", "b", ""]));
 		});
 
-		describe("isLocationInRoom()", () => {
+		describe("isCrawlLocationInRoom()", () => {
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 2, c: 6 }), true));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 2, c: 6 }), true));
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 3, c: 9 }), true));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 3, c: 9 }), true));
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 15, c: 6 }), true));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 15, c: 6 }), true));
 			it("should accept a location that is in a room", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 15, c: 17 }), true));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 15, c: 17 }), true));
 			it("should reject locations that are not in rooms", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 10, c: 2 }), false));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 10, c: 2 }), false));
 			it("should reject locations that are not in rooms", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 0, c: 0 }), false));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 0, c: 0 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: -3, c: 2 }), false));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: -3, c: 2 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.isLocationInRoom(data.map, { r: 2.4, c: 3.5 }), false));
+				test.eq(utils.isCrawlLocationInRoom(data.map, { r: 2.4, c: 3.5 }), false));
 		});
 
 		describe("inSameRoom()", () => {
@@ -249,15 +249,15 @@ export function testUtils(): void {
 				test.eq(utils.isVisible(data.map, { r: 0, c: 0 }, { r: -1, c: 0 }), false));
 		});
 
-		describe("isValidLocation()", () => {
+		describe("isValidCrawlLocation()", () => {
 			it("should accept locations that are valid", () =>
-				test.eq(utils.isValidLocation({ r: 0, c: 0 }), true));
+				test.eq(utils.isValidCrawlLocation({ r: 0, c: 0 }), true));
 			it("should accept locations that are valid", () =>
-				test.eq(utils.isValidLocation({ r: 15150, c: 15251 }), true));
+				test.eq(utils.isValidCrawlLocation({ r: 15150, c: 15251 }), true));
 			it("should reject locations with a negative coordinate", () =>
-				test.eq(utils.isValidLocation({ r: -3, c: 0 }), false));
+				test.eq(utils.isValidCrawlLocation({ r: -3, c: 0 }), false));
 			it("should reject locations with a decimal coordinate", () =>
-				test.eq(utils.isValidLocation({ r: 2, c: 3.14 }), false));
+				test.eq(utils.isValidCrawlLocation({ r: 2, c: 3.14 }), false));
 		});
 
 		describe("areAligned()", () => {
@@ -275,9 +275,9 @@ export function testUtils(): void {
 			it("should return the tile at the given location", () =>
 				test.eq(utils.getTile(data.map, { r: 0, c: 0 }), data.map.grid[0][0]));
 			it("should return an unknown tile if the location is outside the map", () =>
-				test.eq(utils.getTile(data.map, { r: 25, c: 10 }), { type: Crawl.DungeonTileType.UNKNOWN }));
+				test.eq(utils.getTile(data.map, { r: 25, c: 10 }), { type: DungeonTileType.UNKNOWN }));
 			it("should return an unknown tile if the location is outside the map", () =>
-				test.eq(utils.getTile(data.map, { r: 1.2, c: -1 }), { type: Crawl.DungeonTileType.UNKNOWN }));
+				test.eq(utils.getTile(data.map, { r: 1.2, c: -1 }), { type: DungeonTileType.UNKNOWN }));
 		});
 
 		describe("locationToCoordinates()", () => {
@@ -308,7 +308,7 @@ export function testUtils(): void {
 							return;
 						}
 					}
-					throw new Error(`Location (${loc.r}, ${loc.c}) should not get checked`);
+					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
 				});
 
 				if (Object.keys(locations).length > 0) {
@@ -334,7 +334,7 @@ export function testUtils(): void {
 							return;
 						}
 					}
-					throw new Error(`Location (${loc.r}, ${loc.c}) should not get checked`);
+					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
 				});
 
 				if (Object.keys(locations).length > 0) {
@@ -362,7 +362,7 @@ export function testUtils(): void {
 							return;
 						}
 					}
-					throw new Error(`Location (${loc.r}, ${loc.c}) should not get checked`);
+					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
 				});
 
 				if (Object.keys(locations).length > 0) {
@@ -388,7 +388,7 @@ export function testUtils(): void {
 							return;
 						}
 					}
-					throw new Error(`Location (${loc.r}, ${loc.c}) should not get checked`);
+					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
 				});
 
 				if (Object.keys(locations).length > 0) {

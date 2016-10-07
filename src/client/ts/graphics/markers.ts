@@ -1,6 +1,6 @@
 "use strict";
 
-export const STATUS_STAT_DOWN: Graphics.AnimatedGraphicsObject = {
+export const STATUS_STAT_DOWN: AnimatedGraphicsObject = {
 	type: "animated",
 	base: "status",
 	animations: {

@@ -26,7 +26,7 @@ export class GroundLayer extends PIXI.Container {
 		this.roomBounds = new Map();
 	}
 
-	update(location: Crawl.Location) {
+	update(location: CrawlLocation) {
 		let roomId = utils.getTile(state.getState().floor.map, location).roomId;
 
 		if (roomId > 0) {
@@ -60,7 +60,7 @@ export class GroundLayer extends PIXI.Container {
 		}
 	}
 
-	moveTo(loc: Crawl.Location): Thenable {
+	moveTo(loc: CrawlLocation): Thenable {
 		let [x, y] = utils.locationToCoordinates(loc, Constants.GRID_SIZE);
 
 		let xPrm = this.tweenHandler.tween(this, "x", -x, Constants.VIEW_MOVE_VELOCITY, "smooth");
@@ -69,15 +69,15 @@ export class GroundLayer extends PIXI.Container {
 		return Promise.all([xPrm, yPrm]);
 	}
 
-	private getFloorTile(map: Crawl.Map,
-		loc: Crawl.Location,
-		graphics: Graphics.DungeonGraphics): PIXI.DisplayObject | void {
+	private getFloorTile(map: FloorMap,
+		loc: CrawlLocation,
+		graphics: DungeonGraphics): PIXI.DisplayObject | void {
 		let canPlace: boolean = true;
 
 		utils.withinNSteps(1, loc, (location) =>
 			canPlace = canPlace &&
-				(!utils.isLocationInMap(map, location)
-				|| utils.getTile(map, location).type !== Crawl.DungeonTileType.UNKNOWN));
+				(!utils.isCrawlLocationInFloorMap(map, location)
+				|| utils.getTile(map, location).type !== DungeonTileType.UNKNOWN));
 
 		if (!canPlace) {
 			return undefined;
@@ -87,7 +87,7 @@ export class GroundLayer extends PIXI.Container {
 			return this.generateGraphicsObject(graphics.base, graphics.stairs);
 		}
 
-		if (utils.getTile(map, loc).type === Crawl.DungeonTileType.FLOOR) {
+		if (utils.getTile(map, loc).type === DungeonTileType.FLOOR) {
 			return this.generateGraphicsObject(graphics.base, graphics.open);
 		}
 
@@ -99,8 +99,8 @@ export class GroundLayer extends PIXI.Container {
 			pattern <<= 1;
 			let [r, c] = [loc.r + dr, loc.c + dc];
 
-			if (utils.getTile(map, { r, c }).type === Crawl.DungeonTileType.WALL
-				|| !utils.isLocationInMap(map, { r, c })) {
+			if (utils.getTile(map, { r, c }).type === DungeonTileType.WALL
+				|| !utils.isCrawlLocationInFloorMap(map, { r, c })) {
 				pattern |= 1;
 			}
 		}
@@ -118,10 +118,10 @@ export class GroundLayer extends PIXI.Container {
 		this.roomBounds.clear();
 	}
 
-	generateGraphicsObject(base: string, obj: Graphics.GraphicsObject): PIXI.DisplayObject {
+	generateGraphicsObject(base: string, obj: GraphicsObject): PIXI.DisplayObject {
 		switch (obj.type) {
 			case "static":
-				let sgo: Graphics.StaticGraphicsObject = obj as Graphics.StaticGraphicsObject;
+				let sgo: StaticGraphicsObject = obj as StaticGraphicsObject;
 				let ret = new PIXI.Container();
 
 				sgo.frames.reverse().forEach((frame) => {
@@ -137,7 +137,7 @@ export class GroundLayer extends PIXI.Container {
 				return ret;
 
 			case "animated":
-				return new AnimatedSprite(base, obj as Graphics.AnimatedGraphicsObject);
+				return new AnimatedSprite(base, obj as AnimatedGraphicsObject);
 		}
 	}
 

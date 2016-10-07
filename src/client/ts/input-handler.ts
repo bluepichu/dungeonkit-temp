@@ -7,7 +7,7 @@ import {GameSocket}    from "./game-socket";
 import {isMobile}      from "./is-mobile";
 import * as Messages   from "./messages";
 import {MessageLog}    from "./message-log";
-import {MiniMap}       from "./minimap";
+import {MiniFloorMap}       from "./minimap";
 import * as state      from "./state";
 import * as utils      from "../../common/utils";
 
@@ -20,7 +20,7 @@ export interface InputHandler {
 export class KeyboardInputHandler implements InputHandler {
 	public awaitingMove: boolean;
 
-	private minimap: MiniMap;
+	private minimap: MiniFloorMap;
 	private inputTimer: number;
 	private moveInput: number;
 	private commandArea: CommandArea;
@@ -31,7 +31,7 @@ export class KeyboardInputHandler implements InputHandler {
 	constructor(
 		socket: GameSocket,
 		commandArea: CommandArea,
-		minimap: MiniMap,
+		minimap: MiniFloorMap,
 		dungeonLayer: DungeonLayer,
 		attackOverlay: AttackOverlay) {
 		this.awaitingMove = false;
