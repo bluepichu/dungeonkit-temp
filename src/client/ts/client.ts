@@ -441,7 +441,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						evt.entity.id === state.getState().self.id,
 						"walk",
 						evt.direction)
-						.then(() => dungeonLayer.entityLayer.setEntityAnimation(evt.entity.id, "idle"));
+						.then(() => dungeonLayer.entityLayer.setEntityAnimation(evt.entity.id, "default"));
 
 				let movePromises: Thenable[] = [];
 				let deferred: Processable[] = [];
@@ -472,7 +472,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					attackEvent.attack.name));
 
 				dungeonLayer.showAnimationOnce(attackEvent.entity.id, attackEvent.attack.animation, attackEvent.direction)
-					.then(() => dungeonLayer.entityLayer.setEntityAnimation(attackEvent.entity.id, "idle"))
+					.then(() => dungeonLayer.entityLayer.setEntityAnimation(attackEvent.entity.id, "default"))
 					.then(done);
 
 				break;
@@ -491,7 +491,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
+								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "default"))
 								.then(done);
 						} else {
 							messageLog.push(sprintf("<%1$s>%2$s</%1$s> recovered %3$d HP!",
@@ -500,7 +500,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.change));
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "idle"))
+								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "default"))
 								.then(done);
 						}
 						break;

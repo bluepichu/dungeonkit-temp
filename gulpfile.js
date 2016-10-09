@@ -10,7 +10,13 @@ let sorcery       = require("sorcery");
 
 let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
 
-const TS_CONFIG = {
+const SERVER_TS_CONFIG = {
+	target: "es6",
+	module: "commonjs",
+	moduleResolution: "node"
+};
+
+const CLIENT_TS_CONFIG = {
 	target: "es6",
 	moduleResolution: "node"
 };
@@ -49,7 +55,7 @@ gulp.task("client-html", () =>
 gulp.task("client-ts", () =>
 	gulp.src(src("{client/ts/**/*.ts,common/**/*.ts}"))
 	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(TS_CONFIG))
+	    .pipe($.typescript(CLIENT_TS_CONFIG))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe($.intermediate({ output: "out" }, (dir, cb) => {
 			rollup({
@@ -84,7 +90,7 @@ gulp.task("watch-server", () => {
 gulp.task("server", () =>
 	gulp.src(src("{server/**/*.ts,index.ts,common/**/*.ts}"))
 	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(TS_CONFIG))
+	    .pipe($.typescript(SERVER_TS_CONFIG))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe(gulp.dest(build("")).on("end", () => notify("The server is ready!"))));
 
@@ -95,7 +101,7 @@ gulp.task("watch-test", () => {
 gulp.task("test", () =>
 	gulp.src(test("**/*.ts"))
 	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(TS_CONFIG))
+	    .pipe($.typescript(SERVER_TS_CONFIG))
 	    .pipe($.replace("../../src/", "../../"))
 	    .pipe($.sourcemaps.write(map))
 	    .pipe(gulp.dest(build("test"))));

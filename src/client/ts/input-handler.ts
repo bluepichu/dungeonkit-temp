@@ -115,7 +115,7 @@ export class KeyboardInputHandler implements InputHandler {
 				let dir = inputToDirection(this.moveInput & 0b1111);
 
 				if (dir !== undefined) {
-					this.dungeonLayer.entityLayer.setEntityAnimation(state.getState().self.id, "idle", dir as number);
+					this.dungeonLayer.entityLayer.setEntityAnimation(state.getState().self.id, "default", dir as number);
 					if (rot) {
 						this.awaitingMove = true;
 					} else {
