@@ -91,7 +91,7 @@ function init() {
 		inputHandler.awaitingMove = true;
 	});
 
-	socket.onGraphics((key: string, graphics: EntityGraphics) => {
+	socket.onGraphics((key: string, graphics: EntityGraphicsDescriptor) => {
 		EntityLayer.entityGraphicsCache.set(key, graphics);
 	});
 

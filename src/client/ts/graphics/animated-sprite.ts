@@ -4,30 +4,28 @@ import * as Constants from "../constants";
 import {isMobile}     from "../is-mobile";
 
 export class AnimatedSprite extends PIXI.Container {
-	protected descriptor: AnimatedGraphicsObject;
+	protected descriptor: GraphicsObjectDescriptor;
 	private animation: string;
 	private step: number;
 	private frame: number;
-	protected base: string;
 	protected changed: boolean;
 	protected sprites: PIXI.Sprite[];
 	protected animationEndListeners: (() => any)[];
 
-	constructor(base: string, descriptor: AnimatedGraphicsObject) {
+	constructor(descriptor: GraphicsObjectDescriptor) {
 		super();
 		this.descriptor = descriptor;
-		this.animation = descriptor.default;
+		this.animation = "default";
 		this.step = 0;
 		this.frame = 0;
-		this.base = base;
 		this.changed = true;
 		this.animationEndListeners = [];
 
 		let spriteCount = 0;
 
 		for (let animation in this.descriptor.animations) {
-			this.descriptor.animations[animation].steps.forEach((step) => {
-				spriteCount = Math.max(spriteCount, step.frames.length);
+			this.descriptor.animations[animation].forEach((step) => {
+				spriteCount = Math.max(spriteCount, step.sprites.length);
 			});
 		}
 
@@ -64,17 +62,17 @@ export class AnimatedSprite extends PIXI.Container {
 
 	protected handleOffset(sprite: PIXI.Sprite, amount: number): void { }
 
-	protected getTexture(frame: Frame): PIXI.Texture {
-		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, frame.texture));
+	protected getTexture(sprite: SpriteDescriptor): PIXI.Texture {
+		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.descriptor.base, sprite.texture));
 	}
 
 	private prerender() {
 		this.frame++;
 
-		if (this.frame >= this.descriptor.animations[this.animation].steps[this.step].duration) {
+		if (this.frame >= this.descriptor.animations[this.animation][this.step].duration) {
 			this.frame = 0;
 			this.step++;
-			this.step %= this.descriptor.animations[this.animation].steps.length;
+			this.step %= this.descriptor.animations[this.animation].length;
 			this.changed = true;
 		}
 
@@ -87,25 +85,25 @@ export class AnimatedSprite extends PIXI.Container {
 			return;
 		}
 
-		let frames = this.descriptor.animations[this.animation].steps[this.step].frames;
+		let sprites = this.descriptor.animations[this.animation][this.step].sprites;
 
 		for (let i = 0; i < this.sprites.length; i++) {
-			if (i >= frames.length) {
+			if (i >= sprites.length) {
 				this.sprites[i].visible = false;
 			} else {
 				this.sprites[i].visible = true;
-				this.sprites[i].texture = this.getTexture(frames[i]);
+				this.sprites[i].texture = this.getTexture(sprites[i]);
 
 				this.sprites[i].width = this.sprites[i].texture.width;
 				this.sprites[i].height = this.sprites[i].texture.height;
 
-				this.sprites[i].x = -frames[i].anchor.x;
-				this.sprites[i].y = -frames[i].anchor.y;
+				this.sprites[i].x = -sprites[i].anchor.x;
+				this.sprites[i].y = -sprites[i].anchor.y;
 
-				this.prerenderLayer(this.sprites[i], frames[i]);
+				this.prerenderLayer(this.sprites[i], sprites[i]);
 
-				if (frames[i].offset !== undefined) {
-					this.handleOffset(this.sprites[i], frames[i].offset);
+				if (sprites[i].offset !== undefined) {
+					this.handleOffset(this.sprites[i], sprites[i].offset);
 				}
 			}
 		}
@@ -113,7 +111,7 @@ export class AnimatedSprite extends PIXI.Container {
 		this.changed = false;
 	}
 
-	protected prerenderLayer(layer: PIXI.Sprite, frame: Frame): void {
+	protected prerenderLayer(layer: PIXI.Sprite, sprite: SpriteDescriptor): void {
 		// do nothing
 	}
 

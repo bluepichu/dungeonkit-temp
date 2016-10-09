@@ -145,16 +145,22 @@ function std(pattern: number): DungeonTileSelector {
 	return {
 		pattern: pattern,
 		object: {
-			type: "static",
-			frames: [
-				{ texture: sprintf("wall-%02x", pattern), anchor: { x: 12, y: 5 } }
-			]
+			base: "dng-proto",
+			animations: {
+				"default": [
+					{
+						duration: 0,
+						sprites: [
+							{ texture: sprintf("wall-%02x", pattern), anchor: { x: 12, y: 5 } }
+						]
+					}
+				]
+			}
 		}
 	};
 }
 
-let dungeonGraphics: DungeonGraphics = {
-	base: "dng-proto",
+let dungeonGraphics: DungeonGraphicsDescriptor = {
 	walls: [
 		std(0xff), // surrounded
 		std(0x7f), // one direction open
@@ -182,12 +188,28 @@ let dungeonGraphics: DungeonGraphics = {
 		std(0x00)  // island
 	],
 	open: {
-		type: "static",
-		frames: [{ texture: "open", anchor: { x: 12, y: 5 } }]
+		base: "dng-proto",
+		animations: {
+			"default": [
+				{ 
+					duration: 0,
+					sprites: [{texture: "open", anchor: { x: 12, y: 5 } }]
+				}
+			]
+		}
 	},
 	stairs: {
-		type: "static",
-		frames: [{ texture: "stairs", anchor: { x: 12, y: 5 } }]
+		base: "dng-proto",
+		animations: {
+			"default": [
+				{
+					duration: 0,
+					sprites: [
+						{ texture: "stairs", anchor: { x: 12, y: 5 } }
+					]
+				}
+			]
+		}
 	}
 };
 
@@ -369,28 +391,46 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
-let seedGraphics: StaticGraphicsObject = {
-	type: "static",
+let seedGraphics: GraphicsObjectDescriptor = {
 	base: "item",
-	frames: [
-		{ texture: "seed", anchor: { x: 16, y: 16 } }
-	]
+	animations: {
+		"default": [
+			{
+				duration: 0,
+				sprites: [
+					{ texture: "seed", anchor: { x: 16, y: 16 }}
+				]
+			}
+		]
+	}
 };
 
-let berryGraphics: StaticGraphicsObject = {
-	type: "static",
+let berryGraphics: GraphicsObjectDescriptor = {
 	base: "item",
-	frames: [
-		{ texture: "berry", anchor: { x: 16, y: 16 } }
-	]
+	animations: {
+		"default": [
+			{
+				duration: 0,
+				sprites: [
+					{ texture: "berry", anchor: { x: 16, y: 16 }}
+				]
+			}
+		]
+	}
 };
 
-let scarfGraphics: StaticGraphicsObject = {
-	type: "static",
+let scarfGraphics: GraphicsObjectDescriptor = {
 	base: "item",
-	frames: [
-		{ texture: "scarf", anchor: { x: 16, y: 16 } }
-	]
+	animations: {
+		"default": [
+			{
+				duration: 0,
+				sprites: [
+					{ texture: "scarf", anchor: { x: 16, y: 16 }}
+				]
+			}
+		]
+	}
 };
 
 let reviverSeed: ItemBlueprint = {

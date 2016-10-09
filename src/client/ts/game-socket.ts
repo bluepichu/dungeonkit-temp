@@ -12,7 +12,7 @@ export class GameSocket {
 			this.execute("init", dungeon));
 		this.socket.on("invalid", () =>
 			this.execute("invalid"));
-		this.socket.on("graphics", (key: string, graphics: EntityGraphics) =>
+		this.socket.on("graphics", (key: string, graphics: EntityGraphicsDescriptor) =>
 			this.execute("graphics", key, graphics));
 		this.socket.on("update", (message: UpdateMessage) =>
 			this.execute("update", message));
@@ -40,7 +40,7 @@ export class GameSocket {
 		this.addListener("invalid", fn);
 	}
 
-	onGraphics(fn: (key: string, graphics: EntityGraphics) => void): void {
+	onGraphics(fn: (key: string, graphics: EntityGraphicsDescriptor) => void): void {
 		this.addListener("graphics", fn);
 	}
 

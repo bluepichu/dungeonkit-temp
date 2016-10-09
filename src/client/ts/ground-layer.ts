@@ -71,7 +71,7 @@ export class GroundLayer extends PIXI.Container {
 
 	private getFloorTile(map: FloorMap,
 		loc: CrawlLocation,
-		graphics: DungeonGraphics): PIXI.DisplayObject | void {
+		graphics: DungeonGraphicsDescriptor): PIXI.DisplayObject | void {
 		let canPlace: boolean = true;
 
 		utils.withinNSteps(1, loc, (location) =>
@@ -84,11 +84,11 @@ export class GroundLayer extends PIXI.Container {
 		}
 
 		if (utils.getTile(map, loc).stairs) {
-			return this.generateGraphicsObject(graphics.base, graphics.stairs);
+			return this.generateGraphicsObject(graphics.stairs);
 		}
 
 		if (utils.getTile(map, loc).type === DungeonTileType.FLOOR) {
-			return this.generateGraphicsObject(graphics.base, graphics.open);
+			return this.generateGraphicsObject(graphics.open);
 		}
 
 		let pattern = 0;
@@ -107,7 +107,7 @@ export class GroundLayer extends PIXI.Container {
 
 		for (let i = 0; i < graphics.walls.length; i++) {
 			if ((graphics.walls[i].pattern & pattern) === graphics.walls[i].pattern) {
-				return this.generateGraphicsObject(graphics.base, graphics.walls[i].object);
+				return this.generateGraphicsObject(graphics.walls[i].object);
 			}
 		}
 	}
@@ -118,27 +118,8 @@ export class GroundLayer extends PIXI.Container {
 		this.roomBounds.clear();
 	}
 
-	generateGraphicsObject(base: string, obj: GraphicsObject): PIXI.DisplayObject {
-		switch (obj.type) {
-			case "static":
-				let sgo: StaticGraphicsObject = obj as StaticGraphicsObject;
-				let ret = new PIXI.Container();
-
-				sgo.frames.reverse().forEach((frame) => {
-					let sprite = PIXI.Sprite.fromFrame(sprintf("%s-%s", base, frame.texture));
-					sprite.x = -frame.anchor.x;
-					sprite.y = -frame.anchor.y;
-
-					ret.addChild(sprite);
-				});
-
-				sgo.frames.reverse();
-
-				return ret;
-
-			case "animated":
-				return new AnimatedSprite(base, obj as AnimatedGraphicsObject);
-		}
+	generateGraphicsObject(obj: GraphicsObjectDescriptor): PIXI.DisplayObject {
+		return new AnimatedSprite(obj);
 	}
 
 	updateVisibility(): void {

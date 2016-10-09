@@ -38,26 +38,7 @@ export class ItemLayer extends PIXI.Container {
 		this.removeChildren();
 	}
 
-	generateGraphicsObject(obj: GraphicsObject): PIXI.DisplayObject {
-		switch (obj.type) {
-			case "static":
-				let sgo: StaticGraphicsObject = obj as StaticGraphicsObject;
-				let ret = new PIXI.Container();
-
-				sgo.frames.reverse().forEach((frame) => {
-					let sprite = PIXI.Sprite.fromFrame(sprintf("%s-%s", sgo.base, frame.texture));
-					sprite.x = -frame.anchor.x;
-					sprite.y = -frame.anchor.y;
-
-					ret.addChild(sprite);
-				});
-
-				sgo.frames.reverse();
-
-				return ret;
-
-			case "animated":
-				return new AnimatedSprite(obj.base, obj as AnimatedGraphicsObject);
-		}
+	generateGraphicsObject(obj: GraphicsObjectDescriptor): PIXI.DisplayObject {
+		return new AnimatedSprite(obj);
 	}
 }

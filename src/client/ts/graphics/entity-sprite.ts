@@ -10,8 +10,8 @@ export class EntitySprite extends AnimatedSprite {
 	private statusMarkers: AnimatedSprite[];
 	private statusIndex: number;
 
-	constructor(descriptor: EntityGraphics) {
-		super(descriptor.base, descriptor);
+	constructor(descriptor: EntityGraphicsDescriptor) {
+		super(descriptor);
 		this.useReflection = descriptor.useReflection;
 		this.direction = 6;
 		this.statusMarkers = [];
@@ -37,7 +37,7 @@ export class EntitySprite extends AnimatedSprite {
 		this.changed = true;
 	}
 
-	protected getTexture(frame: Frame): PIXI.Texture {
+	protected getTexture(sprite: SpriteDescriptor): PIXI.Texture {
 		let dir = this.direction !== undefined ? this.direction : 6; // default to straight ahead if not set
 
 		if (this.useReflection) {
@@ -56,11 +56,11 @@ export class EntitySprite extends AnimatedSprite {
 			}
 		}
 
-		let textureName = sprintf(frame.texture, { dir: dir });
-		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.base, textureName));
+		let textureName = sprintf(sprite.texture, { dir: dir });
+		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.descriptor.base, textureName));
 	}
 
-	protected prerenderLayer(layer: PIXI.Sprite, frame: Frame) {
+	protected prerenderLayer(layer: PIXI.Sprite, sprite: SpriteDescriptor) {
 		if (this.useReflection) {
 			if (this.direction < 2 || this.direction > 6) {
 				layer.scale.x = -1;

@@ -19,7 +19,7 @@ interface Dungeon {
 	direction: "up" | "down";
 	difficulty: number;
 	blueprint: DungeonBlueprint;
-	graphics: DungeonGraphics;
+	graphics: DungeonGraphicsDescriptor;
 }
 
 interface Floor {
@@ -259,7 +259,7 @@ interface CensoredDungeon {
 	floors: number;
 	direction: "up" | "down";
 	difficulty: number;
-	graphics: DungeonGraphics;
+	graphics: DungeonGraphicsDescriptor;
 }
 
 interface CensoredCrawlEntity extends Locatable {

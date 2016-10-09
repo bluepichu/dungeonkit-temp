@@ -1,11 +1,10 @@
 /**
  * Describes the graphics for a dungeon.
  */
-interface DungeonGraphics {
-	base: string;
+interface DungeonGraphicsDescriptor {
 	walls: DungeonTileSelector[];
-	open: GraphicsObject;
-	stairs: GraphicsObject;
+	open: GraphicsObjectDescriptor;
+	stairs: GraphicsObjectDescriptor;
 }
 
 /**
@@ -13,64 +12,46 @@ interface DungeonGraphics {
  */
 interface DungeonTileSelector {
 	pattern: number;
-	object: GraphicsObject;
+	object: GraphicsObjectDescriptor;
 }
 
 /**
- * A graphics object.
+ * The cache for entity graphics.
  */
-type GraphicsObject = AnimatedGraphicsObject | StaticGraphicsObject;
+type EntityGraphicsCache = Map<string, EntityGraphicsDescriptor>;
 
 /**
- * The cache for entity 
+ * Describes an entity's graphics.
  */
-type EntityGraphicsCache = Map<string, EntityGraphics>;
-
-/**
- * Describes an entity's 
- */
-interface EntityGraphics extends AnimatedGraphicsObject {
+interface EntityGraphicsDescriptor extends GraphicsObjectDescriptor {
 	useReflection?: boolean;
-}
-
-/**
- * Describes a non-animated graphics object.
- */
-interface StaticGraphicsObject {
-	type: "static";
-	base?: string;
-	frames: Frame[];
 }
 
 /**
  * Describes an animated graphics object.
  */
-interface AnimatedGraphicsObject {
-	type: "animated";
-	base?: string;
-	animations: { [key: string]: Animation };
-	default: string;
+interface GraphicsObjectDescriptor {
+	base: string;
+	animations: { [key: string]: AnimationDescriptor };
 }
 
 /**
  * Describes an animation.
  */
-interface Animation {
-	steps: AnimationFrame[];
-}
+type AnimationDescriptor = FrameDescriptor[];
 
 /**
  * Describes a single frame of an animation.
  */
-interface AnimationFrame {
-	frames: Frame[];
+interface FrameDescriptor {
+	sprites: SpriteDescriptor[];
 	duration: number;
 }
 
 /**
  * Describes a single frame.
  */
-interface Frame {
+interface SpriteDescriptor {
 	texture: string;
 	anchor: Point;
 	offset?: number;

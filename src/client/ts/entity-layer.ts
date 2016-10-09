@@ -37,7 +37,7 @@ export class EntityLayer extends PIXI.Container {
 			entitySprite.clearStatusMarkers();
 
 			if (entity.stats.attack.modifier < 0 || entity.stats.defense.modifier < 0) {
-				entitySprite.addStatusMarker(new AnimatedSprite(Markers.STATUS_STAT_DOWN.base, Markers.STATUS_STAT_DOWN));
+				entitySprite.addStatusMarker(new AnimatedSprite(Markers.STATUS_STAT_DOWN));
 			}
 		});
 
