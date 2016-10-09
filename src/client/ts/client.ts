@@ -14,7 +14,7 @@ import {GroundLayer}                                           from "./ground-la
 import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
 import {isMobile}                                              from "./is-mobile";
 import {MessageLog}                                            from "./message-log";
-import {MiniFloorMap}                                               from "./minimap";
+import {MiniFloorMap}                                          from "./minimap";
 import * as state                                              from "./state";
 import {TeamOverlay}                                           from "./team-overlay";
 import {TweenHandler}                                          from "./tween-handler";

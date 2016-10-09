@@ -67,6 +67,10 @@ export class AnimatedSprite extends PIXI.Container {
 	}
 
 	private prerender() {
+		if (this.descriptor.animations[this.animation].length == 0) {
+			return; // Optimize static objects - no need to reset the texture every frame
+		}
+
 		this.frame++;
 
 		if (this.frame >= this.descriptor.animations[this.animation][this.step].duration) {
