@@ -14,7 +14,7 @@ import {GroundLayer}                                           from "./ground-la
 import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
 import {isMobile}                                              from "./is-mobile";
 import {MessageLog}                                            from "./message-log";
-import {MiniFloorMap}                                          from "./minimap";
+import {Minimap}                                          from "./minimap";
 import * as state                                              from "./state";
 import {TeamOverlay}                                           from "./team-overlay";
 import {TweenHandler}                                          from "./tween-handler";
@@ -23,7 +23,7 @@ import * as utils                                              from "../../commo
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
 let gameContainer: PIXI.Container = undefined;
 let socket: GameSocket = undefined;
-let minimap: MiniFloorMap = undefined;
+let minimap: Minimap = undefined;
 let commandArea: CommandArea = undefined;
 let dungeonLayer: DungeonLayer = undefined;
 let messageLog: MessageLog = undefined;
@@ -131,7 +131,7 @@ function init() {
 	dungeonLayer = new DungeonLayer(tweenHandler);
 	gameContainer.addChild(dungeonLayer);
 
-	// minimap = new MiniFloorMap(300, 200);
+	// minimap = new Minimap(300, 200);
 	// minimap.x = 50;
 	// minimap.y = 50;
 	// gameContainer.addChild(minimap);
