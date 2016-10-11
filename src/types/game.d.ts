@@ -10,6 +10,7 @@ interface State {
  * An entity, either in the overworld or in a crawl.
  */
 interface Entity {
+	id: string;
 	name: string;
 	graphics: string;
 	stats: EntityStats;

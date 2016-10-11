@@ -57,7 +57,6 @@ interface Locatable {
 }
 
 interface UnplacedCrawlEntity extends Entity {
-	id: string;
 	controller: Controller;
 	alignment: number;
 	advances: boolean;

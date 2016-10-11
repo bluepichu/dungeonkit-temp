@@ -1,10 +1,11 @@
 "use strict";
 
-import {AnimatedSprite} from "./graphics/animated-sprite";
-import * as Constants   from "./constants";
-import * as state       from "./state";
-import {TweenHandler}   from "./tween-handler";
-import * as utils       from "../../common/utils";
+import {AnimatedSprite}    from "./graphics/animated-sprite";
+import * as Constants      from "./constants";
+import * as GraphicsObject from "./graphics/graphics-object";
+import * as state          from "./state";
+import {TweenHandler}      from "./tween-handler";
+import * as utils          from "../../common/utils";
 
 export class ItemLayer extends PIXI.Container {
 	private tweenHandler: TweenHandler;
@@ -19,7 +20,7 @@ export class ItemLayer extends PIXI.Container {
 		this.clear();
 
 		for (let item of state.getState().items) {
-			let graphics = this.generateGraphicsObject(item.graphics);
+			let graphics = GraphicsObject.generate(item.graphics);
 			[graphics.x, graphics.y] = utils.locationToCoordinates(item.location, Constants.GRID_SIZE);
 			this.addChild(graphics);
 		}
@@ -36,9 +37,5 @@ export class ItemLayer extends PIXI.Container {
 
 	clear(): void {
 		this.removeChildren();
-	}
-
-	generateGraphicsObject(obj: GraphicsObjectDescriptor): PIXI.DisplayObject {
-		return new AnimatedSprite(obj);
 	}
 }

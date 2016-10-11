@@ -1,10 +1,11 @@
 "use strict";
 
-import {AnimatedSprite} from "./graphics/animated-sprite";
-import * as Constants   from "./constants";
-import * as state       from "./state";
-import {TweenHandler}   from "./tween-handler";
-import * as utils       from "../../common/utils";
+import {AnimatedSprite}    from "./graphics/animated-sprite";
+import * as Constants      from "./constants";
+import * as GraphicsObject from "./graphics/graphics-object";
+import * as state          from "./state";
+import {TweenHandler}      from "./tween-handler";
+import * as utils          from "../../common/utils";
 
 export class GroundLayer extends PIXI.Container {
 	private tweenHandler: TweenHandler;
@@ -84,11 +85,11 @@ export class GroundLayer extends PIXI.Container {
 		}
 
 		if (utils.getTile(map, loc).stairs) {
-			return this.generateGraphicsObject(graphics.stairs);
+			return GraphicsObject.generate(graphics.stairs);
 		}
 
 		if (utils.getTile(map, loc).type === DungeonTileType.FLOOR) {
-			return this.generateGraphicsObject(graphics.open);
+			return GraphicsObject.generate(graphics.open);
 		}
 
 		let pattern = 0;
@@ -107,7 +108,7 @@ export class GroundLayer extends PIXI.Container {
 
 		for (let i = 0; i < graphics.walls.length; i++) {
 			if ((graphics.walls[i].pattern & pattern) === graphics.walls[i].pattern) {
-				return this.generateGraphicsObject(graphics.walls[i].object);
+				return GraphicsObject.generate(graphics.walls[i].object);
 			}
 		}
 	}
@@ -116,10 +117,6 @@ export class GroundLayer extends PIXI.Container {
 		this.tileLayer.removeChildren();
 		this.lightingLayer.removeChildren();
 		this.roomBounds.clear();
-	}
-
-	generateGraphicsObject(obj: GraphicsObjectDescriptor): PIXI.DisplayObject {
-		return new AnimatedSprite(obj);
 	}
 
 	updateVisibility(): void {

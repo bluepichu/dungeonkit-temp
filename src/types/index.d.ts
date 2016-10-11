@@ -5,5 +5,6 @@
 /// <reference path="geometry.d.ts"/>
 /// <reference path="graphics.d.ts"/>
 /// <reference path="items.d.ts"/>
+/// <reference path="overworld.d.ts"/>
 /// <reference path="probability.d.ts"/>
 /// <reference path="story.d.ts"/>
