@@ -46,12 +46,12 @@ export function areCrawlLocationsEqual(a: CrawlLocation, b: CrawlLocation): bool
  * @return The entity at the given location in the given state, or undefined if no entity occupies that location.
  */
 export function getEntityAtCrawlLocation(state: InProgressCrawlState,
-	location: CrawlLocation): CrawlEntity | void;
+	location: CrawlLocation): CrawlEntity | undefined;
 export function getEntityAtCrawlLocation(state: CensoredInProgressCrawlState,
-	location: CrawlLocation): CensoredCrawlEntity | void;
+	location: CrawlLocation): CensoredCrawlEntity | undefined;
 
 export function getEntityAtCrawlLocation(state: InProgressCrawlState,
-	location: CrawlLocation): CrawlEntity {
+	location: CrawlLocation): CrawlEntity | undefined {
 	return state.entities.find((entity) => areCrawlLocationsEqual(entity.location, location));
 }
 
@@ -61,7 +61,7 @@ export function getEntityAtCrawlLocation(state: InProgressCrawlState,
  * @param location - The location.
  * @return The item at the given location in the given state, or undefined if no item occupies that location.
  */
-export function getItemAtCrawlLocation(state: InProgressCrawlState, location: CrawlLocation): CrawlItem {
+export function getItemAtCrawlLocation(state: InProgressCrawlState, location: CrawlLocation): CrawlItem | undefined {
 	return state.items.find((item) => areCrawlLocationsEqual(item.location, location));
 }
 

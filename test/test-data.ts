@@ -15,6 +15,12 @@ export let floorBlueprint: FloorBlueprint = {
 	items: []
 };
 
+let mockDungeonGraphics: DungeonGraphicsDescriptor = {
+	walls: [],
+	open: { base: "<base>", animations: {} },
+	stairs: { base: "<base>", animations: {} }
+};
+
 export let dungeon: Dungeon = {
 	name: "<Dungeon Name>",
 	floors: 5,
@@ -30,7 +36,7 @@ export let dungeon: Dungeon = {
 			blueprint: floorBlueprint
 		}
 	],
-	graphics: undefined
+	graphics: mockDungeonGraphics
 };
 
 let X = -1;
@@ -76,12 +82,17 @@ export let map: FloorMap = {
 	grid: floorGrid
 };
 
+let mockGraphics: GraphicsObjectDescriptor = {
+	base: "<graphics base>",
+	animations: {}
+};
+
 export let item1: Item = {
 	id: "<Item 1 id>",
 	name: "<Item 1 name>",
 	description: "<Item 1 description>",
 	handlers: {},
-	graphics: undefined
+	graphics: mockGraphics
 };
 
 export let item2: Item = {
@@ -89,7 +100,7 @@ export let item2: Item = {
 	name: "<Item 2 name>",
 	description: "<Item 2 description>",
 	handlers: {},
-	graphics: undefined
+	graphics: mockGraphics
 };
 
 export let item3: CrawlItem = {
@@ -97,7 +108,7 @@ export let item3: CrawlItem = {
 	name: "<Item 3 name>",
 	description: "<Item 3 description>",
 	handlers: {},
-	graphics: undefined,
+	graphics: mockGraphics,
 	location: { r: 2, c: 6 }
 };
 
@@ -106,7 +117,7 @@ export let item4: CrawlItem = {
 	name: "<Item 4 name>",
 	description: "<Item 4 description>",
 	handlers: {},
-	graphics: undefined,
+	graphics: mockGraphics,
 	location: { r: 12, c: 16 }
 };
 
@@ -115,18 +126,38 @@ export let bag: ItemSet = {
 	items: [item2]
 };
 
+let mockController = {
+	await: false,
+	getAction(state: CensoredEntityCrawlState, entity: CrawlEntity) {
+		return Promise.resolve({
+			type: "wait"
+		});
+	},
+	updateState(state: CensoredEntityCrawlState) {},
+	pushEvent(event: LogEvent) {},
+	wait() {},
+	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon) {}
+};
+
+let mockStats: EntityStats = {
+	level: 1,
+	hp: { max: 1, current: 1 },
+	attack: { base: 1, modifier: 0 },
+	defense: { base: 1, modifier: 0 }
+};
+
 export let entity1: CrawlEntity = {
 	name: "<Entity 1 name>",
 	id: "<Entity 1 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 1 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [item1] },
 		bag: bag
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 3, c: 7 },
 	alignment: 1,
 	advances: true
@@ -135,15 +166,15 @@ export let entity1: CrawlEntity = {
 export let entity2: CrawlEntity = {
 	name: "<Entity 2 name>",
 	id: "<Entity 2 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 2 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [] },
 		bag: bag
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 15, c: 3 },
 	alignment: 1,
 	advances: true
@@ -152,14 +183,14 @@ export let entity2: CrawlEntity = {
 export let entity3: CrawlEntity = {
 	name: "<Entity 3 name>",
 	id: "<Entity 3 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 3 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 13, c: 15 },
 	alignment: 0,
 	advances: false
@@ -168,14 +199,14 @@ export let entity3: CrawlEntity = {
 export let entity4: CrawlEntity = {
 	name: "<Entity 4 name>",
 	id: "<Entity 4 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 4 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 14, c: 18 },
 	alignment: 0,
 	advances: false
@@ -184,14 +215,14 @@ export let entity4: CrawlEntity = {
 export let entity5: CrawlEntity = {
 	name: "<Entity 5 name>",
 	id: "<Entity 5 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 5 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 10, c: 2 },
 	alignment: 0,
 	advances: false
@@ -200,14 +231,14 @@ export let entity5: CrawlEntity = {
 export let entity6: CrawlEntity = {
 	name: "<Entity 6 name>",
 	id: "<Entity 6 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 6 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 14, c: 3 },
 	alignment: 0,
 	advances: true
@@ -216,14 +247,14 @@ export let entity6: CrawlEntity = {
 export let entity7: CrawlEntity = {
 	name: "<Entity 7 name>",
 	id: "<Entity 7 id>",
-	stats: undefined,
-	attacks: undefined,
-	graphics: undefined,
-	map: undefined,
+	stats: mockStats,
+	attacks: [],
+	graphics: "<Entity 7 graphics>",
+	map: map,
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: undefined,
+	controller: mockController,
 	location: { r: 6, c: 0 },
 	alignment: 0,
 	advances: true

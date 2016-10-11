@@ -7,11 +7,13 @@
 		"moduleResolution": "node",
 		"removeComments": true,
 		"sourceMap": true,
-		"noImplicitAny": true
+		"noImplicitAny": true,
+		// "strictNullChecks": true // someday
 	},
 	"exclude": [
 		"node_modules",
-		"build"
+		"build",
+		"bower_components"
 	],
 	"compileOnSave": false
 }

@@ -11,9 +11,15 @@ let sorcery       = require("sorcery");
 let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
 
 const SERVER_TS_CONFIG = {
-	target: "es6",
-	module: "commonjs",
-	moduleResolution: "node"
+	"emitDecoratorMetadata": true,
+	"experimentalDecorators": true,
+	"target": "es6",
+	"module": "commonjs",
+	"moduleResolution": "node",
+	"removeComments": true,
+	"sourceMap": true,
+	"noImplicitAny": true,
+	// "strictNullChecks": true // someday
 };
 
 const CLIENT_TS_CONFIG = {
