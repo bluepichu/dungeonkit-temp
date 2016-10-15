@@ -1,18 +1,15 @@
 "use strict";
 
-import * as Colors    from "./colors";
-import * as state     from "./state";
-import {TweenHandler} from "./tween-handler";
+import * as Colors  from "./colors";
+import * as state   from "./state";
+import * as Tweener from "./graphics/tweener";
 
 export class AttackOverlay extends PIXI.Container {
 	public children: AttackListing[];
-
 	private _active: boolean;
-	private tweenHandler: TweenHandler;
 
-	constructor(tweenHandler: TweenHandler) {
+	constructor() {
 		super();
-		this.tweenHandler = tweenHandler;
 	}
 
 	public set active(active: boolean) {
@@ -52,12 +49,12 @@ export class AttackOverlay extends PIXI.Container {
 
 	private showMoves(): void {
 		this.children.forEach((child, i) =>
-			setTimeout(() => this.tweenHandler.tween(child, "x", 0, 1.1, "smooth"), i * 100));
+			setTimeout(() => Tweener.tween(child, { x: 0 }, 1.1, "smooth"), i * 100));
 	}
 
 	private hideMoves(): void {
 		this.children.forEach((child, i) =>
-			setTimeout(() => this.tweenHandler.tween(child, "x", -600, 1.1, "smooth"), i * 100));
+			setTimeout(() => Tweener.tween(child, { x: -600 }, 1.1, "smooth"), i * 100));
 	}
 }
 

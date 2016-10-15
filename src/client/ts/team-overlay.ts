@@ -4,7 +4,7 @@ import * as Colors    from "./colors";
 import {EntityLayer}  from "./entity-layer";
 import {EntitySprite} from "./graphics/entity-sprite";
 import * as state     from "./state";
-import {TweenHandler} from "./tween-handler";
+import * as Tweener   from "./graphics/tweener";
 
 const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 	def: {

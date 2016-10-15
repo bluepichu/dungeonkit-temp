@@ -1,22 +1,18 @@
 "use strict";
 
-import {AnimatedSprite}    from "./graphics/animated-sprite";
 import * as Constants      from "./constants";
-import * as GraphicsObject from "./graphics/graphics-object";
+import {GraphicsObject}    from "./graphics/graphics-object";
+import * as Layer          from "./graphics/layer";
 import * as state          from "./state";
-import {TweenHandler}      from "./tween-handler";
 import * as utils          from "../../common/utils";
 
 export class GroundLayer extends PIXI.Container {
-	private tweenHandler: TweenHandler;
 	private tileLayer: PIXI.Container;
 	private lightingLayer: PIXI.Container;
 	private roomBounds: Map<number, Viewport>;
 
-	constructor(tweenHandler: TweenHandler) {
+	constructor() {
 		super();
-
-		this.tweenHandler = tweenHandler;
 
 		this.tileLayer = new PIXI.Container();
 		this.addChild(this.tileLayer);
@@ -55,19 +51,12 @@ export class GroundLayer extends PIXI.Container {
 
 				let dtile = tile as PIXI.DisplayObject;
 
-				[dtile.x, dtile.y] = utils.locationToCoordinates({ r: i, c: j }, Constants.GRID_SIZE);
+				let {x, y} = utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE);
+				dtile.x = x;
+				dtile.y = y;
 				this.tileLayer.addChild(dtile);
 			}
 		}
-	}
-
-	moveTo(loc: CrawlLocation): Thenable {
-		let [x, y] = utils.locationToCoordinates(loc, Constants.GRID_SIZE);
-
-		let xPrm = this.tweenHandler.tween(this, "x", -x, Constants.VIEW_MOVE_VELOCITY, "smooth");
-		let yPrm = this.tweenHandler.tween(this, "y", -y, Constants.VIEW_MOVE_VELOCITY, "smooth");
-
-		return Promise.all([xPrm, yPrm]);
 	}
 
 	private getFloorTile(map: FloorMap,
@@ -85,11 +74,11 @@ export class GroundLayer extends PIXI.Container {
 		}
 
 		if (utils.getTile(map, loc).stairs) {
-			return GraphicsObject.generate(graphics.stairs);
+			return new GraphicsObject(graphics.stairs);
 		}
 
 		if (utils.getTile(map, loc).type === DungeonTileType.FLOOR) {
-			return GraphicsObject.generate(graphics.open);
+			return new GraphicsObject(graphics.open);
 		}
 
 		let pattern = 0;
@@ -108,7 +97,7 @@ export class GroundLayer extends PIXI.Container {
 
 		for (let i = 0; i < graphics.walls.length; i++) {
 			if ((graphics.walls[i].pattern & pattern) === graphics.walls[i].pattern) {
-				return GraphicsObject.generate(graphics.walls[i].object);
+				return new GraphicsObject(graphics.walls[i].object);
 			}
 		}
 	}
@@ -129,7 +118,7 @@ export class GroundLayer extends PIXI.Container {
 		// 			child.beginFill(0x000000, .8);
 		// 			child.drawRect(0, 0, Constants.GRID_SIZE, Constants.GRID_SIZE);
 		// 			child.endFill();
-		// 			[child.x, child.y] = utils.locationToCoordinates({ r: i, c: j }, Constants.GRID_SIZE);
+		// 			[child.x, child.y] = utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE);
 		// 			this.lightingLayer.addChild(child);
 		// 		}
 		// 	}

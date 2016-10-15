@@ -1,25 +1,30 @@
 "use strict";
 
-export class TweenHandler {
-	private tweens: Tween[];
+let tweens: Tween[] = [];
 
-	constructor() {
-		this.tweens = [];
+export function tween(obj: any, properties: any, velocity: number, type?: "linear" | "smooth"): Thenable {
+	// Fire the completion event for all tweens that will be deleted
+	tweens
+		.filter((tween) => tween.object === obj && tween.onComplete !== undefined)
+		.forEach((tween) => tween.onComplete());
+
+	// Delete tweens that conflict with the new one
+	tweens = tweens.filter((tween) => tween.object !== obj);
+
+	// Add the new tweens
+	let promises: Thenable[] = [];
+
+	for (let key in properties) {
+		promises.push(new Promise((resolve, reject) => {
+			tweens.push(new Tween(obj, key, properties[key], velocity, type, resolve));
+		}));
 	}
 
-	tween(obj: any, key: string, target: number, velocity: number, type?: "linear" | "smooth"): Thenable {
-		this.tweens
-			.filter((tween) => tween.object === obj && tween.key === key && tween.onComplete !== undefined)
-			.forEach((tween) => tween.onComplete());
-		this.tweens = this.tweens.filter((tween) => tween.object !== obj || tween.key !== key);
-		return new Promise((resolve, reject) => {
-			this.tweens.push(new Tween(obj, key, target, velocity, type, resolve));
-		});
-	}
+	return Promise.all(promises);
+}
 
-	step() {
-		this.tweens = this.tweens.filter((tween) => tween.step());
-	}
+export function step() {
+	tweens = tweens.filter((tween) => tween.step());
 }
 
 type TweenType = "linear" | "smooth";

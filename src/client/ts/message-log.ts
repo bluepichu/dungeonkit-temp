@@ -1,7 +1,7 @@
 "use strict";
 
-import * as Colors    from "./colors";
-import {TweenHandler} from "./tween-handler";
+import * as Colors  from "./colors";
+import * as Tweener from "./graphics/tweener";
 
 const MESSAGE_LOG_STYLES: { [key: string]: PIXI.TextStyle } = {
 	def: {
@@ -47,9 +47,8 @@ export class MessageLog extends PIXI.Container {
 	private keepTime: number;
 	private spacing: number;
 	private maximumHeight: number;
-	private tweenHandler: TweenHandler;
 
-	constructor(tweenHandler: TweenHandler) {
+	constructor() {
 		super();
 		this.messages = [];
 		this.timeouts = [];
@@ -57,7 +56,6 @@ export class MessageLog extends PIXI.Container {
 		this.spacing = 40;
 		this.keepTime = 5000;
 		this.maximumHeight = 400;
-		this.tweenHandler = tweenHandler;
 	}
 
 	push(message: string, timeout?: number): void {
@@ -85,8 +83,7 @@ export class MessageLog extends PIXI.Container {
 				break;
 			}
 
-			this.tweenHandler.tween(message, "x", -12, 1.1, "smooth");
-			this.tweenHandler.tween(message, "y", -height, 1.1, "smooth");
+			Tweener.tween(message, { x: -12, y: -height }, 1.1, "smooth");
 
 			height += message.height;
 		}
@@ -111,7 +108,7 @@ export class MessageLog extends PIXI.Container {
 		this.messages.splice(index, 1);
 		this.timeouts.splice(index, 1);
 
-		this.tweenHandler.tween(messageToRemove, "x", Math.max(messageToRemove.width + 100, 400), 1.1, "smooth")
+		Tweener.tween(messageToRemove, { x: Math.max(messageToRemove.width + 100, 400) }, 1.1, "smooth")
 			.then(() => {
 				this.removeChild(messageToRemove);
 				this.repositionMessages();

@@ -74,8 +74,8 @@ gulp.task("client-ts", () =>
 			}))
 				.then(() => sorcery.load(path.join(dir, "out/client.js")))
 				.then((chain) => chain.write(path.join(dir, "out/client.js")))
-				.then(() => cb())
-				.catch((e) => console.error(dir, "\n", e));
+				.catch((e) => console.error(dir, "\n", e))
+				.then(() => cb());
 		}))
 		.pipe($.ignore.exclude("*.map"))
 		.pipe($.sourcemaps.init({ loadMaps: true }))

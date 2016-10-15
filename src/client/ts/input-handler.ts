@@ -1,15 +1,15 @@
 "use strict";
 
-import {AttackOverlay} from "./attack-overlay";
-import {CommandArea}   from "./command-area";
-import {DungeonLayer}  from "./dungeon-layer";
-import {GameSocket}    from "./game-socket";
-import {isMobile}      from "./is-mobile";
-import * as Messages   from "./messages";
-import {MessageLog}    from "./message-log";
-import {Minimap}       from "./minimap";
-import * as state      from "./state";
-import * as utils      from "../../common/utils";
+import {AttackOverlay}   from "./attack-overlay";
+import {CommandArea}     from "./command-area";
+import {DungeonRenderer} from "./dungeon-renderer";
+import {GameSocket}      from "./game-socket";
+import {isMobile}        from "./is-mobile";
+import * as Messages     from "./messages";
+import {MessageLog}      from "./message-log";
+import {Minimap}         from "./minimap";
+import * as state        from "./state";
+import * as utils        from "../../common/utils";
 
 export interface InputHandler {
 	awaitingMove: boolean;
@@ -25,20 +25,20 @@ export class KeyboardInputHandler implements InputHandler {
 	private moveInput: number;
 	private commandArea: CommandArea;
 	private socket: GameSocket;
-	private dungeonLayer: DungeonLayer;
+	private dungeonRenderer: DungeonRenderer;
 	private attackOverlay: AttackOverlay;
 
 	constructor(
 		socket: GameSocket,
 		commandArea: CommandArea,
 		minimap: Minimap,
-		dungeonLayer: DungeonLayer,
+		dungeonRenderer: DungeonRenderer,
 		attackOverlay: AttackOverlay) {
 		this.awaitingMove = false;
 		this.inputTimer = 0;
 		this.moveInput = 0;
 		this.minimap = minimap;
-		this.dungeonLayer = dungeonLayer;
+		this.dungeonRenderer = dungeonRenderer;
 		this.socket = socket;
 		this.commandArea = commandArea;
 		this.attackOverlay = attackOverlay;
@@ -51,7 +51,7 @@ export class KeyboardInputHandler implements InputHandler {
 			return;
 		}
 
-		this.dungeonLayer.zoomOut = key.isPressed(77);
+		this.dungeonRenderer.zoomOut = key.isPressed(77);
 		this.attackOverlay.active = key.isPressed(16);
 
 		if (this.awaitingMove) {
@@ -72,7 +72,7 @@ export class KeyboardInputHandler implements InputHandler {
 
 					this.socket.sendAction({
 						type: "attack",
-						direction: this.dungeonLayer.getEntityDirection(state.getState().self.id),
+						direction: inputToDirection(this.moveInput) as number,
 						attack: state.getState().self.attacks[move - 1]
 					});
 				}
@@ -115,7 +115,7 @@ export class KeyboardInputHandler implements InputHandler {
 				let dir = inputToDirection(this.moveInput & 0b1111);
 
 				if (dir !== undefined) {
-					this.dungeonLayer.entityLayer.setEntityAnimation(state.getState().self.id, "default", dir as number);
+					this.dungeonRenderer.entityLayer.setObjectDirection(state.getState().self.id, dir as number);
 					if (rot) {
 						this.awaitingMove = true;
 					} else {
@@ -139,20 +139,20 @@ export class TouchInputHandler implements InputHandler {
 
 	private moveInput: number;
 	private socket: GameSocket;
-	private dungeonLayer: DungeonLayer;
+	private dungeonRenderer: DungeonRenderer;
 	private hammer: HammerManager;
 	private messageLog: MessageLog;
 	private touchIndicator: TouchIndicator;
 	private touchIndicatorAngle: number;
 
 	constructor(socket: GameSocket,
-			dungeonLayer: DungeonLayer,
+			dungeonRenderer: DungeonRenderer,
 			messageLog: MessageLog,
 			rootElem: HTMLElement,
 			gameContainer: PIXI.Container) {
 		this.awaitingMove = false;
 		this.moveInput = 0;
-		this.dungeonLayer = dungeonLayer;
+		this.dungeonRenderer = dungeonRenderer;
 		this.socket = socket;
 		this.messageLog = messageLog;
 		this.touchIndicator = new TouchIndicator();

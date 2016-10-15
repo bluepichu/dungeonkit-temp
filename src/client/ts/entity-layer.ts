@@ -1,59 +1,68 @@
 "use strict";
 
-import {AnimatedSprite} from "./graphics/animated-sprite";
-import * as Constants   from "./constants";
-import {EntitySprite}   from "./graphics/entity-sprite";
-import * as state       from "./state";
-import * as Markers     from "./graphics/markers";
-import {TweenHandler}   from "./tween-handler";
-import * as utils       from "../../common/utils";
+import * as Constants      from "./constants";
+import {EntitySprite}      from "./graphics/entity-sprite";
+import {GraphicsObject}    from "./graphics/graphics-object";
+import {Layer}             from "./graphics/layer";
+import * as state          from "./state";
+import * as Markers        from "./graphics/markers";
+import * as Tweener        from "./graphics/tweener";
+import * as utils          from "../../common/utils";
 
-export class EntityLayer extends PIXI.Container {
+export class EntityLayer extends Layer<string> {
 	public static entityGraphicsCache: EntityGraphicsCache = new Map();
-	public spriteFloorMap: Map<string, EntitySprite>;
-	private tweenHandler: TweenHandler;
+	protected map: Map<string, EntitySprite>;
 
-	constructor(tweenHandler: TweenHandler) {
+	constructor() {
 		super();
-		this.spriteFloorMap = new Map();
-		this.tweenHandler = tweenHandler;
+	}
+
+	protected generateGraphicsObject(entityGraphicsId: string): GraphicsObject {
+		let descriptor = EntityLayer.entityGraphicsCache.get(entityGraphicsId);
+		return new GraphicsObject(descriptor);
 	}
 
 	update() {
-		let keys: Set<string> = new Set(this.spriteFloorMap.keys());
+		let keys: Set<string> = new Set(this.map.keys());
 
 		state.getState().entities.forEach((entity) => {
 			keys.delete(entity.id);
 
-			if (this.spriteFloorMap.has(entity.id)) {
-				let entitySprite = this.spriteFloorMap.get(entity.id);
+			if (this.map.has(entity.id)) {
+				let entitySprite = this.map.get(entity.id);
 
-				[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(entity.location, Constants.GRID_SIZE);
+				let {x, y} = utils.locationToPoint(entity.location, Constants.GRID_SIZE);
+
+				entitySprite.x = x;
+				entitySprite.y = y;
 			} else {
 				this.addEntity(entity, entity.location);
 			}
 
-			let entitySprite = this.spriteFloorMap.get(entity.id);
+			let entitySprite = this.map.get(entity.id);
 			entitySprite.clearStatusMarkers();
 
 			if (entity.stats.attack.modifier < 0 || entity.stats.defense.modifier < 0) {
-				entitySprite.addStatusMarker(new AnimatedSprite(Markers.STATUS_STAT_DOWN));
+				// entitySprite.addStatusMarker(new GraphicsObject(Markers.STATUS_STAT_DOWN));
 			}
 		});
 
 		keys.forEach((id) => {
-			this.removeChild(this.spriteFloorMap.get(id));
-			this.spriteFloorMap.delete(id);
+			this.removeChild(this.map.get(id));
+			this.map.delete(id);
 		});
 	}
 
 	addEntity(entity: CondensedEntity, location: CrawlLocation) {
 		let entitySprite = this.getEntitySprite(entity.graphics);
 
-		[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
+		let {x, y} = utils.locationToPoint(location, Constants.GRID_SIZE);
+
+		entitySprite.x = x;
+		entitySprite.y = y;
 
 		this.addChild(entitySprite);
-		this.spriteFloorMap.set(entity.id, entitySprite);
+		this.map.set(entity.id, entitySprite);
 	}
 
 	getEntitySprite(entityGraphicsKey: string): EntitySprite {
@@ -61,68 +70,16 @@ export class EntityLayer extends PIXI.Container {
 	}
 
 	moveEntity(entity: CondensedEntity, from: CrawlLocation, to: CrawlLocation): Thenable {
-		if (!this.spriteFloorMap.has(entity.id)) {
+		if (!this.map.has(entity.id)) {
 			this.addEntity(entity, from);
 		}
 
-		let entitySprite = this.spriteFloorMap.get(entity.id);
-		[entitySprite.x, entitySprite.y] = utils.locationToCoordinates(from, Constants.GRID_SIZE);
+		let {x, y} = utils.locationToPoint(to, Constants.GRID_SIZE);
 
-		let [xTarget, yTarget] = utils.locationToCoordinates(to, Constants.GRID_SIZE);
-
-		let xPrm = this.tweenHandler.tween(entitySprite, "x", xTarget, Constants.WALK_SPEED);
-		let yPrm = this.tweenHandler.tween(entitySprite, "y", yTarget, Constants.WALK_SPEED);
-
-		return Promise.all([xPrm, yPrm]);
+		return this.moveObject(entity.id, { x, y }, Constants.WALK_SPEED);
 	}
 
-	moveTo(location: CrawlLocation): Thenable {
-		let [xTarget, yTarget] = utils.locationToCoordinates(location, Constants.GRID_SIZE);
-
-		let xPrm = this.tweenHandler.tween(this, "x", -xTarget, Constants.VIEW_MOVE_VELOCITY, "smooth");
-		let yPrm = this.tweenHandler.tween(this, "y", -yTarget, Constants.VIEW_MOVE_VELOCITY, "smooth");
-
-		return Promise.all([xPrm, yPrm]);
-	}
-
-	setEntityAnimation(entityId: string, animation: string, direction?: number) {
-		if (!this.spriteFloorMap.has(entityId)) {
-			console.error(`No sprite with id ${entityId}, exiting now`);
-			return;
-		}
-
-		this.spriteFloorMap.get(entityId).setAnimation(animation);
-
-		if (direction !== undefined) {
-			this.spriteFloorMap.get(entityId).direction = direction;
-		}
-	}
-
-	setAnimationEndListener(entityId: string, f: () => any) {
-		if (!this.spriteFloorMap.has(entityId)) {
-			console.error(`No sprite with id ${entityId}, calling listener now`);
-			f();
-			return;
-		}
-		this.spriteFloorMap.get(entityId).addAnimationEndListener(f);
-	}
-
-	clear(): void {
-		this.removeChildren();
-		this.spriteFloorMap.clear();
-	}
-
-	prerender(): void {
-		this.children.sort((a: EntitySprite, b: EntitySprite) => a.y - b.y);
-	}
-
-	renderCanvas(renderer: PIXI.CanvasRenderer): void {
-		this.prerender();
-		super.renderCanvas(renderer);
-	}
-
-	renderWebGL(renderer: PIXI.WebGLRenderer): void {
-		this.prerender();
-		super.renderWebGL(renderer);
+	public setObjectDirection(id: string, direction: number) {
+		this.map.get(id).direction = direction;
 	}
 }

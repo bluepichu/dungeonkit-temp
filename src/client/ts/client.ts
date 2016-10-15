@@ -1,15 +1,15 @@
 "use strict";
 
-import {AnimatedSprite}                                        from "./graphics/animated-sprite";
 import {AttackOverlay}                                         from "./attack-overlay";
 import * as Colors                                             from "./colors";
 import {CommandArea}                                           from "./command-area";
 import * as Constants                                          from "./constants";
-import {DungeonLayer}                                          from "./dungeon-layer";
+import {DungeonRenderer}                                       from "./dungeon-renderer";
 import * as Messages                                           from "./messages";
 import {EntityLayer}                                           from "./entity-layer";
 import {EntitySprite}                                          from "./graphics/entity-sprite";
 import {GameSocket}                                            from "./game-socket";
+import {GraphicsObject}                                        from "./graphics/graphics-object";
 import {GroundLayer}                                           from "./ground-layer";
 import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
 import {isMobile}                                              from "./is-mobile";
@@ -17,7 +17,7 @@ import {MessageLog}                                            from "./message-l
 import {Minimap}                                               from "./minimap";
 import * as state                                              from "./state";
 import {TeamOverlay}                                           from "./team-overlay";
-import {TweenHandler}                                          from "./tween-handler";
+import * as Tweener                                            from "./graphics/tweener";
 import * as utils                                              from "../../common/utils";
 
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
@@ -25,9 +25,8 @@ let gameContainer: PIXI.Container = undefined;
 let socket: GameSocket = undefined;
 let minimap: Minimap = undefined;
 let commandArea: CommandArea = undefined;
-let dungeonLayer: DungeonLayer = undefined;
+let dungeonRenderer: DungeonRenderer = undefined;
 let messageLog: MessageLog = undefined;
-let tweenHandler: TweenHandler = undefined;
 let processChain: Thenable = Promise.resolve();
 let floorSign: PIXI.Container = undefined;
 let floorSignText: PIXI.Text = undefined;
@@ -126,17 +125,15 @@ function init() {
 	let main: HTMLElement = document.getElementsByTagName("main")[0] as HTMLElement;
 	main.appendChild(renderer.view);
 
-	tweenHandler = new TweenHandler();
-
-	dungeonLayer = new DungeonLayer(tweenHandler);
-	gameContainer.addChild(dungeonLayer);
+	dungeonRenderer = new DungeonRenderer();
+	gameContainer.addChild(dungeonRenderer);
 
 	// minimap = new Minimap(300, 200);
 	// minimap.x = 50;
 	// minimap.y = 50;
 	// gameContainer.addChild(minimap);
 
-	messageLog = new MessageLog(tweenHandler);
+	messageLog = new MessageLog();
 	gameContainer.addChild(messageLog);
 
 	requestAnimationFrame(animate);
@@ -157,7 +154,7 @@ function init() {
 		}
 	});
 
-	attackOverlay = new AttackOverlay(tweenHandler);
+	attackOverlay = new AttackOverlay();
 	gameContainer.addChild(attackOverlay);
 
 	let roomQuery = /room=([^&]*)(&|$)/.exec(window.location.search);
@@ -175,10 +172,10 @@ function init() {
 	}
 
 	if (!isMobile()) {
-		inputHandler = new KeyboardInputHandler(socket, commandArea, minimap, dungeonLayer, attackOverlay);
+		inputHandler = new KeyboardInputHandler(socket, commandArea, minimap, dungeonRenderer, attackOverlay);
 		gameContainer.addChild(commandArea);
 	} else {
-		inputHandler = new TouchInputHandler(socket, dungeonLayer, messageLog, main, gameContainer);
+		inputHandler = new TouchInputHandler(socket, dungeonRenderer, messageLog, main, gameContainer);
 	}
 
 	if (room) {
@@ -249,8 +246,8 @@ function handleWindowResize(): void {
 	floorSignText.x = rendererWidth / 2;
 	floorSignText.y = rendererHeight / 2;
 
-	dungeonLayer.x = rendererWidth / 2;
-	dungeonLayer.y = rendererHeight / 2;
+	dungeonRenderer.x = rendererWidth / 2;
+	dungeonRenderer.y = rendererHeight / 2;
 
 	teamOverlay.x = 10;
 	teamOverlay.y = rendererHeight;
@@ -286,16 +283,16 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				doneEvent.state.floor.mapUpdates.forEach((update) => {
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
-					dungeonLayer.groundLayer.update(update.location);
+					dungeonRenderer.groundLayer.update(update.location);
 				});
 
 				state.getState().entities = doneEvent.state.entities;
 				state.getState().items = doneEvent.state.items;
 				state.getState().self = doneEvent.state.self;
 
-				dungeonLayer.updatePosition(state.getState().self.location);
-				dungeonLayer.entityLayer.update();
-				dungeonLayer.itemLayer.update();
+				dungeonRenderer.updatePosition(state.getState().self.location);
+				dungeonRenderer.entityLayer.update();
+				dungeonRenderer.itemLayer.update();
 				// minimap.update();
 				attackOverlay.update();
 				teamOverlay.update();
@@ -417,12 +414,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.getState().self = startEvent.self;
 
-				dungeonLayer.init();
+				dungeonRenderer.init();
 
-				tweenHandler.tween(floorSign, "alpha", 1, .1)
+				Tweener.tween(floorSign, { alpha: 1 }, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
 						.then(() => {
-							setTimeout(() => tweenHandler.tween(floorSign, "alpha", 0, .1), 400);
+							setTimeout(() => Tweener.tween(floorSign, { alpha: 0 }, .1), 400);
 							setTimeout(done, 400);
 						});
 
@@ -434,14 +431,14 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 			case "move":
 				let getMovePromise = (evt: MoveLogEvent) =>
-					dungeonLayer.moveEntity(
+					dungeonRenderer.moveEntity(
 						evt.entity,
 						evt.start,
 						evt.end,
 						evt.entity.id === state.getState().self.id,
 						"walk",
 						evt.direction)
-						.then(() => dungeonLayer.entityLayer.setEntityAnimation(evt.entity.id, "default"));
+						.then(() => dungeonRenderer.entityLayer.setObjectAnimation(evt.entity.id, "default", false));
 
 				let movePromises: Thenable[] = [];
 				let deferred: Processable[] = [];
@@ -471,8 +468,10 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					attackEvent.entity.name,
 					attackEvent.attack.name));
 
-				dungeonLayer.showAnimationOnce(attackEvent.entity.id, attackEvent.attack.animation, attackEvent.direction)
-					.then(() => dungeonLayer.entityLayer.setEntityAnimation(attackEvent.entity.id, "default"))
+				dungeonRenderer.entityLayer.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
+
+				dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
+					.then(() => dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, "default", false))
 					.then(done);
 
 				break;
@@ -488,10 +487,10 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.entity.name,
 								-statEvent.change));
 
-							dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "hurt");
+							dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "hurt", false);
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "default"))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else {
 							messageLog.push(sprintf("<%1$s>%2$s</%1$s> recovered %3$d HP!",
@@ -500,7 +499,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.change));
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonLayer.entityLayer.setEntityAnimation(statEvent.entity.id, "default"))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						}
 						break;
@@ -533,9 +532,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> was defeated!",
 					defeatEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 					defeatEvent.entity.name));
-				dungeonLayer.entityLayer.setEntityAnimation(defeatEvent.entity.id, "defeat");
-				new Promise((resolve, _) => setTimeout(resolve, 500))
-					.then(done);
+				dungeonRenderer.entityLayer.removeObject(defeatEvent.entity.id);
+				done();
 				break;
 
 			case "stairs":
@@ -545,10 +543,10 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					stairsEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 					stairsEvent.entity.name));
 				new Promise((resolve, _) => setTimeout(resolve, 600))
-					.then(() => tweenHandler.tween(floorSign, "alpha", 1, .1))
+					.then(() => Tweener.tween(floorSign, { alpha: 1 }, .1))
 					.then(() => {
 						// minimap.clear();
-						dungeonLayer.clear();
+						dungeonRenderer.clear();
 						messageLog.clear();
 						setTimeout(done, 1000);
 					});
@@ -590,7 +588,7 @@ let time = Date.now();
 function animate() {
 	stats.begin();
 	inputHandler.handleInput();
-	tweenHandler.step();
+	Tweener.step();
 	renderer.render(gameContainer);
 	stats.end();
 	requestAnimationFrame(animate);

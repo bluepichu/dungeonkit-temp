@@ -1,13 +1,13 @@
 "use strict";
 
-import {AnimatedSprite} from "./animated-sprite";
 import * as Constants   from "../constants";
+import {GraphicsObject} from "./graphics-object";
 import * as utils       from "../../../common/utils";
 
-export class EntitySprite extends AnimatedSprite {
+export class EntitySprite extends GraphicsObject {
 	private _direction: number;
 	private useReflection: boolean;
-	private statusMarkers: AnimatedSprite[];
+	private statusMarkers: GraphicsObject[];
 	private statusIndex: number;
 
 	constructor(descriptor: EntityGraphicsDescriptor) {
@@ -75,27 +75,6 @@ export class EntitySprite extends AnimatedSprite {
 		this.removeChild(this.statusMarkers[this.statusIndex]);
 		this.statusMarkers = [];
 		this.statusIndex = 0;
-	}
-
-	public addStatusMarker(marker: AnimatedSprite): void {
-		this.statusMarkers.push(marker);
-
-		marker.x = 12;
-		marker.y = -18;
-
-		if (this.statusMarkers.length === 1) {
-			this.addChild(marker);
-			marker.addAnimationEndListener(this.advanceStatusAnimation.bind(this));
-		}
-	}
-
-	private advanceStatusAnimation(): void {
-		this.removeChild(this.statusMarkers[this.statusIndex]);
-		this.statusIndex++;
-		this.statusIndex %= this.statusMarkers.length;
-		this.addChild(this.statusMarkers[this.statusIndex]);
-		this.statusMarkers[this.statusIndex].reset();
-		this.statusMarkers[this.statusIndex].addAnimationEndListener(this.advanceStatusAnimation.bind(this));
 	}
 }
 

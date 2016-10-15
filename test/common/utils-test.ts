@@ -280,15 +280,15 @@ export function testUtils(): void {
 				test.eq(utils.getTile(data.map, { r: 1.2, c: -1 }), { type: DungeonTileType.UNKNOWN }));
 		});
 
-		describe("locationToCoordinates()", () => {
+		describe("locationToPoint()", () => {
 			it("should return [0, 0] for the origin", () =>
-				test.eq(utils.locationToCoordinates({ r: 0, c: 0 }, 24), [0, 0]));
+				test.eq(utils.locationToPoint({ r: 0, c: 0 }, 24), { x: 0, y: 0 }));
 			it("should return [gridSize, gridSize] for (1, 1)", () =>
-				test.eq(utils.locationToCoordinates({ r: 1, c: 1 }, 24), [24, 24]));
+				test.eq(utils.locationToPoint({ r: 1, c: 1 }, 24), { x: 24, y: 24 }));
 			it("should work on larger inputs", () =>
-				test.eq(utils.locationToCoordinates({ r: 10, c: 32 }, 10), [320, 100]));
+				test.eq(utils.locationToPoint({ r: 10, c: 32 }, 10), { x: 320, y: 100 }));
 			it("should work on invalid locations", () =>
-				test.eq(utils.locationToCoordinates({ r: -1, c: 0.5 }, 10), [5, -10]));
+				test.eq(utils.locationToPoint({ r: -1, c: 0.5 }, 10), { x: 5, y: -10 }));
 		});
 
 		describe("withinNSteps()", () => {

@@ -268,8 +268,11 @@ export function getTile(map: FloorMap, location: CrawlLocation): DungeonTile {
  * @param gridSize - The size of each tile.
  * @return The display coordinates of the given location in the given grid size.
  */
-export function locationToCoordinates(location: CrawlLocation, gridSize: number): [number, number] {
-	return [location.c * gridSize, location.r * gridSize];
+export function locationToPoint(location: CrawlLocation, gridSize: number): Point {
+	return {
+		x: location.c * gridSize, 
+		y: location.r * gridSize
+	};
 }
 
 /**

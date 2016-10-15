@@ -5,34 +5,32 @@ import {EntityLayer}  from "./entity-layer";
 import {GroundLayer}  from "./ground-layer";
 import {ItemLayer}    from "./item-layer";
 import * as state     from "./state";
-import {TweenHandler} from "./tween-handler";
+import * as Tweener   from "./graphics/tweener";
 import * as utils     from "../../common/utils";
 
-export class DungeonLayer extends PIXI.Container {
+export class DungeonRenderer extends PIXI.Container {
 	public groundLayer: GroundLayer;
 	public itemLayer: ItemLayer;
 	public entityLayer: EntityLayer;
-	public tweenHandler: TweenHandler;
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
-	constructor(tweenHandler: TweenHandler) {
+	constructor() {
 		super();
 
-		this.groundLayer = new GroundLayer(tweenHandler);
-		this.itemLayer = new ItemLayer(tweenHandler);
-		this.entityLayer = new EntityLayer(tweenHandler);
+		this.groundLayer = new GroundLayer();
+		this.itemLayer = new ItemLayer();
+		this.entityLayer = new EntityLayer();
 
 		this.addChild(this.groundLayer);
 		this.addChild(this.itemLayer);
 		this.addChild(this.entityLayer);
 
-		this.tweenHandler = tweenHandler;
 		this._zoomOut = false;
 	}
 
 	init(): void {
-		let [offsetX, offsetY] = utils.locationToCoordinates(state.getState().self.location, Constants.GRID_SIZE);
+		let {x: offsetX, y: offsetY} = utils.locationToPoint(state.getState().self.location, Constants.GRID_SIZE);
 
 		[this.groundLayer.x, this.groundLayer.y] = [-offsetX, -offsetY];
 		[this.itemLayer.x, this.itemLayer.y] = [-offsetX, -offsetY];
@@ -46,8 +44,10 @@ export class DungeonLayer extends PIXI.Container {
 		isSelf: boolean,
 		animation?: string,
 		direction?: number): Thenable {
+
 		let prm = this.entityLayer.moveEntity(entity, from, to);
-		this.entityLayer.setEntityAnimation(entity.id, animation, direction);
+		this.entityLayer.setObjectDirection(entity.id, direction);
+		this.entityLayer.setObjectAnimation(entity.id, animation, false);
 
 		if (isSelf) {
 			this.updatePosition(to);
@@ -67,12 +67,16 @@ export class DungeonLayer extends PIXI.Container {
 
 		newScale = Math.min(newScale, 4);
 
-		this.tweenHandler.tween(this.scale, "x", newScale, Constants.VIEW_ZOOM_VELOCITY, "smooth");
-		this.tweenHandler.tween(this.scale, "y", newScale, Constants.VIEW_ZOOM_VELOCITY, "smooth");
-		this.groundLayer.moveTo(center);
+		Tweener.tween(this.scale, { x: newScale, y: newScale }, Constants.VIEW_ZOOM_VELOCITY, "smooth");
+
+		let {x, y} = utils.locationToPoint(center, Constants.GRID_SIZE);
+		let pos = { x: -x, y: -y };
+
+		Tweener.tween(this.groundLayer, pos, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.itemLayer, pos, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.entityLayer, pos, Constants.VIEW_MOVE_VELOCITY, "smooth");
+
 		this.groundLayer.updateVisibility();
-		this.itemLayer.moveTo(center);
-		this.entityLayer.moveTo(center);
 	}
 
 	set zoomOut(zoom: boolean) {
@@ -107,15 +111,6 @@ export class DungeonLayer extends PIXI.Container {
 		if (!this._zoomOut) {
 			this.updateViewport(this._viewport);
 		}
-	}
-
-	showAnimationOnce(entityId: string, animation: string, direction?: number): Thenable {
-		this.entityLayer.setEntityAnimation(entityId, animation, direction);
-		return new Promise((resolve, _) => this.entityLayer.setAnimationEndListener(entityId, resolve));
-	}
-
-	getEntityDirection(entityId: string): number {
-		return this.entityLayer.spriteFloorMap.get(entityId).direction;
 	}
 
 	clear(): void {
