@@ -1,10 +1,10 @@
 "use strict";
 
-import * as Colors    from "./colors";
-import {EntityLayer}  from "./entity-layer";
-import {EntitySprite} from "./graphics/entity-sprite";
-import * as state     from "./state";
-import * as Tweener   from "./graphics/tweener";
+import * as Colors     from "./colors";
+import {EntityManager} from "./entity-manager";
+import {EntitySprite}  from "./graphics/entity-sprite";
+import * as state      from "./state";
+import * as Tweener    from "./graphics/tweener";
 
 const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 	def: {
@@ -96,7 +96,7 @@ class TeamListing extends PIXI.Container {
 		this.bg.drawRect(-10, 0, 230, 140);
 		this.bg.endFill();
 
-		this.entitySprite = new EntitySprite(EntityLayer.entityGraphicsCache.get(entity.graphics));
+		this.entitySprite = new EntitySprite(EntityManager.entityGraphicsCache.get(entity.graphics));
 		this.entitySprite.direction = 7;
 		this.entitySprite.x = 40;
 		this.entitySprite.y = 28;

@@ -6,11 +6,10 @@ import {CommandArea}                                           from "./command-a
 import * as Constants                                          from "./constants";
 import {DungeonRenderer}                                       from "./dungeon-renderer";
 import * as Messages                                           from "./messages";
-import {EntityLayer}                                           from "./entity-layer";
+import {EntityManager}                                         from "./entity-manager";
 import {EntitySprite}                                          from "./graphics/entity-sprite";
 import {GameSocket}                                            from "./game-socket";
 import {GraphicsObject}                                        from "./graphics/graphics-object";
-import {GroundLayer}                                           from "./ground-layer";
 import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
 import {isMobile}                                              from "./is-mobile";
 import {MessageLog}                                            from "./message-log";
@@ -91,7 +90,7 @@ function init() {
 	});
 
 	socket.onGraphics((key: string, graphics: EntityGraphicsDescriptor) => {
-		EntityLayer.entityGraphicsCache.set(key, graphics);
+		EntityManager.entityGraphicsCache.set(key, graphics);
 	});
 
 	socket.onUpdate(({stateUpdate, log, move}: UpdateMessage) => {
@@ -283,7 +282,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				doneEvent.state.floor.mapUpdates.forEach((update) => {
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
-					dungeonRenderer.groundLayer.update(update.location);
+					dungeonRenderer.groundManager.update(update.location);
 				});
 
 				state.getState().entities = doneEvent.state.entities;
@@ -291,8 +290,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				state.getState().self = doneEvent.state.self;
 
 				dungeonRenderer.updatePosition(state.getState().self.location);
-				dungeonRenderer.entityLayer.update();
-				dungeonRenderer.itemLayer.update();
+				dungeonRenderer.entityManager.update();
+				dungeonRenderer.itemManager.update();
 				// minimap.update();
 				attackOverlay.update();
 				teamOverlay.update();
@@ -433,11 +432,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				let getMovePromise = (evt: MoveLogEvent) =>
 					dungeonRenderer.moveEntity(
 						evt.entity,
+						evt.start,
 						evt.end,
 						evt.entity.id === state.getState().self.id,
 						"walk",
 						evt.direction)
-						.then(() => dungeonRenderer.entityLayer.setObjectAnimation(evt.entity.id, "default", false));
+						.then(() => dungeonRenderer.entityManager.setObjectAnimation(evt.entity.id, "default", false));
 
 				let movePromises: Thenable[] = [];
 				let deferred: Processable[] = [];
@@ -467,10 +467,10 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					attackEvent.entity.name,
 					attackEvent.attack.name));
 
-				dungeonRenderer.entityLayer.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
+				dungeonRenderer.entityManager.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
 
-				dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
-					.then(() => dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, "default", false))
+				dungeonRenderer.entityManager.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
+					.then(() => dungeonRenderer.entityManager.setObjectAnimation(attackEvent.entity.id, "default", false))
 					.then(done);
 
 				break;
@@ -486,10 +486,10 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.entity.name,
 								-statEvent.change));
 
-							dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "hurt", false);
+							dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "hurt", false);
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else {
 							messageLog.push(sprintf("<%1$s>%2$s</%1$s> recovered %3$d HP!",
@@ -498,7 +498,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.change));
 
 							new Promise((resolve, _) => setTimeout(resolve, 1000))
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						}
 						break;
@@ -531,7 +531,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				messageLog.push(sprintf("<%1$s>%2$s</%1$s> was defeated!",
 					defeatEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 					defeatEvent.entity.name));
-				dungeonRenderer.entityLayer.removeObject(defeatEvent.entity.id);
+				dungeonRenderer.entityManager.removeObject(defeatEvent.entity.id);
 				done();
 				break;
 

@@ -1,14 +1,13 @@
 "use strict";
 
-import * as Constants      from "./constants";
-import {GraphicsObject}    from "./graphics/graphics-object";
-import * as Layer          from "./graphics/layer";
-import * as state          from "./state";
-import * as utils          from "../../common/utils";
+import * as Constants       from "./constants";
+import {GraphicsManager}    from "./graphics/graphics-manager";
+import {GraphicsObject}     from "./graphics/graphics-object";
+import * as state           from "./state";
+import * as utils           from "../../common/utils";
 
-export class GroundLayer extends PIXI.Container {
+export class GroundManager extends GraphicsManager<GraphicsObjectDescriptor> {
 	private tileLayer: PIXI.Container;
-	private lightingLayer: PIXI.Container;
 	private roomBounds: Map<number, Viewport>;
 
 	constructor() {
@@ -17,13 +16,14 @@ export class GroundLayer extends PIXI.Container {
 		this.tileLayer = new PIXI.Container();
 		this.addChild(this.tileLayer);
 
-		this.lightingLayer = new PIXI.Container();
-		this.addChild(this.lightingLayer);
-
 		this.roomBounds = new Map();
 	}
 
-	update(location: CrawlLocation) {
+	protected generateGraphicsObject(descriptor: GraphicsObjectDescriptor): GraphicsObject {
+		return new GraphicsObject(descriptor);
+	}
+
+	public update(location: CrawlLocation) {
 		let roomId = utils.getTile(state.getState().floor.map, location).roomId;
 
 		if (roomId > 0) {
@@ -102,27 +102,9 @@ export class GroundLayer extends PIXI.Container {
 		}
 	}
 
-	clear(): void {
+	public clear(): void {
 		this.tileLayer.removeChildren();
-		this.lightingLayer.removeChildren();
 		this.roomBounds.clear();
-	}
-
-	updateVisibility(): void {
-		// this.lightingLayer.removeChildren();
-
-		// for (let i = 0; i < state.getState().floor.map.height; i++) {
-		// 	for (let j = 0; j < state.getState().floor.map.width; j++) {
-		// 		if (!utils.isVisible(state.getState().floor.map, state.getState().self.location, { r: i, c: j })) {
-		// 			let child = new PIXI.Graphics();
-		// 			child.beginFill(0x000000, .8);
-		// 			child.drawRect(0, 0, Constants.GRID_SIZE, Constants.GRID_SIZE);
-		// 			child.endFill();
-		// 			[child.x, child.y] = utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE);
-		// 			this.lightingLayer.addChild(child);
-		// 		}
-		// 	}
-		// }
 	}
 
 	public getRoomBounds(roomId: number): Viewport {

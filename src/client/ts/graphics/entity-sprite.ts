@@ -18,6 +18,18 @@ export class EntitySprite extends GraphicsObject {
 		this.statusIndex = 0;
 	}
 
+	// temp
+
+	public get x() {
+		return super.x;
+	}
+
+	public set x(value) {
+		super.x = value;
+	}
+
+	// end temp
+
 	protected handleOffset(sprite: PIXI.Sprite, amount: number): void {
 		let [dy, dx] = utils.decodeDirection(this.direction);
 

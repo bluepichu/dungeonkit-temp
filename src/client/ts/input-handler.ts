@@ -107,7 +107,7 @@ export class KeyboardInputHandler implements InputHandler {
 
 					if (this.awaitingMove) {
 						this.dungeonRenderer
-						.entityLayer
+						.entityManager
 						.setObjectDirection(state.getState().self.id, this.direction);
 
 						if (!key.isPressed(KEYS.R)) {

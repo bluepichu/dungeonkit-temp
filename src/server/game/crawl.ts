@@ -1,12 +1,12 @@
 "use strict";
 
-import * as generator       from "./generator";
-import * as printer         from "./printer";
-import * as utils           from "../../common/utils";
+import * as generator from "./generator";
+import * as printer   from "./printer";
+import * as utils     from "../../common/utils";
 
-import * as clone           from "clone";
-import * as log             from "beautiful-log";
-import {sprintf}            from "sprintf-js";
+import * as clone     from "clone";
+import * as log       from "beautiful-log";
+import {sprintf}      from "sprintf-js";
 
 /**
  * Starts a new crawl in the given dungeon with the given entities.

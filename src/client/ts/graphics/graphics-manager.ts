@@ -1,7 +1,7 @@
 import {GraphicsObject} from "./graphics-object";
 import * as Tweener     from "./tweener";
 
-export abstract class Layer<D> extends PIXI.Container {
+export abstract class GraphicsManager<D> extends PIXI.Container {
 	protected map: Map<string, GraphicsObject>;
 
 	protected abstract generateGraphicsObject(descriptor: D): GraphicsObject;
@@ -12,6 +12,10 @@ export abstract class Layer<D> extends PIXI.Container {
 	}
 
 	public addObject(id: string, descriptor: D, location: Point): void {
+		if (this.hasObject(id)) {
+			throw new Error(`Already have object with id ${id}.`);
+		}
+
 		let obj = this.generateGraphicsObject(descriptor);
 
 		obj.x = location.x;
@@ -20,6 +24,10 @@ export abstract class Layer<D> extends PIXI.Container {
 		this.map.set(id, obj);
 
 		this.addChild(obj);
+	}
+
+	public hasObject(id: string): boolean {
+		return this.map.has(id);
 	}
 
 	public removeObject(id: string): void {
