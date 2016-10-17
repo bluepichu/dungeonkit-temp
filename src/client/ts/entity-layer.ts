@@ -19,7 +19,7 @@ export class EntityLayer extends Layer<string> {
 
 	protected generateGraphicsObject(entityGraphicsId: string): GraphicsObject {
 		let descriptor = EntityLayer.entityGraphicsCache.get(entityGraphicsId);
-		return new GraphicsObject(descriptor);
+		return new EntitySprite(descriptor);
 	}
 
 	update() {
@@ -28,15 +28,12 @@ export class EntityLayer extends Layer<string> {
 		state.getState().entities.forEach((entity) => {
 			keys.delete(entity.id);
 
-			if (this.map.has(entity.id)) {
-				let entitySprite = this.map.get(entity.id);
+			let {x, y} = utils.locationToPoint(entity.location, Constants.GRID_SIZE);
 
-				let {x, y} = utils.locationToPoint(entity.location, Constants.GRID_SIZE);
-
-				entitySprite.x = x;
-				entitySprite.y = y;
+			if (!this.map.has(entity.id)) {
+				this.addObject(entity.id, entity.graphics, {x, y});
 			} else {
-				this.addEntity(entity, entity.location);
+				Object.assign(this.map.get(entity.id), {x, y});
 			}
 
 			let entitySprite = this.map.get(entity.id);
@@ -51,32 +48,6 @@ export class EntityLayer extends Layer<string> {
 			this.removeChild(this.map.get(id));
 			this.map.delete(id);
 		});
-	}
-
-	addEntity(entity: CondensedEntity, location: CrawlLocation) {
-		let entitySprite = this.getEntitySprite(entity.graphics);
-
-		let {x, y} = utils.locationToPoint(location, Constants.GRID_SIZE);
-
-		entitySprite.x = x;
-		entitySprite.y = y;
-
-		this.addChild(entitySprite);
-		this.map.set(entity.id, entitySprite);
-	}
-
-	getEntitySprite(entityGraphicsKey: string): EntitySprite {
-		return new EntitySprite(EntityLayer.entityGraphicsCache.get(entityGraphicsKey));
-	}
-
-	moveEntity(entity: CondensedEntity, from: CrawlLocation, to: CrawlLocation): Thenable {
-		if (!this.map.has(entity.id)) {
-			this.addEntity(entity, from);
-		}
-
-		let {x, y} = utils.locationToPoint(to, Constants.GRID_SIZE);
-
-		return this.moveObject(entity.id, { x, y }, Constants.WALK_SPEED);
 	}
 
 	public setObjectDirection(id: string, direction: number) {

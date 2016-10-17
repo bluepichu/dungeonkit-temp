@@ -17,16 +17,33 @@ export interface InputHandler {
 	handleInput(): void;
 }
 
+const DIRECTION_INPUT_DELAY = 4;
+
+const KEYS = {
+	B: 66,
+	M: 77,
+	R: 82,
+	SHIFT: 16,
+	LEFT: 37,
+	UP: 38,
+	RIGHT: 39,
+	DOWN: 40,
+	ONE: 49,
+	TWO: 50,
+	THREE: 51,
+	FOUR: 52
+};
+
 export class KeyboardInputHandler implements InputHandler {
 	public awaitingMove: boolean;
 
 	private minimap: Minimap;
-	private inputTimer: number;
-	private moveInput: number;
 	private commandArea: CommandArea;
 	private socket: GameSocket;
 	private dungeonRenderer: DungeonRenderer;
 	private attackOverlay: AttackOverlay;
+	private direction: number;
+	private delay: number;
 
 	constructor(
 		socket: GameSocket,
@@ -35,8 +52,6 @@ export class KeyboardInputHandler implements InputHandler {
 		dungeonRenderer: DungeonRenderer,
 		attackOverlay: AttackOverlay) {
 		this.awaitingMove = false;
-		this.inputTimer = 0;
-		this.moveInput = 0;
 		this.minimap = minimap;
 		this.dungeonRenderer = dungeonRenderer;
 		this.socket = socket;
@@ -51,86 +66,94 @@ export class KeyboardInputHandler implements InputHandler {
 			return;
 		}
 
-		this.dungeonRenderer.zoomOut = key.isPressed(77);
-		this.attackOverlay.active = key.isPressed(16);
+		this.dungeonRenderer.zoomOut = key.isPressed(KEYS.M);
+		this.attackOverlay.active = key.isPressed(KEYS.SHIFT);
 
-		if (this.awaitingMove) {
-			if (key.shift) {
-				let move = 0;
-				if (key.isPressed(49)) {
-					move = 1;
-				} else if (key.isPressed(50)) {
-					move = 2;
-				} else if (key.isPressed(51)) {
-					move = 3;
-				} else if (key.isPressed(52)) {
-					move = 4;
-				}
+		if (this.awaitingMove && key.isPressed(KEYS.SHIFT)) {
+			let attack: Attack = undefined;
 
-				if (move > 0) {
-					this.awaitingMove = false;
-
-					this.socket.sendAction({
-						type: "attack",
-						direction: inputToDirection(this.moveInput) as number,
-						attack: state.getState().self.attacks[move - 1]
-					});
-				}
-
-				return;
+			if (key.isPressed(KEYS.ONE)) {
+				attack = state.getState().self.attacks[0];
+			} else if (key.isPressed(KEYS.TWO)) {
+				attack = state.getState().self.attacks[1];
+			} else if (key.isPressed(KEYS.THREE)) {
+				attack = state.getState().self.attacks[2];
+			} else if (key.isPressed(KEYS.FOUR)) {
+				attack = state.getState().self.attacks[3];
 			}
 
-			if (key.isPressed(37) || key.isPressed(38) || key.isPressed(39) || key.isPressed(40)) {
+			if (attack !== undefined) {
 				this.awaitingMove = false;
-				this.moveInput = 0;
-				this.inputTimer = 4;
+
+				this.socket.sendAction({
+					type: "attack",
+					attack,
+					direction: this.direction
+				});
 			}
-		}
+		} else if (!key.isPressed(KEYS.LEFT)
+				&& !key.isPressed(KEYS.RIGHT)
+				&& !key.isPressed(KEYS.UP)
+				&& !key.isPressed(KEYS.DOWN)) {
+			this.delay = DIRECTION_INPUT_DELAY;
+		} else {
+			this.delay--;
 
-		if (this.inputTimer > 0) {
-			if (key.isPressed(82)) {
-				this.moveInput |= 0b10000;
-			}
+			if (this.delay <= 0) {
+				let direction = this.getDirection();
 
-			if (key.isPressed(37)) {
-				this.moveInput |= 0b01000;
-			}
+				if (direction !== undefined) {
+					this.direction = direction;
 
-			if (key.isPressed(38)) {
-				this.moveInput |= 0b00100;
-			}
+					if (this.awaitingMove) {
+						this.dungeonRenderer
+						.entityLayer
+						.setObjectDirection(state.getState().self.id, this.direction);
 
-			if (key.isPressed(39)) {
-				this.moveInput |= 0b00010;
-			}
-
-			if (key.isPressed(40)) {
-				this.moveInput |= 0b00001;
-			}
-
-			this.inputTimer--;
-
-			if (this.inputTimer === 0) {
-				let rot = (this.moveInput & 0b10000) > 0;
-				let dir = inputToDirection(this.moveInput & 0b1111);
-
-				if (dir !== undefined) {
-					this.dungeonRenderer.entityLayer.setObjectDirection(state.getState().self.id, dir as number);
-					if (rot) {
-						this.awaitingMove = true;
-					} else {
-						this.socket.sendAction({
-							type: "move",
-							direction: dir as number
-						}, {
-								dash: key.isPressed(66)
+						if (!key.isPressed(KEYS.R)) {
+							this.awaitingMove = false;
+							this.socket.sendAction({
+								type: "move",
+								direction: this.direction
+							}, {
+								dash: key.isPressed(KEYS.B)
 							});
+						}
 					}
-				} else {
-					this.awaitingMove = true;
 				}
 			}
 		}
+	}
+
+	private getDirection(): number | undefined {
+		let input = 0;
+
+		if (key.isPressed(KEYS.LEFT)) {
+			input |= 0b0010;
+		}
+
+		if (key.isPressed(KEYS.UP)) {
+			input |= 0b0100;
+		}
+
+		if (key.isPressed(KEYS.RIGHT)) {
+			input |= 0b1000;
+		}
+
+		if (key.isPressed(KEYS.DOWN)) {
+			input |= 0b0001;
+		}
+
+		return ({
+			[0b1000]: 0,
+			[0b1100]: 1,
+			[0b0100]: 2,
+			[0b0110]: 3,
+			[0b0010]: 4,
+			[0b0011]: 5,
+			[0b0001]: 6,
+			[0b1001]: 7
+		} as {[key: number]: number})[input];
 	}
 }
 

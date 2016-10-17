@@ -39,18 +39,19 @@ export class DungeonRenderer extends PIXI.Container {
 
 	moveEntity(
 		entity: CondensedEntity,
-		from: CrawlLocation,
-		to: CrawlLocation,
+		target: CrawlLocation,
 		isSelf: boolean,
 		animation?: string,
 		direction?: number): Thenable {
 
-		let prm = this.entityLayer.moveEntity(entity, from, to);
+		let prm = this.entityLayer.moveObject(entity.id,
+				utils.locationToPoint(target, Constants.GRID_SIZE),
+				Constants.WALK_SPEED);
 		this.entityLayer.setObjectDirection(entity.id, direction);
 		this.entityLayer.setObjectAnimation(entity.id, animation, false);
 
 		if (isSelf) {
-			this.updatePosition(to);
+			this.updatePosition(target);
 		}
 
 		return prm;

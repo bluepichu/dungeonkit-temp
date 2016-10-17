@@ -433,7 +433,6 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				let getMovePromise = (evt: MoveLogEvent) =>
 					dungeonRenderer.moveEntity(
 						evt.entity,
-						evt.start,
 						evt.end,
 						evt.entity.id === state.getState().self.id,
 						"walk",
