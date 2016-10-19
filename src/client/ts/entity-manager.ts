@@ -9,17 +9,16 @@ import * as Markers      from "./graphics/markers";
 import * as Tweener      from "./graphics/tweener";
 import * as utils        from "../../common/utils";
 
-export class EntityManager extends GraphicsManager<string> {
+export class EntityManager extends GraphicsManager<string, string> {
 	public static entityGraphicsCache: EntityGraphicsCache = new Map();
 	protected map: Map<string, EntitySprite>;
 
-	constructor() {
-		super();
-	}
-
 	protected generateGraphicsObject(entityGraphicsId: string): GraphicsObject {
 		let descriptor = EntityManager.entityGraphicsCache.get(entityGraphicsId);
-		return new EntitySprite(descriptor);
+		let obj = new EntitySprite(descriptor);
+		obj.z = 2;
+
+		return obj;
 	}
 
 	update() {

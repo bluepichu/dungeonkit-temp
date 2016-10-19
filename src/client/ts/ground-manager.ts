@@ -6,15 +6,11 @@ import {GraphicsObject}     from "./graphics/graphics-object";
 import * as state           from "./state";
 import * as utils           from "../../common/utils";
 
-export class GroundManager extends GraphicsManager<GraphicsObjectDescriptor> {
-	private tileLayer: PIXI.Container;
+export class GroundManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
 	private roomBounds: Map<number, Viewport>;
 
-	constructor() {
-		super();
-
-		this.tileLayer = new PIXI.Container();
-		this.addChild(this.tileLayer);
+	constructor(container: PIXI.Container) {
+		super(container);
 
 		this.roomBounds = new Map();
 	}
@@ -43,25 +39,21 @@ export class GroundManager extends GraphicsManager<GraphicsObjectDescriptor> {
 					continue;
 				}
 
-				let tile = this.getFloorTile(state.getState().floor.map, { r: i, c: j }, state.getState().dungeon.graphics);
+				let desc = this.getTileDescriptor(state.getState().floor.map, { r: i, c: j }, state.getState().dungeon.graphics);
 
-				if (tile === undefined) {
+				if (desc === undefined) {
 					continue;
 				}
 
-				let dtile = tile as PIXI.DisplayObject;
-
-				let {x, y} = utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE);
-				dtile.x = x;
-				dtile.y = y;
-				this.tileLayer.addChild(dtile);
+				this.addObject(i + ", " + j, desc, utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE));
 			}
 		}
 	}
 
-	private getFloorTile(map: FloorMap,
+	private getTileDescriptor(
+		map: FloorMap,
 		loc: CrawlLocation,
-		graphics: DungeonGraphicsDescriptor): PIXI.DisplayObject | void {
+		graphics: DungeonGraphicsDescriptor): GraphicsObjectDescriptor {
 		let canPlace: boolean = true;
 
 		utils.withinNSteps(1, loc, (location) =>
@@ -74,11 +66,11 @@ export class GroundManager extends GraphicsManager<GraphicsObjectDescriptor> {
 		}
 
 		if (utils.getTile(map, loc).stairs) {
-			return new GraphicsObject(graphics.stairs);
+			return graphics.stairs;
 		}
 
 		if (utils.getTile(map, loc).type === DungeonTileType.FLOOR) {
-			return new GraphicsObject(graphics.open);
+			return graphics.open;
 		}
 
 		let pattern = 0;
@@ -97,14 +89,9 @@ export class GroundManager extends GraphicsManager<GraphicsObjectDescriptor> {
 
 		for (let i = 0; i < graphics.walls.length; i++) {
 			if ((graphics.walls[i].pattern & pattern) === graphics.walls[i].pattern) {
-				return new GraphicsObject(graphics.walls[i].object);
+				return graphics.walls[i].object;
 			}
 		}
-	}
-
-	public clear(): void {
-		this.tileLayer.removeChildren();
-		this.roomBounds.clear();
 	}
 
 	public getRoomBounds(roomId: number): Viewport {

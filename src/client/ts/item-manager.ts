@@ -6,13 +6,11 @@ import {GraphicsObject}  from "./graphics/graphics-object";
 import * as state        from "./state";
 import * as utils        from "../../common/utils";
 
-export class ItemManager extends GraphicsManager<GraphicsObjectDescriptor> {
-	constructor() {
-		super();
-	}
-
+export class ItemManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
 	protected generateGraphicsObject(descriptor: GraphicsObjectDescriptor): GraphicsObject {
-		return new GraphicsObject(descriptor);
+		let obj = new GraphicsObject(descriptor);
+		obj.z = 1;
+		return obj;
 	}
 
 	update() {

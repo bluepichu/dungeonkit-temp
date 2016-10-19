@@ -4,13 +4,16 @@ import * as Constants from "../constants";
 import {isMobile}     from "../is-mobile";
 
 export class GraphicsObject extends PIXI.Container {
+	public z: number;
+
 	protected descriptor: GraphicsObjectDescriptor;
-	private animation: string;
-	private step: number;
-	private frame: number;
 	protected changed: boolean;
 	protected sprites: PIXI.Sprite[];
 	protected animationEndListener: () => any;
+
+	private animation: string;
+	private step: number;
+	private frame: number;
 
 	constructor(descriptor: GraphicsObjectDescriptor) {
 		super();
@@ -20,6 +23,7 @@ export class GraphicsObject extends PIXI.Container {
 		this.frame = 0;
 		this.changed = true;
 		this.animationEndListener = undefined;
+		this.z = 0;
 
 		let spriteCount = 0;
 

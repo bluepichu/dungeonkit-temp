@@ -1,40 +1,43 @@
 "use strict";
 
-import * as Constants  from "./constants";
-import {EntityManager} from "./entity-manager";
-import {GroundManager} from "./ground-manager";
-import {ItemManager}   from "./item-manager";
-import * as state      from "./state";
-import * as Tweener    from "./graphics/tweener";
-import * as utils      from "../../common/utils";
+import * as Constants   from "./constants";
+import {EntityManager}  from "./entity-manager";
+import {GraphicsObject} from "./graphics/graphics-object";
+import {GroundManager}  from "./ground-manager";
+import {ItemManager}    from "./item-manager";
+import * as state       from "./state";
+import * as Tweener     from "./graphics/tweener";
+import * as utils       from "../../common/utils";
+
+class Layer extends PIXI.Container {
+	public children: GraphicsObject[]; // Narrower typing
+}
 
 export class DungeonRenderer extends PIXI.Container {
 	public groundManager: GroundManager;
 	public itemManager: ItemManager;
 	public entityManager: EntityManager;
+
+	private container: Layer;
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
 	constructor() {
 		super();
 
-		this.groundManager = new GroundManager();
-		this.itemManager = new ItemManager();
-		this.entityManager = new EntityManager();
+		this.container = new Layer();
 
-		this.addChild(this.groundManager);
-		this.addChild(this.itemManager);
-		this.addChild(this.entityManager);
+		this.addChild(this.container);
+
+		this.groundManager = new GroundManager(this.container);
+		this.itemManager = new ItemManager(this.container);
+		this.entityManager = new EntityManager(this.container);
 
 		this._zoomOut = false;
 	}
 
 	init(): void {
-		let {x: offsetX, y: offsetY} = utils.locationToPoint(state.getState().self.location, Constants.GRID_SIZE);
-
-		[this.groundManager.x, this.groundManager.y] = [-offsetX, -offsetY];
-		[this.itemManager.x, this.itemManager.y] = [-offsetX, -offsetY];
-		[this.entityManager.x, this.entityManager.y] = [-offsetX, -offsetY];
+		this.updatePosition(state.getState().self.location);
 	}
 
 	moveEntity(
@@ -75,12 +78,9 @@ export class DungeonRenderer extends PIXI.Container {
 
 		Tweener.tween(this.scale, { x: newScale, y: newScale }, Constants.VIEW_ZOOM_VELOCITY, "smooth");
 
-		let {x, y} = utils.locationToPoint(center, Constants.GRID_SIZE);
-		let pos = { x: -x, y: -y };
+		let {x: cx, y: cy} = utils.locationToPoint(center, Constants.GRID_SIZE);
 
-		Tweener.tween(this.groundManager, pos, Constants.VIEW_MOVE_VELOCITY, "smooth");
-		Tweener.tween(this.itemManager, pos, Constants.VIEW_MOVE_VELOCITY, "smooth");
-		Tweener.tween(this.entityManager, pos, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.container, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
 	}
 
 	set zoomOut(zoom: boolean) {
@@ -120,5 +120,20 @@ export class DungeonRenderer extends PIXI.Container {
 	clear(): void {
 		this.groundManager.clear();
 		this.entityManager.clear();
+		this.itemManager.clear();
+	}
+
+	prerender(): void {
+		this.container.children.sort((a, b) => (a.z == b.z) ? (b.y - a.y) : (a.z - b.z));
+	}
+
+	public renderCanvas(renderer: PIXI.CanvasRenderer) {
+		this.prerender();
+		super.renderCanvas(renderer);
+	}
+
+	public renderWebGL(renderer: PIXI.WebGLRenderer) {
+		this.prerender();
+		super.renderWebGL(renderer);
 	}
 }
