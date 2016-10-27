@@ -186,7 +186,7 @@ export default class CommandArea extends PIXI.Container {
 
 		Object.keys(this.handlers)
 			.map((suggestion) => ({
-				score: scoreSuggestion(this.buffer, suggestion),
+				score: scoreSuggestion(this.buffer.toLowerCase(), suggestion.toLowerCase()),
 				suggestion,
 				label: this.handlers[suggestion].label
 			}))
@@ -212,7 +212,7 @@ function scoreSuggestion(input: string, suggestion: string): number {
 		if (index === suggestion.length) {
 			return 0;
 		}
-		score += input.length - index;
+		score += suggestion.length - index;
 	}
 	return score;
 }
