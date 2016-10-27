@@ -1,10 +1,10 @@
 "use strict";
 
-import * as Colors from "./colors";
-import * as state  from "./state";
-import * as utils  from "../../common/utils";
+import Colors     from "./colors";
+import * as state from "./state";
+import * as utils from "../../common/utils";
 
-export class Minimap extends PIXI.Container {
+export default class Minimap extends PIXI.Container {
 	private mapMask: PIXI.Graphics;
 	private mapBackground: PIXI.Graphics;
 	private mapContent: PIXI.Graphics;

@@ -1,12 +1,12 @@
 "use strict";
 
-import * as Constants       from "./constants";
-import {GraphicsManager}    from "./graphics/graphics-manager";
-import {GraphicsObject}     from "./graphics/graphics-object";
-import * as state           from "./state";
-import * as utils           from "../../common/utils";
+import Constants       from "./constants";
+import GraphicsManager from "./graphics/graphics-manager";
+import GraphicsObject  from "./graphics/graphics-object";
+import * as state      from "./state";
+import * as utils      from "../../common/utils";
 
-export class GroundManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
+export default class GroundManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
 	private roomBounds: Map<number, Viewport>;
 
 	constructor(container: PIXI.Container) {
@@ -96,5 +96,10 @@ export class GroundManager extends GraphicsManager<string, GraphicsObjectDescrip
 
 	public getRoomBounds(roomId: number): Viewport {
 		return this.roomBounds.get(roomId);
+	}
+
+	public clear(): void {
+		super.clear();
+		this.roomBounds.clear();
 	}
 }

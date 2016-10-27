@@ -1,6 +1,9 @@
-import {GraphicsObject} from "./graphics-object";
-import * as Tweener     from "./tweener";
+"use strict";
 
+import GraphicsObject from "./graphics-object";
+import * as Tweener   from "./tweener";
+
+export default GraphicsManager;
 export abstract class GraphicsManager<Id, Descriptor> {
 	protected map: Map<Id, GraphicsObject>;
 	protected container: PIXI.Container;

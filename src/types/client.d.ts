@@ -52,3 +52,9 @@ interface Viewport {
 	r: [number, number];
 	c: [number, number];
 }
+
+interface CrawlInputHandler {
+	awaitingMove: boolean;
+
+	handleInput(): void;
+}

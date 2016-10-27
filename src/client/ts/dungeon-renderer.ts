@@ -1,19 +1,19 @@
 "use strict";
 
-import * as Constants   from "./constants";
-import {EntityManager}  from "./entity-manager";
-import {GraphicsObject} from "./graphics/graphics-object";
-import {GroundManager}  from "./ground-manager";
-import {ItemManager}    from "./item-manager";
-import * as state       from "./state";
-import * as Tweener     from "./graphics/tweener";
-import * as utils       from "../../common/utils";
+import Constants      from "./constants";
+import EntityManager  from "./entity-manager";
+import GraphicsObject from "./graphics/graphics-object";
+import GroundManager  from "./ground-manager";
+import ItemManager    from "./item-manager";
+import * as state     from "./state";
+import * as Tweener   from "./graphics/tweener";
+import * as utils     from "../../common/utils";
 
 class Layer extends PIXI.Container {
 	public children: GraphicsObject[]; // Narrower typing
 }
 
-export class DungeonRenderer extends PIXI.Container {
+export default class DungeonRenderer extends PIXI.Container {
 	public groundManager: GroundManager;
 	public itemManager: ItemManager;
 	public entityManager: EntityManager;

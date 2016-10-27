@@ -1,4 +1,5 @@
-interface PlacedGraphicsObject extends GraphicsObjectDescriptor {
+interface PlacedGraphicsObject {
+	graphics: GraphicsObjectDescriptor;
 	position: Point;
 }
 
@@ -16,7 +17,7 @@ interface Interaction {
 	responses?: string[];
 }
 
-interface OverworldScreen {
+interface OverworldScene {
 	background: OverworldBackground;
 	bounds: Polygon;
 	entities: OverworldEntity[];

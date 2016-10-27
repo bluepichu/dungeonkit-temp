@@ -1,6 +1,6 @@
 "use strict";
 
-import * as Colors  from "./colors";
+import Colors       from "./colors";
 import * as Tweener from "./graphics/tweener";
 
 const MESSAGE_LOG_STYLES: { [key: string]: PIXI.TextStyle } = {
@@ -41,7 +41,7 @@ const MESSAGE_LOG_STYLES: { [key: string]: PIXI.TextStyle } = {
 	}
 };
 
-export class MessageLog extends PIXI.Container {
+export default class MessageLog extends PIXI.Container {
 	private messages: PIXI.Container[];
 	private timeouts: number[];
 	private keepTime: number;

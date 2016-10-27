@@ -1,10 +1,10 @@
 "use strict";
 
-import * as Colors  from "./colors";
+import Colors       from "./colors";
 import * as state   from "./state";
 import * as Tweener from "./graphics/tweener";
 
-export class AttackOverlay extends PIXI.Container {
+export default class AttackOverlay extends PIXI.Container {
 	public children: AttackListing[];
 	private _active: boolean;
 

@@ -1,9 +1,9 @@
 "use strict";
 
-import * as Colors   from "./colors";
-import {GameSocket}  from "./game-socket";
-import * as Messages from "./messages";
-import {MessageLog}  from "./message-log";
+import Colors     from "./colors";
+import GameSocket from "./game-socket";
+import Messages   from "./messages";
+import MessageLog from "./message-log";
 
 const COMMAND_AREA_INACTIVE_STYLE = {
 	font: "300 16px Lato",
@@ -35,7 +35,7 @@ type Handler = {
 	handler(socket: GameSocket, messageLog: MessageLog): void;
 };
 
-export class CommandArea extends PIXI.Container {
+export default class CommandArea extends PIXI.Container {
 	private _active: boolean;
 	private background: PIXI.Graphics;
 	private textInput: PIXI.Text;

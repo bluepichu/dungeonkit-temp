@@ -3,7 +3,7 @@
  */
 interface State {
 	story: StoryState;
-	crawl: CrawlState;
+	crawl?: CrawlState;
 }
 
 /**

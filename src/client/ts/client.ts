@@ -1,23 +1,30 @@
 "use strict";
 
-import {AttackOverlay}                                         from "./attack-overlay";
-import * as Colors                                             from "./colors";
-import {CommandArea}                                           from "./command-area";
-import * as Constants                                          from "./constants";
-import {DungeonRenderer}                                       from "./dungeon-renderer";
-import * as Messages                                           from "./messages";
-import {EntityManager}                                         from "./entity-manager";
-import {EntitySprite}                                          from "./graphics/entity-sprite";
-import {GameSocket}                                            from "./game-socket";
-import {GraphicsObject}                                        from "./graphics/graphics-object";
-import {KeyboardInputHandler, TouchInputHandler, InputHandler} from "./input-handler";
-import {isMobile}                                              from "./is-mobile";
-import {MessageLog}                                            from "./message-log";
-import {Minimap}                                               from "./minimap";
-import * as state                                              from "./state";
-import {TeamOverlay}                                           from "./team-overlay";
-import * as Tweener                                            from "./graphics/tweener";
-import * as utils                                              from "../../common/utils";
+import AttackOverlay             from "./attack-overlay";
+import Colors                    from "./colors";
+import CommandArea               from "./command-area";
+import Constants                 from "./constants";
+import DungeonRenderer           from "./dungeon-renderer";
+import Messages                  from "./messages";
+import EntityManager             from "./entity-manager";
+import EntitySprite              from "./graphics/entity-sprite";
+import GameSocket                from "./game-socket";
+import GraphicsObject            from "./graphics/graphics-object";
+import isMobile                  from "./is-mobile";
+import KeyboardCrawlInputHandler from "./input/keyboard-crawl-input-handler";
+import MessageLog                from "./message-log";
+import Minimap                   from "./minimap";
+import * as state                from "./state";
+import TeamOverlay               from "./team-overlay";
+import TouchCrawlInputHandler    from "./input/touch-crawl-input-handler";
+import * as Tweener              from "./graphics/tweener";
+import * as utils                from "../../common/utils";
+
+const enum GamePhase {
+	OVERWORLD,
+	CRAWL,
+	CUTSCENE
+};
 
 let renderer: PIXI.WebGLRenderer | PIXI.CanvasRenderer = undefined;
 let gameContainer: PIXI.Container = undefined;
@@ -30,33 +37,39 @@ let processChain: Thenable = Promise.resolve();
 let floorSign: PIXI.Container = undefined;
 let floorSignText: PIXI.Text = undefined;
 let attackOverlay: AttackOverlay = undefined;
-let inputHandler: InputHandler = undefined;
+let inputHandler: CrawlInputHandler = undefined;
 let teamOverlay: TeamOverlay = undefined;
 
 PIXI.ticker.shared.autoStart = false;
 
 document.addEventListener("DOMContentLoaded", () => {
-	WebFont.load({
-		google: {
-			families: ["Lato:100,300,400,700"]
-		},
-		custom: {
-			families: ["DK Icons"],
-			urls: ["/assets/fonts.css"]
-		},
-		active: () => {
-			PIXI.loader
-				.add("dng-proto", "/assets/tiles.json")
-				.add("ent-mudkip", "/assets/mudkip.json")
-				.add("ent-eevee", "/assets/eevee.json")
-				.add("items", "/assets/items.json")
-				.add("markers", "/assets/markers.json")
-				.once("complete", init);
-
-			PIXI.loader.load();
-		}
-	});
+	if ("WebFont" in window) { // fails if not online
+		WebFont.load({
+			google: {
+				families: ["Lato:100,300,400,700"]
+			},
+			custom: {
+				families: ["DK Icons"],
+				urls: ["/assets/fonts.css"]
+			},
+			active: loadAssets
+		});
+	} else {
+		loadAssets();
+	}
 });
+
+function loadAssets() {
+	PIXI.loader
+		.add("dng-proto", "/assets/tiles.json")
+		.add("ent-mudkip", "/assets/mudkip.json")
+		.add("ent-eevee", "/assets/eevee.json")
+		.add("items", "/assets/items.json")
+		.add("markers", "/assets/markers.json")
+		.once("complete", init);
+
+	PIXI.loader.load();
+}
 
 key.filter = (event: KeyboardEvent) => commandArea ? commandArea.active : false;
 
@@ -171,10 +184,10 @@ function init() {
 	}
 
 	if (!isMobile()) {
-		inputHandler = new KeyboardInputHandler(socket, commandArea, minimap, dungeonRenderer, attackOverlay);
+		inputHandler = new KeyboardCrawlInputHandler(socket, commandArea, minimap, dungeonRenderer, attackOverlay);
 		gameContainer.addChild(commandArea);
 	} else {
-		inputHandler = new TouchInputHandler(socket, dungeonRenderer, messageLog, main, gameContainer);
+		inputHandler = new TouchCrawlInputHandler(socket, dungeonRenderer, messageLog, main, gameContainer);
 	}
 
 	if (room) {
@@ -291,6 +304,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				dungeonRenderer.updatePosition(state.getState().self.location);
 				dungeonRenderer.entityManager.update();
+				dungeonRenderer.entityManager.forceUpdate(); // would like to remove this if possible
 				dungeonRenderer.itemManager.update();
 				// minimap.update();
 				attackOverlay.update();
@@ -581,8 +595,15 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 	});
 }
 
+function setGamePhase(state: GamePhase): void {
+	if (state == GamePhase.CRAWL) {
+
+	} else {
+
+	}
+}
+
 let stats = new Stats();
-let time = Date.now();
 
 function animate() {
 	stats.begin();

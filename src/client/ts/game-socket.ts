@@ -1,6 +1,6 @@
 "use strict";
 
-export class GameSocket {
+export default class GameSocket {
 	private listeners: Map<string, ((...args: any[]) => void)[]>;
 	private socket: SocketIOClient.Socket;
 

@@ -1,10 +1,10 @@
 "use strict";
 
-import * as Constants   from "../constants";
-import {GraphicsObject} from "./graphics-object";
-import * as utils       from "../../../common/utils";
+import Constants      from "../constants";
+import GraphicsObject from "./graphics-object";
+import * as utils     from "../../../common/utils";
 
-export class EntitySprite extends GraphicsObject {
+export default class EntitySprite extends GraphicsObject {
 	private _direction: number;
 	private useReflection: boolean;
 	private statusMarkers: GraphicsObject[];

@@ -1,21 +1,23 @@
 "use strict";
 
-export const RED = 0xE74C3C;
-export const ORANGE = 0xE67E22;
-export const YELLOW = 0xF1C40F;
-export const GREEN = 0x2ECC71;
-export const CYAN = 0x1ABC9C;
-export const BLUE = 0x3498DB;
-export const PURPLE = 0x9B59B6;
-export const BROWN = 0xBE643C;
-export const BLACK = 0x232323;
-export const GRAY_1 = 0x383838;
-export const GRAY_2 = 0x4D4D4D;
-export const GRAY_3 = 0x626262;
-export const GRAY_4 = 0X777777;
-export const GRAY_5 = 0X8C8C8C;
-export const GRAY_6 = 0XA1A1A1;
-export const GRAY_7 = 0XB6B6B6;
-export const GRAY_8 = 0XCBCBCB;
-export const GRAY_9 = 0XE0E0E0;
-export const WHITE = 0xF5F5F5;
+export default {
+	RED:    0xE74C3C,
+	ORANGE: 0xE67E22,
+	YELLOW: 0xF1C40F,
+	GREEN:  0x2ECC71,
+	CYAN:   0x1ABC9C,
+	BLUE:   0x3498DB,
+	PURPLE: 0x9B59B6,
+	BROWN:  0xBE643C,
+	BLACK:  0x232323,
+	GRAY_1: 0x383838,
+	GRAY_2: 0x4D4D4D,
+	GRAY_3: 0x626262,
+	GRAY_4: 0X777777,
+	GRAY_5: 0X8C8C8C,
+	GRAY_6: 0XA1A1A1,
+	GRAY_7: 0XB6B6B6,
+	GRAY_8: 0XCBCBCB,
+	GRAY_9: 0XE0E0E0,
+	WHITE:  0xF5F5F5
+};

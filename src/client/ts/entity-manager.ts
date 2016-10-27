@@ -1,15 +1,15 @@
 "use strict";
 
-import * as Constants    from "./constants";
-import {EntitySprite}    from "./graphics/entity-sprite";
-import {GraphicsObject}  from "./graphics/graphics-object";
-import {GraphicsManager} from "./graphics/graphics-manager";
-import * as state        from "./state";
-import * as Markers      from "./graphics/markers";
-import * as Tweener      from "./graphics/tweener";
-import * as utils        from "../../common/utils";
+import Constants       from "./constants";
+import EntitySprite    from "./graphics/entity-sprite";
+import GraphicsObject  from "./graphics/graphics-object";
+import GraphicsManager from "./graphics/graphics-manager";
+import * as state      from "./state";
+import * as Markers    from "./graphics/markers";
+import * as Tweener    from "./graphics/tweener";
+import * as utils      from "../../common/utils";
 
-export class EntityManager extends GraphicsManager<string, string> {
+export default class EntityManager extends GraphicsManager<string, string> {
 	public static entityGraphicsCache: EntityGraphicsCache = new Map();
 	protected map: Map<string, EntitySprite>;
 
@@ -21,7 +21,7 @@ export class EntityManager extends GraphicsManager<string, string> {
 		return obj;
 	}
 
-	update() {
+	public update() {
 		let current = new Set(this.map.keys());
 		let visible = new Set(state.getState().entities.map((entity) => entity.id));
 		let toAdd = new Set([...visible].filter((id) => !current.has(id)));
@@ -35,6 +35,14 @@ export class EntityManager extends GraphicsManager<string, string> {
 		toRemove.forEach((id) => {
 			this.removeObject(id);
 		});
+	}
+
+	public forceUpdate() {
+		this.update();
+
+		state.getState().entities.forEach((entity) => {
+			Object.assign(this.map.get(entity.id), utils.locationToPoint(entity.location, Constants.GRID_SIZE));
+		})
 	}
 
 	public setObjectDirection(id: string, direction: number) {

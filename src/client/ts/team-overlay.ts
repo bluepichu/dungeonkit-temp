@@ -1,10 +1,10 @@
 "use strict";
 
-import * as Colors     from "./colors";
-import {EntityManager} from "./entity-manager";
-import {EntitySprite}  from "./graphics/entity-sprite";
-import * as state      from "./state";
-import * as Tweener    from "./graphics/tweener";
+import Colors        from "./colors";
+import EntityManager from "./entity-manager";
+import EntitySprite  from "./graphics/entity-sprite";
+import * as state    from "./state";
+import * as Tweener  from "./graphics/tweener";
 
 const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 	def: {
@@ -44,7 +44,7 @@ const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 	},
 };
 
-export class TeamOverlay extends PIXI.Container {
+export default class TeamOverlay extends PIXI.Container {
 	public children: TeamListing[];
 
 	constructor() {

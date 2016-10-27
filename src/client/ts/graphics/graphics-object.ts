@@ -1,9 +1,9 @@
 "use strict";
 
-import * as Constants from "../constants";
-import {isMobile}     from "../is-mobile";
+import Constants from "../constants";
+import isMobile  from "../is-mobile";
 
-export class GraphicsObject extends PIXI.Container {
+export default class GraphicsObject extends PIXI.Container {
 	public z: number;
 
 	protected descriptor: GraphicsObjectDescriptor;

@@ -1,12 +1,12 @@
 "use strict";
 
-import * as Constants    from "./constants";
-import {GraphicsManager} from "./graphics/graphics-manager";
-import {GraphicsObject}  from "./graphics/graphics-object";
-import * as state        from "./state";
-import * as utils        from "../../common/utils";
+import Constants       from "./constants";
+import GraphicsManager from "./graphics/graphics-manager";
+import GraphicsObject  from "./graphics/graphics-object";
+import * as state      from "./state";
+import * as utils      from "../../common/utils";
 
-export class ItemManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
+export default class ItemManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
 	protected generateGraphicsObject(descriptor: GraphicsObjectDescriptor): GraphicsObject {
 		let obj = new GraphicsObject(descriptor);
 		obj.z = 1;
