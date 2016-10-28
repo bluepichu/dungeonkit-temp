@@ -36,10 +36,6 @@ export default class DungeonRenderer extends PIXI.Container {
 		this._zoomOut = false;
 	}
 
-	init(): void {
-		this.updatePosition(state.getState().self.location);
-	}
-
 	moveEntity(
 		entity: CondensedEntity,
 		start: CrawlLocation,

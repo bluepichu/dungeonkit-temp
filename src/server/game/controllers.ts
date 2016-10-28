@@ -51,6 +51,7 @@ export class SocketController implements Controller {
 	dashPattern: number;
 	dashDirection: number;
 	knownGraphics: Set<String>;
+	awaitingState: boolean;
 
 	constructor(socket: SocketIO.Socket) {
 		this.socket = socket;
@@ -62,6 +63,7 @@ export class SocketController implements Controller {
 		this.dashPattern = 0;
 		this.dashDirection = 0;
 		this.knownGraphics = new Set();
+		this.awaitingState = true;
 	}
 
 	getAction(state: CensoredEntityCrawlState,
@@ -128,6 +130,7 @@ export class SocketController implements Controller {
 	pushEvent(event: LogEvent): void {
 		if (event.type === "start") {
 			this.lastMap = undefined;
+			this.awaitingState = true;
 		}
 
 		if (event.type === "attack") {
@@ -140,7 +143,13 @@ export class SocketController implements Controller {
 
 	updateState(state: CensoredEntityCrawlState): void {
 		this.currentState = state;
-		this.flushTimeout = setTimeout(() => this.flushLog(false), 50);
+
+		if (this.awaitingState) {
+			this.awaitingState = false;
+			this.flushLog(false);
+		} else {
+			this.flushTimeout = setTimeout(() => this.flushLog(false), 50);
+		}
 	}
 
 	wait(): void {

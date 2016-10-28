@@ -856,7 +856,7 @@ function executeStairs(state: InProgressCrawlState,
 			}
 		});
 
-		state.entities.forEach((entity) => entity.controller.wait());
+		// state.entities.forEach((entity) => entity.controller.wait());
 
 		let advancers = state.entities.filter((entity) => entity.advances);
 		return advanceToFloor(state.dungeon, state.floor.number + 1, advancers).then((newState) => {

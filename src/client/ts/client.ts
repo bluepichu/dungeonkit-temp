@@ -304,7 +304,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				dungeonRenderer.updatePosition(state.getState().self.location);
 				dungeonRenderer.entityManager.update();
-				dungeonRenderer.entityManager.forceUpdate(); // would like to remove this if possible
+				// dungeonRenderer.entityManager.forceUpdate(); // would like to remove this if possible
 				dungeonRenderer.itemManager.update();
 				// minimap.update();
 				attackOverlay.update();
@@ -426,8 +426,6 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						startEvent.floorInformation.height);
 
 				state.getState().self = startEvent.self;
-
-				dungeonRenderer.init();
 
 				Tweener.tween(floorSign, { alpha: 1 }, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
