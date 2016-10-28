@@ -102,6 +102,12 @@ export class SocketController implements Controller {
 			this.flushLog(true);
 			this.socket.on("action", (action: Action, options: ActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
+
+				if (action.type === "attack" && "attack" in action) {
+					// Replace with the correct attack object
+					(action as AttackAction).attack = entity.attacks.filter((attack) => attack.name === (action as AttackAction).attack.name)[0];
+				}
+
 				if (crawl.isValidAction(state, entity, action)) {
 					this.socket.removeAllListeners("action");
 

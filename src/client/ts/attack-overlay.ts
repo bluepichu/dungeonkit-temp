@@ -29,9 +29,7 @@ export default class AttackOverlay extends PIXI.Container {
 	}
 
 	public update(): void {
-		if (this.children.length > 0) {
-			return;
-		}
+		this.removeChildren();
 
 		state.getState().self.attacks.forEach((attack: Attack, i: number) => {
 			if (this.children.length <= i) {

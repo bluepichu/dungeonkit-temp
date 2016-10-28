@@ -336,7 +336,8 @@ export function isValidAction(
 			return isValidMove(state, entity, (action as MoveAction).direction);
 
 		case "attack":
-			return true;
+			let attack = (action as AttackAction).attack;
+			return entity.attacks.indexOf(attack) >= 0 && attack.uses.current > 0;
 
 		case "item":
 			return true; // TODO
@@ -575,6 +576,8 @@ function executeAttack(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
 	action: AttackAction): Promise<CrawlState> {
+	action.attack.uses.current--;
+
 	propagateLogEvent(state, {
 		type: "attack",
 		entity: {
