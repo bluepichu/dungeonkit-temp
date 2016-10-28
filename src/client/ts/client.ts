@@ -261,7 +261,7 @@ function handleWindowResize(): void {
 	dungeonRenderer.x = rendererWidth / 2;
 	dungeonRenderer.y = rendererHeight / 2;
 
-	teamOverlay.x = 10;
+	teamOverlay.x = 0;
 	teamOverlay.y = rendererHeight;
 
 	// (renderer.view.requestFullscreen || renderer.view.webkitRequestFullscreen || (() => undefined))();
