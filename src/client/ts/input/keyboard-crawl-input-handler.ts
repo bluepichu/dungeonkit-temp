@@ -15,6 +15,7 @@ const KEYS = {
 	B: 66,
 	M: 77,
 	R: 82,
+	W: 87,
 	SHIFT: 16,
 	LEFT: 37,
 	UP: 38,
@@ -63,7 +64,11 @@ export default class KeyboardCrawlInputHandler implements CrawlInputHandler {
 		this.dungeonRenderer.zoomOut = key.isPressed(KEYS.M);
 		this.attackOverlay.active = key.isPressed(KEYS.SHIFT);
 
-		if (this.awaitingMove && key.isPressed(KEYS.SHIFT)) {
+		if (this.awaitingMove && key.isPressed(KEYS.W)) {
+			this.socket.sendAction({
+				type: "wait"
+			});
+		} else if (this.awaitingMove && key.isPressed(KEYS.SHIFT)) {
 			let attack: Attack = undefined;
 
 			if (key.isPressed(KEYS.ONE)) {

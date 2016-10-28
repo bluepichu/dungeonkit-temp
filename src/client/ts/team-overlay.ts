@@ -146,7 +146,7 @@ class TeamListing extends PIXI.Container {
 		this.hungerArc.moveTo(0, 25).lineTo(-130, 25);
 		this.addChild(this.hungerArc);
 
-		this.hungerText = new PIXI.MultiStyleText("<icon>hp</icon> <hunger>100</hunger>", STYLES);
+		this.hungerText = new PIXI.MultiStyleText(`<icon>defense</icon> <hunger>${entity.stats.belly.current}</hunger>`, STYLES);
 		this.hungerText.anchor.x = 1;
 		this.hungerText.anchor.y = 1;
 		this.hungerText.x = -134;
@@ -161,13 +161,14 @@ class TeamListing extends PIXI.Container {
 		this.nameText.text = entity.name;
 		this.strategyText.text = "LET'S GO TOGETHER";
 		this.hpText.text = `<icon>hp</icon> <hp>${entity.stats.hp.current}</hp>`;
+		this.hungerText.text = `<icon>defense</icon> <hunger>${entity.stats.belly.current}</hunger>`;
 
 		let arcLength = Math.PI / 2 * 25;
 		let lineLength = 130;
 		let totalLength = arcLength + lineLength;
 
 		let hpPct = entity.stats.hp.current / entity.stats.hp.max;
-		let hpLength = totalLength * hpPct
+		let hpLength = totalLength * hpPct;
 
 		this.hpArc.clear();
 		this.hpArc.lineStyle(2, hpPct < .2 ? Colors.RED : Colors.BLUE);
@@ -177,6 +178,19 @@ class TeamListing extends PIXI.Container {
 			let hpArcLength = hpLength - lineLength;
 			let hpAngle = hpArcLength / arcLength * Math.PI / 2;
 			this.hpArc.arc(0, 0, 25, -Math.PI/2, -Math.PI/2 + hpAngle);
+		}
+
+		let hungerPct = entity.stats.belly.current / entity.stats.belly.max;
+		let hungerLength = totalLength * hungerPct;
+
+		this.hungerArc.clear();
+		this.hungerArc.lineStyle(2, hungerPct < .2 ? Colors.RED : Colors.YELLOW);
+		this.hungerArc.moveTo(-lineLength, 25).lineTo(-lineLength + Math.min(lineLength, hungerLength), 25);
+
+		if (hungerLength > lineLength) {
+			let hungerArcLength = hungerLength - lineLength;
+			let hungerAngle = hungerArcLength / arcLength * Math.PI / 2;
+			this.hungerArc.arc(0, 0, 25, Math.PI/2, Math.PI/2 - hungerAngle, true);
 		}
 	}
 }

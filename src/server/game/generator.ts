@@ -229,7 +229,8 @@ function placeEnemies(
 					level: enemyBlueprint.stats.level,
 					attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
 					defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 },
-					hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current }
+					hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
+					belly: { max: enemyBlueprint.stats.belly.max, current: enemyBlueprint.stats.belly.current }
 				},
 				alignment: 0,
 				advances: false,

@@ -18,6 +18,10 @@ let mudkip: OverworldEntity = {
 		defense: {
 			base: 19,
 			modifier: 0
+		},
+		belly: {
+			max: 100,
+			current: 100
 		}
 	},
 	attacks: [],

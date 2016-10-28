@@ -191,7 +191,7 @@ let dungeonGraphics: DungeonGraphicsDescriptor = {
 		base: "dng-proto",
 		animations: {
 			"default": [
-				{ 
+				{
 					duration: 0,
 					sprites: [{texture: "open", anchor: { x: 12, y: 5 } }]
 				}
@@ -315,7 +315,7 @@ let swift: Attack = {
 	onHit: []
 };
 
-let mudkipStats = {
+let mudkipStats: EntityStats = {
 	level: 10,
 	hp: {
 		max: 10,
@@ -328,10 +328,14 @@ let mudkipStats = {
 	defense: {
 		base: 19,
 		modifier: 0
+	},
+	belly: {
+		max: 100,
+		current: 100
 	}
 };
 
-let eeveeStats = {
+let eeveeStats: EntityStats = {
 	level: 10,
 	hp: {
 		max: 48,
@@ -344,6 +348,10 @@ let eeveeStats = {
 	defense: {
 		base: 21,
 		modifier: 0
+	},
+	belly: {
+		max: 100,
+		current: 100
 	}
 };
 

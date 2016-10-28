@@ -398,6 +398,12 @@ function postExecute(state: CrawlState,
 		return state;
 	}
 
+	if (entity.stats.belly.current > 0) {
+		entity.stats.belly.current--;
+	} else {
+		entity.stats.hp.current--;
+	}
+
 	let newState = state as InProgressCrawlState;
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)

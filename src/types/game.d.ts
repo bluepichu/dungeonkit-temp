@@ -29,6 +29,7 @@ interface EntityStats {
 	hp: MaxCurrentStat;
 	attack: BaseModifierStat;
 	defense: BaseModifierStat;
+	belly: MaxCurrentStat;
 }
 
 /**
