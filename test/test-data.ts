@@ -143,7 +143,8 @@ let mockStats: EntityStats = {
 	level: 1,
 	hp: { max: 1, current: 1 },
 	attack: { base: 1, modifier: 0 },
-	defense: { base: 1, modifier: 0 }
+	defense: { base: 1, modifier: 0 },
+	belly: { max: 1, current: 1 }
 };
 
 export let entity1: CrawlEntity = {
