@@ -65,6 +65,8 @@ export default class KeyboardCrawlInputHandler implements CrawlInputHandler {
 		this.attackOverlay.active = key.isPressed(KEYS.SHIFT);
 
 		if (this.awaitingMove && key.isPressed(KEYS.W)) {
+			this.awaitingMove = false;
+
 			this.socket.sendAction({
 				type: "wait"
 			});

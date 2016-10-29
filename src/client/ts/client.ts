@@ -515,6 +515,22 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						}
 						break;
 
+					case "belly":
+						if (statEvent.change <= 0) {
+							messageLog.push(sprintf("<%1$s>%2$s</%1$s> suddenly became hungrier!",
+								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+								statEvent.entity.name));
+						} else if (statEvent.change <= 60) {
+							messageLog.push(sprintf("<%1$s>%2$s</%1$s>'s belly filled somewhat!",
+								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+								statEvent.entity.name));
+						} else {
+							messageLog.push(sprintf("<%1$s>%2$s</%1$s>'s belly filled greatly!",
+								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
+								statEvent.entity.name));
+						}
+						break;
+
 					default:
 						messageLog.push(sprintf("<%1$s>%2$s</%1$s>'s %3$s %4$s!",
 							statEvent.entity.id === state.getState().self.id ? "self" : "enemy",

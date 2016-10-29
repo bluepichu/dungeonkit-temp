@@ -113,7 +113,7 @@ class TeamListing extends PIXI.Container {
 		this.entitySprite.scale.y = 1.5;
 		this.addChild(this.entitySprite);
 
-		this.nameText = new PIXI.Text(entity.name, STYLES["title"]);
+		this.nameText = new PIXI.Text("", STYLES["title"]);
 		this.nameText.anchor.x = 1;
 		this.nameText.anchor.y = 1;
 		this.nameText.x = -30;
@@ -121,7 +121,7 @@ class TeamListing extends PIXI.Container {
 		this.nameText.resolution = window.devicePixelRatio;
 		this.addChild(this.nameText);
 
-		this.strategyText = new PIXI.Text("LET'S GO TOGETHER", STYLES["strategy"]);
+		this.strategyText = new PIXI.Text("", STYLES["strategy"]);
 		this.strategyText.anchor.x = 1;
 		this.strategyText.anchor.y = 0;
 		this.strategyText.x = -30;
@@ -132,7 +132,7 @@ class TeamListing extends PIXI.Container {
 		this.hpArc = new PIXI.Graphics();
 		this.addChild(this.hpArc);
 
-		this.hpText = new PIXI.MultiStyleText(`<icon>hp</icon> <hp>${entity.stats.hp.current}</hp>`, STYLES);
+		this.hpText = new PIXI.MultiStyleText("", STYLES);
 		this.hpText.anchor.x = 1;
 		this.hpText.anchor.y = 0;
 		this.hpText.x = -134;
@@ -146,7 +146,7 @@ class TeamListing extends PIXI.Container {
 		this.hungerArc.moveTo(0, 25).lineTo(-130, 25);
 		this.addChild(this.hungerArc);
 
-		this.hungerText = new PIXI.MultiStyleText(`<icon>defense</icon> <hunger>${entity.stats.belly.current}</hunger>`, STYLES);
+		this.hungerText = new PIXI.MultiStyleText("", STYLES);
 		this.hungerText.anchor.x = 1;
 		this.hungerText.anchor.y = 1;
 		this.hungerText.x = -134;
@@ -160,8 +160,8 @@ class TeamListing extends PIXI.Container {
 	public update(entity: CensoredSelfCrawlEntity): void {
 		this.nameText.text = entity.name;
 		this.strategyText.text = "LET'S GO TOGETHER";
+
 		this.hpText.text = `<icon>hp</icon> <hp>${entity.stats.hp.current}</hp>`;
-		this.hungerText.text = `<icon>defense</icon> <hunger>${entity.stats.belly.current}</hunger>`;
 
 		let arcLength = Math.PI / 2 * 25;
 		let lineLength = 130;
@@ -170,8 +170,10 @@ class TeamListing extends PIXI.Container {
 		let hpPct = entity.stats.hp.current / entity.stats.hp.max;
 		let hpLength = totalLength * hpPct;
 
+		STYLES["hp"].fill = this.colorToString(this.getHpColor(hpPct));
+
 		this.hpArc.clear();
-		this.hpArc.lineStyle(2, hpPct < .2 ? Colors.RED : Colors.BLUE);
+		this.hpArc.lineStyle(2, this.getHpColor(hpPct));
 		this.hpArc.moveTo(-lineLength, -25).lineTo(-lineLength + Math.min(lineLength, hpLength), -25);
 
 		if (hpLength > lineLength) {
@@ -180,17 +182,51 @@ class TeamListing extends PIXI.Container {
 			this.hpArc.arc(0, 0, 25, -Math.PI/2, -Math.PI/2 + hpAngle);
 		}
 
+		this.hungerText.text = `<icon>defense</icon> <hunger>${Math.floor(entity.stats.belly.current / 6)}</hunger>`;
+
 		let hungerPct = entity.stats.belly.current / entity.stats.belly.max;
 		let hungerLength = totalLength * hungerPct;
 
+		STYLES["hunger"].fill = this.colorToString(this.getHungerColor(hungerPct));
+
 		this.hungerArc.clear();
-		this.hungerArc.lineStyle(2, hungerPct < .2 ? Colors.RED : Colors.YELLOW);
+		this.hungerArc.lineStyle(2, this.getHungerColor(hungerPct));
 		this.hungerArc.moveTo(-lineLength, 25).lineTo(-lineLength + Math.min(lineLength, hungerLength), 25);
 
 		if (hungerLength > lineLength) {
 			let hungerArcLength = hungerLength - lineLength;
 			let hungerAngle = hungerArcLength / arcLength * Math.PI / 2;
 			this.hungerArc.arc(0, 0, 25, Math.PI/2, Math.PI/2 - hungerAngle, true);
+		}
+	}
+
+	private colorToString(color: number): string {
+		let hex = color.toString(16);
+		let padding = "000000".substring(hex.length);
+		return `#${padding}${hex}`;
+	}
+
+	private getHpColor(pct: number): number {
+		if (pct < 0.1) {
+			return Colors.RED;
+		} else if (pct < 0.25) {
+			return Colors.ORANGE;
+		} else if (pct < 0.5) {
+			return Colors.YELLOW;
+		} else if (pct < 1) {
+			return Colors.GREEN;
+		} else {
+			return Colors.BLUE;
+		}
+	}
+
+	private getHungerColor(pct: number): number {
+		if (pct < 0.1) {
+			return Colors.RED;
+		} else if (pct < 0.2) {
+			return Colors.ORANGE
+		} else {
+			return Colors.YELLOW;
 		}
 	}
 }

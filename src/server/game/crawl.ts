@@ -378,6 +378,10 @@ function execute(
 			result = executeStairs(state, entity, action as StairsAction);
 			break;
 
+		case "wait":
+			result = executeWait(state, entity, action as WaitAction);
+			break;
+
 		default:
 			result = Promise.resolve(state);
 			break;
@@ -398,9 +402,7 @@ function postExecute(state: CrawlState,
 		return state;
 	}
 
-	if (entity.stats.belly.current > 0) {
-		entity.stats.belly.current--;
-	} else {
+	if (entity.stats.belly.current === 0) {
 		entity.stats.hp.current--;
 	}
 
@@ -432,6 +434,23 @@ function postExecute(state: CrawlState,
 	entity.controller.updateState(getCensoredState(newState, entity));
 
 	return newState;
+}
+
+/**
+ * Executes a wait action.
+ * @param state - The state.
+ * @param entity - The entity.
+ * @param action - The action.
+ * @return A promise for the state after performing the action.
+ */
+function executeWait(
+	state: InProgressCrawlState,
+	entity: CrawlEntity,
+	action: WaitAction): Promise<CrawlState> {
+	entity.stats.belly.current = Math.max(entity.stats.belly.current - 1, 0);
+	entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
+
+	return Promise.resolve(state);
 }
 
 /**
@@ -467,6 +486,12 @@ function executeMove(
 		end: entity.location,
 		direction: action.direction
 	});
+
+	entity.stats.belly.current = Math.max(entity.stats.belly.current - 2, 0);
+
+	if (Math.random() < .25) {
+		entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
+	}
 
 	return executeItemPickup(state, entity);
 }
@@ -599,6 +624,8 @@ function executeAttack(
 	let targets = getTargets(state, entity, action.direction, action.attack.target);
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
+
+	entity.stats.belly.current = Math.max(entity.stats.belly.current - 3, 0);
 
 	return Promise.resolve(state);
 }
@@ -842,6 +869,13 @@ function executeItem(
 			// ???
 			break;
 	}
+
+	entity.stats.belly.current = Math.max(entity.stats.belly.current - 1, 0);
+
+	if (Math.random() < .25) {
+		entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
+	}
+
 	return Promise.resolve(state); // TODO
 }
 

@@ -330,8 +330,8 @@ let mudkipStats: EntityStats = {
 		modifier: 0
 	},
 	belly: {
-		max: 100,
-		current: 100
+		max: 600,
+		current: 600
 	}
 };
 
@@ -350,8 +350,8 @@ let eeveeStats: EntityStats = {
 		modifier: 0
 	},
 	belly: {
-		max: 100,
-		current: 100
+		max: 600,
+		current: 600
 	}
 };
 
@@ -480,6 +480,19 @@ let reviverSeed: ItemBlueprint = {
 			item.handlers = { [ItemHook.ITEM_USE]: item.handlers[ItemHook.ITEM_USE] };
 		},
 		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState) {
+			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "belly",
+				change: newBelly - entity.stats.belly.current
+			});
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -489,6 +502,8 @@ let reviverSeed: ItemBlueprint = {
 				},
 				message: sprintf("<self>%s</self> ate the <item>Reviver Seed</item>!", entity.name)
 			});
+
+			entity.stats.belly.current = newBelly;
 		}
 	}
 };
@@ -513,7 +528,10 @@ let oranBerry: ItemBlueprint = {
 				},
 				message: sprintf("<self>%s</self> ate the <item>Oran Berry</item>!", entity.name)
 			});
+
 			let newHp = Math.min(entity.stats.hp.max, entity.stats.hp.current + 20);
+			let newBelly = Math.min(entity.stats.belly.max, entity.stats.belly.current + 90);
+
 			crawl.propagateLogEvent(state, {
 				type: "stat",
 				entity: {
@@ -525,7 +543,21 @@ let oranBerry: ItemBlueprint = {
 				stat: "hp",
 				change: newHp - entity.stats.hp.current
 			});
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "belly",
+				change: newBelly - entity.stats.belly.current
+			});
+
 			entity.stats.hp.current = newHp;
+			entity.stats.belly.current = newBelly;
 		}
 	}
 };
