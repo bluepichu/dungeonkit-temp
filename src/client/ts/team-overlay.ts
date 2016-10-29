@@ -182,7 +182,7 @@ class TeamListing extends PIXI.Container {
 			this.hpArc.arc(0, 0, 25, -Math.PI/2, -Math.PI/2 + hpAngle);
 		}
 
-		this.hungerText.text = `<icon>defense</icon> <hunger>${Math.floor(entity.stats.belly.current / 6)}</hunger>`;
+		this.hungerText.text = `<icon>defense</icon> <hunger>${Math.ceil(entity.stats.belly.current / 6)}</hunger>`;
 
 		let hungerPct = entity.stats.belly.current / entity.stats.belly.max;
 		let hungerLength = totalLength * hungerPct;

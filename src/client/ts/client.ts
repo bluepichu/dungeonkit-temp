@@ -479,6 +479,13 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					attackEvent.entity.name,
 					attackEvent.attack.name));
 
+				if (!dungeonRenderer.entityManager.hasObject(attackEvent.entity.id)) {
+					dungeonRenderer.entityManager.addObject(
+							attackEvent.entity.id,
+							attackEvent.entity.graphics,
+							utils.locationToPoint(attackEvent.location, Constants.GRID_SIZE));
+				}
+
 				dungeonRenderer.entityManager.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
 
 				dungeonRenderer.entityManager.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
@@ -521,7 +528,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 								statEvent.entity.name));
 
-							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, statEvent.change)
+							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, Math.ceil(statEvent.change / 6))
 								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else if (statEvent.change <= 60) {
@@ -529,7 +536,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 								statEvent.entity.name));
 
-							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
+							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, Math.ceil(statEvent.change / 6))
 								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else {
@@ -537,7 +544,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 								statEvent.entity.name));
 
-							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
+							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, Math.ceil(statEvent.change / 6))
 								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						}

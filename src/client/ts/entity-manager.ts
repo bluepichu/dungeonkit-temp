@@ -46,6 +46,9 @@ export default class EntityManager extends GraphicsManager<string, string> {
 	}
 
 	public setObjectDirection(id: string, direction: number) {
+		if (!this.map.has(id)) {
+			throw new Error(`No object with id ${id}.`);
+		}
 		this.map.get(id).direction = direction;
 	}
 }

@@ -204,15 +204,18 @@ export default class CommandArea extends PIXI.Container {
 
 function scoreSuggestion(input: string, suggestion: string): number {
 	let index = 0;
-	let score = 1;
+	let difference = 0;
+	let score = 1 / suggestion.length;
 	for (let character of input) {
 		while (index < suggestion.length && suggestion.charAt(index) !== character) {
 			index++;
+			difference++;
 		}
 		if (index === suggestion.length) {
 			return 0;
 		}
-		score += suggestion.length - index;
+		score += 100 - difference;
+		difference = 0;
 	}
 	return score;
 }
