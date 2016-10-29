@@ -1,6 +1,7 @@
 "use strict";
 
 import Constants      from "./constants";
+import DeltaManager   from "./delta-manager";
 import EntityManager  from "./entity-manager";
 import GraphicsObject from "./graphics/graphics-object";
 import GroundManager  from "./ground-manager";
@@ -17,21 +18,26 @@ export default class DungeonRenderer extends PIXI.Container {
 	public groundManager: GroundManager;
 	public itemManager: ItemManager;
 	public entityManager: EntityManager;
+	public deltaManager: DeltaManager;
 
-	private container: Layer;
+	private mainLayer: Layer;
+	private effectsLayer: PIXI.Container;
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
 	constructor() {
 		super();
 
-		this.container = new Layer();
+		this.mainLayer = new Layer();
+		this.effectsLayer = new PIXI.Container();
 
-		this.addChild(this.container);
+		this.addChild(this.mainLayer);
+		this.addChild(this.effectsLayer);
 
-		this.groundManager = new GroundManager(this.container);
-		this.itemManager = new ItemManager(this.container);
-		this.entityManager = new EntityManager(this.container);
+		this.groundManager = new GroundManager(this.mainLayer);
+		this.itemManager = new ItemManager(this.mainLayer);
+		this.entityManager = new EntityManager(this.mainLayer);
+		this.deltaManager = new DeltaManager(this.effectsLayer);
 
 		this._zoomOut = false;
 	}
@@ -76,7 +82,8 @@ export default class DungeonRenderer extends PIXI.Container {
 
 		let {x: cx, y: cy} = utils.locationToPoint(center, Constants.GRID_SIZE);
 
-		Tweener.tween(this.container, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.mainLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.effectsLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
 	}
 
 	set zoomOut(zoom: boolean) {
@@ -93,7 +100,7 @@ export default class DungeonRenderer extends PIXI.Container {
 		this._zoomOut = zoom;
 	}
 
-	updatePosition(location: CrawlLocation): void {
+	public updatePosition(location: CrawlLocation): void {
 		let roomBounds = this.groundManager.getRoomBounds(utils.getTile(state.getState().floor.map, location).roomId);
 
 		if (utils.isVoid(roomBounds)) { // in a hallway or don't know the bounds of the current room
@@ -113,14 +120,18 @@ export default class DungeonRenderer extends PIXI.Container {
 		}
 	}
 
-	clear(): void {
+	public displayDelta(location: CrawlLocation, color: number, amount: number): Thenable {
+		return this.deltaManager.displayDelta(location, color, amount);
+	}
+
+	public clear(): void {
 		this.groundManager.clear();
 		this.entityManager.clear();
 		this.itemManager.clear();
 	}
 
-	prerender(): void {
-		this.container.children.sort((a, b) => (a.z == b.z) ? (b.y - a.y) : (a.z - b.z));
+	protected prerender(): void {
+		this.mainLayer.children.sort((a, b) => (a.z == b.z) ? (b.y - a.y) : (a.z - b.z));
 	}
 
 	public renderCanvas(renderer: PIXI.CanvasRenderer) {

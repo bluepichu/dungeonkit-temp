@@ -500,7 +500,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 							dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "hurt", false);
 
-							new Promise((resolve, _) => setTimeout(resolve, 1000))
+							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, statEvent.change)
 								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else {
@@ -509,7 +509,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								statEvent.entity.name,
 								statEvent.change));
 
-							new Promise((resolve, _) => setTimeout(resolve, 1000))
+							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
 								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						}
@@ -520,14 +520,26 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							messageLog.push(sprintf("<%1$s>%2$s</%1$s> suddenly became hungrier!",
 								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 								statEvent.entity.name));
+
+							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, statEvent.change)
+								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(done);
 						} else if (statEvent.change <= 60) {
 							messageLog.push(sprintf("<%1$s>%2$s</%1$s>'s belly filled somewhat!",
 								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 								statEvent.entity.name));
+
+							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
+								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(done);
 						} else {
 							messageLog.push(sprintf("<%1$s>%2$s</%1$s>'s belly filled greatly!",
 								statEvent.entity.id === state.getState().self.id ? "self" : "enemy",
 								statEvent.entity.name));
+
+							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
+								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(done);
 						}
 						break;
 
