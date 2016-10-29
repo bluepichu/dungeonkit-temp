@@ -24,8 +24,8 @@ const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 		fill: Colors.GRAY_6
 	},
 	icon: {
-		font: "300 8px DK Icons",
-		fill: Colors.WHITE
+		font: "300 12px DK Icons",
+		valign: "middle"
 	},
 	hp: {
 		font: "700 10px Lato",
@@ -161,7 +161,7 @@ class TeamListing extends PIXI.Container {
 		this.nameText.text = entity.name;
 		this.strategyText.text = "LET'S GO TOGETHER";
 
-		this.hpText.text = `<icon>hp</icon> <hp>${entity.stats.hp.current}</hp>`;
+		this.hpText.text = `<hp><icon>hp</icon>${entity.stats.hp.current}</hp>`;
 
 		let arcLength = Math.PI / 2 * 25;
 		let lineLength = 130;
@@ -182,7 +182,7 @@ class TeamListing extends PIXI.Container {
 			this.hpArc.arc(0, 0, 25, -Math.PI/2, -Math.PI/2 + hpAngle);
 		}
 
-		this.hungerText.text = `<icon>defense</icon> <hunger>${Math.ceil(entity.stats.belly.current / 6)}</hunger>`;
+		this.hungerText.text = `<hunger><icon>defense</icon>${Math.ceil(entity.stats.belly.current / 6)}</hunger>`;
 
 		let hungerPct = entity.stats.belly.current / entity.stats.belly.max;
 		let hungerLength = totalLength * hungerPct;
