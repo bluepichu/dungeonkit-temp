@@ -13,7 +13,16 @@ export default class DeltaManager {
 	}
 
 	public displayDelta(location: CrawlLocation, color: number, amount: number): Thenable {
-		let delta = new PIXI.Text((amount > 0 ? "+" : "") + amount, { font: "500 8px Lato", fill: color, stroke: Colors.BLACK, strokeThickness: 2 });
+		let delta = new PIXI.Text((amount > 0 ? "+" : "") + amount,
+			{
+				font: "500 8px Lato",
+				fill: color,
+				stroke: Colors.BLACK,
+				strokeThickness: 2,
+				lineJoin: "round"
+			}
+		);
+
 		delta.resolution = 20; // sometimes, we zoom in a lot on this
 		delta.anchor.x = .5;
 		delta.anchor.y = 1;

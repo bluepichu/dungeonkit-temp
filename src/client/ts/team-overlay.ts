@@ -184,7 +184,7 @@ class TeamListing extends PIXI.Container {
 
 		this.hungerText.text = `<hunger><icon>defense</icon>${Math.ceil(entity.stats.belly.current / 6)}</hunger>`;
 
-		let hungerPct = entity.stats.belly.current / entity.stats.belly.max;
+		let hungerPct = Math.ceil(entity.stats.belly.current / 6) / Math.ceil(entity.stats.belly.max / 6);
 		let hungerLength = totalLength * hungerPct;
 
 		STYLES["hunger"].fill = this.colorToString(this.getHungerColor(hungerPct));

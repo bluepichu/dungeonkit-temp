@@ -447,8 +447,7 @@ function executeWait(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
 	action: WaitAction): Promise<CrawlState> {
-	entity.stats.belly.current = Math.max(entity.stats.belly.current - 1, 0);
-	entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
+	drainBellyAndRecoverHp(entity, 1, 1);
 
 	return Promise.resolve(state);
 }
@@ -487,11 +486,7 @@ function executeMove(
 		direction: action.direction
 	});
 
-	entity.stats.belly.current = Math.max(entity.stats.belly.current - 2, 0);
-
-	if (Math.random() < .25) {
-		entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
-	}
+	drainBellyAndRecoverHp(entity, 2, 0.25);
 
 	return executeItemPickup(state, entity);
 }
@@ -625,7 +620,7 @@ function executeAttack(
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
 
-	entity.stats.belly.current = Math.max(entity.stats.belly.current - 3, 0);
+	drainBellyAndRecoverHp(entity, 3, 1);
 
 	return Promise.resolve(state);
 }
@@ -870,13 +865,18 @@ function executeItem(
 			break;
 	}
 
-	entity.stats.belly.current = Math.max(entity.stats.belly.current - 1, 0);
-
-	if (Math.random() < .25) {
-		entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
-	}
+	drainBellyAndRecoverHp(entity, 1, 0.5);
 
 	return Promise.resolve(state); // TODO
+}
+
+function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecoverProbability: number): void {
+	if (entity.stats.hp.current > 0 && entity.stats.belly.current > 0) {
+		if (Math.random() < hpRecoverProbability) {
+			entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
+		}
+		entity.stats.belly.current = Math.max(0, entity.stats.belly.current - bellyDrain);
+	}
 }
 
 /**
