@@ -107,7 +107,7 @@ class TeamListing extends PIXI.Container {
 
 		this.entitySprite = new EntitySprite(EntityManager.entityGraphicsCache.get(entity.graphics));
 		this.entitySprite.direction = 7;
-		this.entitySprite.x = 0;
+		this.entitySprite.x = -4;
 		this.entitySprite.y = 4;
 		this.entitySprite.scale.x = 1.5;
 		this.entitySprite.scale.y = 1.5;
@@ -159,7 +159,7 @@ class TeamListing extends PIXI.Container {
 
 	public update(entity: CensoredSelfCrawlEntity): void {
 		this.nameText.text = entity.name;
-		this.strategyText.text = "LET'S GO TOGETHER";
+		this.strategyText.text = "LEADER";
 
 		this.hpText.text = `<hp><icon>hp</icon>${entity.stats.hp.current}</hp>`;
 

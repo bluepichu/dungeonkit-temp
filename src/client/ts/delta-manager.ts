@@ -31,7 +31,8 @@ export default class DeltaManager {
 
 		this.container.addChild(delta);
 
-		return Tweener.tween(delta, { y: delta.y - Constants.GRID_SIZE  / 4}, 0.1)
+		return Tweener.tween(delta, { y: delta.y - 3 * Constants.GRID_SIZE  / 16}, 0.1)
+				.then(() => Tweener.tween(delta, { y: delta.y - Constants.GRID_SIZE / 16, alpha: 0 }, 0.1))
 				.then(() => this.container.removeChild(delta));
 	}
 }
