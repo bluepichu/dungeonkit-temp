@@ -637,8 +637,8 @@ export let dungeon: Dungeon = {
 					}
 				],
 				items: [
-					{ item: reviverSeed, density: { type: "binomial", n: 20, p: 1 } },
-					{ item: oranBerry, density: { type: "binomial", n: 30, p: 1 } }
+					{ item: reviverSeed, density: { type: "binomial", n: 40, p: 1 } },
+					{ item: oranBerry, density: { type: "binomial", n: 60, p: 1 } }
 				]
 			}
 		}

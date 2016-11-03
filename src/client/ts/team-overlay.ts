@@ -1,10 +1,11 @@
 "use strict";
 
-import Colors        from "./colors";
-import EntityManager from "./entity-manager";
-import EntitySprite  from "./graphics/entity-sprite";
-import * as state    from "./state";
-import * as Tweener  from "./graphics/tweener";
+import Colors         from "./colors";
+import EntityManager  from "./entity-manager";
+import EntitySprite   from "./graphics/entity-sprite";
+import GraphicsObject from "./graphics/graphics-object";
+import * as state     from "./state";
+import * as Tweener   from "./graphics/tweener";
 
 const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
 	def: {
@@ -49,7 +50,11 @@ export default class TeamOverlay extends PIXI.Container {
 
 	public update() {
 		let current = new Set(this.map.keys());
-		let visible = new Set(state.getState().entities.filter((entity) => entity.alignment == state.getState().self.alignment).map((entity) => entity.id));
+		let visible = new Set(
+			state.getState()
+				.entities
+				.filter((entity) => entity.alignment === state.getState().self.alignment)
+				.map((entity) => entity.id));
 		let toAdd = new Set([...visible].filter((id) => !current.has(id)));
 		let toRemove = new Set([...current].filter((id) => !visible.has(id)));
 
@@ -94,6 +99,7 @@ class TeamListing extends PIXI.Container {
 	private hpText: PIXI.Text;
 	private hungerArc: PIXI.Graphics;
 	private hungerText: PIXI.Text;
+	private items: ItemListing[];
 
 	constructor(entity: CensoredSelfCrawlEntity) {
 		super();
@@ -142,7 +148,7 @@ class TeamListing extends PIXI.Container {
 
 		this.hungerArc = new PIXI.Graphics();
 		this.hungerArc.lineStyle(2, Colors.YELLOW);
-		this.hungerArc.arc(0, 0, 25, 0, Math.PI/2, false);
+		this.hungerArc.arc(0, 0, 25, 0, Math.PI / 2, false);
 		this.hungerArc.moveTo(0, 25).lineTo(-130, 25);
 		this.addChild(this.hungerArc);
 
@@ -153,6 +159,17 @@ class TeamListing extends PIXI.Container {
 		this.hungerText.y = 32;
 		this.hungerText.resolution = window.devicePixelRatio;
 		this.addChild(this.hungerText);
+
+		this.items = [];
+
+		for (let i = 0; i < entity.items.held.capacity; i++) {
+			let listing = new ItemListing();
+			let angle = (i + 1) / (entity.items.held.capacity + 1) * 2 * Math.PI / 3 - Math.PI / 3;
+			Object.assign(listing, { x: 45 * Math.cos(angle), y: 45 * Math.sin(angle) });
+
+			this.addChild(listing);
+			this.items.push(listing);
+		}
 
 		this.update(entity);
 	}
@@ -170,7 +187,7 @@ class TeamListing extends PIXI.Container {
 		let hpPct = entity.stats.hp.current / entity.stats.hp.max;
 		let hpLength = totalLength * hpPct;
 
-		STYLES["hp"].fill = this.colorToString(this.getHpColor(hpPct));
+		STYLES["hp"].fill = PIXI.utils.hex2string(this.getHpColor(hpPct));
 
 		this.hpArc.clear();
 		this.hpArc.lineStyle(2, this.getHpColor(hpPct));
@@ -179,7 +196,7 @@ class TeamListing extends PIXI.Container {
 		if (hpLength > lineLength) {
 			let hpArcLength = hpLength - lineLength;
 			let hpAngle = hpArcLength / arcLength * Math.PI / 2;
-			this.hpArc.arc(0, 0, 25, -Math.PI/2, -Math.PI/2 + hpAngle);
+			this.hpArc.arc(0, 0, 25, -Math.PI / 2, -Math.PI / 2 + hpAngle);
 		}
 
 		this.hungerText.text = `<hunger><icon>defense</icon>${Math.ceil(entity.stats.belly.current / 6)}</hunger>`;
@@ -187,7 +204,7 @@ class TeamListing extends PIXI.Container {
 		let hungerPct = Math.ceil(entity.stats.belly.current / 6) / Math.ceil(entity.stats.belly.max / 6);
 		let hungerLength = totalLength * hungerPct;
 
-		STYLES["hunger"].fill = this.colorToString(this.getHungerColor(hungerPct));
+		STYLES["hunger"].fill = PIXI.utils.hex2string(this.getHungerColor(hungerPct));
 
 		this.hungerArc.clear();
 		this.hungerArc.lineStyle(2, this.getHungerColor(hungerPct));
@@ -196,14 +213,16 @@ class TeamListing extends PIXI.Container {
 		if (hungerLength > lineLength) {
 			let hungerArcLength = hungerLength - lineLength;
 			let hungerAngle = hungerArcLength / arcLength * Math.PI / 2;
-			this.hungerArc.arc(0, 0, 25, Math.PI/2, Math.PI/2 - hungerAngle, true);
+			this.hungerArc.arc(0, 0, 25, Math.PI / 2, Math.PI / 2 - hungerAngle, true);
 		}
-	}
 
-	private colorToString(color: number): string {
-		let hex = color.toString(16);
-		let padding = "000000".substring(hex.length);
-		return `#${padding}${hex}`;
+		this.items.forEach((listing, i) => {
+			if (i < entity.items.held.items.length) {
+				listing.item = entity.items.held.items[i];
+			} else {
+				listing.item = undefined;
+			}
+		});
 	}
 
 	private getHpColor(pct: number): number {
@@ -224,9 +243,46 @@ class TeamListing extends PIXI.Container {
 		if (pct < 0.1) {
 			return Colors.RED;
 		} else if (pct < 0.2) {
-			return Colors.ORANGE
+			return Colors.ORANGE;
 		} else {
 			return Colors.YELLOW;
 		}
+	}
+}
+
+class ItemListing extends PIXI.Container {
+	private bg: PIXI.Graphics;
+	private _item: Item;
+	private sprite: GraphicsObject;
+
+	constructor() {
+		super();
+
+		this.bg = new PIXI.Graphics();
+		this.bg.beginFill(Colors.BLACK, .9);
+		this.bg.drawCircle(0, 0, 12);
+		this.addChild(this.bg);
+	}
+
+	public set item(item) {
+		if (item === undefined) {
+			if (this._item !== undefined) {
+				this.removeChild(this.sprite);
+			}
+			this.sprite = undefined;
+		} else if (this._item === undefined || this._item.name !== item.name) {
+			if (this._item !== undefined) {
+				this.removeChild(this.sprite);
+			}
+			this.sprite = new GraphicsObject(item.graphics);
+			this.sprite.y = -2;
+			this.addChild(this.sprite);
+		}
+
+		this._item = item;
+	}
+
+	public get item() {
+		return this._item;
 	}
 }

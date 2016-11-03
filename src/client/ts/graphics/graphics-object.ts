@@ -68,7 +68,7 @@ export default class GraphicsObject extends PIXI.Container {
 	}
 
 	private prerender() {
-		if (this.descriptor.animations[this.animation].length == 0) {
+		if (this.descriptor.animations[this.animation].length === 0) {
 			return; // Optimize static objects - no need to reset the texture every frame
 		}
 
