@@ -1,5 +1,12 @@
 "use strict";
 
+import {
+	CanvasRenderer,
+	Container,
+	Graphics,
+	WebGLRenderer
+} from "pixi.js";
+
 import AttackOverlay   from "../attack-overlay";
 import CommandArea     from "../command-area";
 import DungeonRenderer from "../dungeon-renderer";
@@ -16,20 +23,19 @@ export default class TouchCrawlInputHandler implements CrawlInputHandler {
 
 	private moveInput: number;
 	private socket: GameSocket;
-	private dungeonRenderer: DungeonRenderer;
 	private hammer: HammerManager;
 	private messageLog: MessageLog;
 	private touchIndicator: TouchIndicator;
 	private touchIndicatorAngle: number;
 
+	public dungeonRenderer: DungeonRenderer;
+
 	constructor(socket: GameSocket,
-			dungeonRenderer: DungeonRenderer,
 			messageLog: MessageLog,
 			rootElem: HTMLElement,
-			gameContainer: PIXI.Container) {
+			gameContainer: Container) {
 		this.awaitingMove = false;
 		this.moveInput = 0;
-		this.dungeonRenderer = dungeonRenderer;
 		this.socket = socket;
 		this.messageLog = messageLog;
 		this.touchIndicator = new TouchIndicator();
@@ -43,7 +49,7 @@ export default class TouchCrawlInputHandler implements CrawlInputHandler {
 
 	private setTouchListeners(rootElem: HTMLElement): void {
 		this.hammer = new Hammer(rootElem, {
-			preventDefault: true,
+			// preventDefault: true,
 			recognizers: [
 				[Hammer.Swipe, { event: "swipe", pointers: 1 }],
 				[Hammer.Swipe, { event: "double-swipe", pointers: 2 }],
@@ -108,7 +114,7 @@ export default class TouchCrawlInputHandler implements CrawlInputHandler {
 	public handleInput(): void { }
 }
 
-class TouchIndicator extends PIXI.Graphics {
+class TouchIndicator extends Graphics {
 	private angle: number;
 	private _active: boolean;
 
@@ -154,12 +160,12 @@ class TouchIndicator extends PIXI.Graphics {
 		}
 	}
 
-	renderCanvas(renderer: PIXI.CanvasRenderer): void {
+	renderCanvas(renderer: CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	renderWebGL(renderer: PIXI.WebGLRenderer): void {
+	renderWebGL(renderer: WebGLRenderer): void {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}

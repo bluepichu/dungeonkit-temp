@@ -1,48 +1,45 @@
 "use strict";
 
-import Colors       from "./colors";
-import * as Tweener from "./graphics/tweener";
+import {
+	Container,
+	Graphics,
+	TextStyle
+} from "pixi.js";
 
-const MESSAGE_LOG_STYLES: { [key: string]: PIXI.TextStyle } = {
+import Colors         from "./colors";
+import * as Tweener   from "./graphics/tweener";
+import MultiStyleText from "./pixi-multistyle-text";
+
+const MESSAGE_LOG_STYLES: { [key: string]: TextStyle } = {
 	def: {
-		font: "300 16px Lato",
+		fontFamily: "Lato",
+		fontSize: "16px",
+		fontWeight: "300",
 		fill: Colors.WHITE,
 		align: "right"
 	},
 	self: {
-		font: "300 16px Lato",
-		fill: Colors.YELLOW,
-		align: "right"
+		fill: Colors.YELLOW
 	},
 	ally: {
-		font: "300 16px Lato",
-		fill: Colors.ORANGE,
-		align: "right"
+		fill: Colors.ORANGE
 	},
 	enemy: {
-		font: "300 16px Lato",
-		fill: Colors.RED,
-		align: "right"
+		fill: Colors.RED
 	},
 	item: {
-		font: "300 16px Lato",
-		fill: Colors.BLUE,
-		align: "right"
+		fill: Colors.BLUE
 	},
 	command: {
-		font: "300 16px Lato",
-		fill: Colors.PURPLE,
-		align: "right"
+		fill: Colors.PURPLE
 	},
 	attack: {
-		font: "300 16px Lato",
-		fill: Colors.BROWN,
-		align: "right"
+		fill: Colors.BROWN
 	}
 };
 
-export default class MessageLog extends PIXI.Container {
-	private messages: PIXI.Container[];
+export default class MessageLog extends Container {
+	private messages: Container[];
 	private timeouts: number[];
 	private keepTime: number;
 	private spacing: number;
@@ -93,7 +90,7 @@ export default class MessageLog extends PIXI.Container {
 		}
 	}
 
-	pop(messageToRemove: PIXI.Container): void {
+	pop(messageToRemove: Container): void {
 		if (this.messages.length === 0) {
 			return;
 		}
@@ -115,15 +112,15 @@ export default class MessageLog extends PIXI.Container {
 			});
 	}
 
-	createMessage(message: string): PIXI.Container {
-		let ret = new PIXI.Container();
+	createMessage(message: string): Container {
+		let ret = new Container();
 
-		let text = new PIXI.MultiStyleText(message, MESSAGE_LOG_STYLES);
+		let text = new MultiStyleText(message, MESSAGE_LOG_STYLES);
 		text.anchor.x = 1;
 		text.anchor.y = 1;
 		text.resolution = window.devicePixelRatio;
 
-		let bg = new PIXI.Graphics();
+		let bg = new Graphics();
 
 		bg.beginFill(Colors.BLACK, .8);
 		bg.drawRect(-text.width - 8, -text.height - 8, text.width + 16, text.height + 16);

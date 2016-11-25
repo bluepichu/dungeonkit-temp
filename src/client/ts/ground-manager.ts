@@ -1,22 +1,35 @@
 "use strict";
 
-import Constants       from "./constants";
-import GraphicsManager from "./graphics/graphics-manager";
-import GraphicsObject  from "./graphics/graphics-object";
-import * as state      from "./state";
-import * as utils      from "../../common/utils";
+import {
+	Container
+} from "pixi.js";
 
-export default class GroundManager extends GraphicsManager<string, GraphicsObjectDescriptor> {
+import Constants                    from "./constants";
+import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
+import GraphicsManager              from "./graphics/graphics-manager";
+import GraphicsObject               from "./graphics/graphics-object";
+import * as state                   from "./state";
+import * as utils                   from "../../common/utils";
+
+export default class GroundManager extends GraphicsManager<string> {
 	private roomBounds: Map<number, Viewport>;
+	private _descriptor: ExpandedGraphicsObjectDescriptor;
 
-	constructor(container: PIXI.Container) {
+	constructor(container: Container, descriptor: string) {
 		super(container);
 
 		this.roomBounds = new Map();
+		this._descriptor = GraphicsDescriptorCache.getGraphics(descriptor);
 	}
 
-	protected generateGraphicsObject(descriptor: GraphicsObjectDescriptor): GraphicsObject {
-		return new GraphicsObject(descriptor);
+	public set descriptor(descriptor: string) {
+		this._descriptor = GraphicsDescriptorCache.getGraphics(descriptor);
+	}
+
+	protected generateGraphicsObject(key: string): GraphicsObject {
+		let tile = new GraphicsObject(this._descriptor);
+		tile.setAnimation(key);
+		return tile;
 	}
 
 	public update(location: CrawlLocation) {
@@ -39,21 +52,19 @@ export default class GroundManager extends GraphicsManager<string, GraphicsObjec
 					continue;
 				}
 
-				let desc = this.getTileDescriptor(state.getState().floor.map, { r: i, c: j }, state.getState().dungeon.graphics);
+				let tileType = this.getTileType(state.getState().floor.map, { r: i, c: j });
 
-				if (desc === undefined) {
-					continue;
+				if (tileType !== undefined) {
+					let obj = this.addObject(
+						`${i}, ${j}`,
+						tileType,
+						utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE));
 				}
-
-				this.addObject(i + ", " + j, desc, utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE));
 			}
 		}
 	}
 
-	private getTileDescriptor(
-		map: FloorMap,
-		loc: CrawlLocation,
-		graphics: DungeonGraphicsDescriptor): GraphicsObjectDescriptor {
+	private getTileType(map: FloorMap, loc: CrawlLocation): string {
 		let canPlace: boolean = true;
 
 		utils.withinNSteps(1, loc, (location) =>
@@ -66,11 +77,11 @@ export default class GroundManager extends GraphicsManager<string, GraphicsObjec
 		}
 
 		if (utils.getTile(map, loc).stairs) {
-			return graphics.stairs;
+			return "stairs";
 		}
 
 		if (utils.getTile(map, loc).type === DungeonTileType.FLOOR) {
-			return graphics.open;
+			return "default";
 		}
 
 		let pattern = 0;
@@ -87,11 +98,7 @@ export default class GroundManager extends GraphicsManager<string, GraphicsObjec
 			}
 		}
 
-		for (let i = 0; i < graphics.walls.length; i++) {
-			if ((graphics.walls[i].pattern & pattern) === graphics.walls[i].pattern) {
-				return graphics.walls[i].object;
-			}
-		}
+		return "wall-" + ("00" + pattern.toString(16)).substr(-2);
 	}
 
 	public getRoomBounds(roomId: number): Viewport {

@@ -1,10 +1,15 @@
 "use strict";
 
 import Colors       from "./colors";
+import {
+	Container,
+	Graphics,
+	Text
+}                   from "pixi.js";
 import * as state   from "./state";
 import * as Tweener from "./graphics/tweener";
 
-export default class AttackOverlay extends PIXI.Container {
+export default class AttackOverlay extends Container {
 	public children: AttackListing[];
 	private _active: boolean;
 
@@ -56,25 +61,27 @@ export default class AttackOverlay extends PIXI.Container {
 	}
 }
 
-class AttackListing extends PIXI.Container {
-	private bg: PIXI.Graphics;
-	private indexText: PIXI.Text;
-	private nameText: PIXI.Text;
-	private powerText: PIXI.Text;
-	private accuracyText: PIXI.Text;
-	private usesText: PIXI.Text;
+class AttackListing extends Container {
+	private bg: Graphics;
+	private indexText: Text;
+	private nameText: Text;
+	private powerText: Text;
+	private accuracyText: Text;
+	private usesText: Text;
 
 	constructor(indexText: number, attack: Attack) {
 		super();
 
-		this.bg = new PIXI.Graphics();
+		this.bg = new Graphics();
 		this.bg.beginFill(Colors.BLUE);
 		this.bg.drawPolygon([0, 0, 300, 0, 270, 50, 0, 50]);
 		this.bg.endFill();
 		this.addChild(this.bg);
 
-		this.indexText = new PIXI.Text(indexText.toString(), {
-			font: "400 32px Lato",
+		this.indexText = new Text(indexText.toString(), {
+			fontFamily: "Lato",
+			fontSize: "32px",
+			fontWeight: "400",
 			fill: Colors.WHITE
 		});
 		this.indexText.anchor.x = .5;
@@ -84,8 +91,10 @@ class AttackListing extends PIXI.Container {
 		this.indexText.resolution = window.devicePixelRatio;
 		this.addChild(this.indexText);
 
-		this.nameText = new PIXI.Text("", {
-			font: "300 24px Lato",
+		this.nameText = new Text("", {
+			fontFamily: "Lato",
+			fontSize: "24px",
+			fontWeight: "300",
 			fill: Colors.WHITE
 		});
 		this.nameText.anchor.y = .5;
@@ -95,8 +104,10 @@ class AttackListing extends PIXI.Container {
 		this.nameText.resolution = window.devicePixelRatio;
 		this.addChild(this.nameText);
 
-		this.powerText = new PIXI.Text("", {
-			font: "300 16px Lato",
+		this.powerText = new Text("", {
+			fontFamily: "Lato",
+			fontSize: "16px",
+			fontWeight: "300",
 			fill: Colors.WHITE
 		});
 		this.powerText.anchor.x = 1;
@@ -106,8 +117,10 @@ class AttackListing extends PIXI.Container {
 		this.powerText.resolution = window.devicePixelRatio;
 		this.addChild(this.powerText);
 
-		this.accuracyText = new PIXI.Text("", {
-			font: "300 16px Lato",
+		this.accuracyText = new Text("", {
+			fontFamily: "Lato",
+			fontSize: "16px",
+			fontWeight: "300",
 			fill: Colors.WHITE
 		});
 		this.accuracyText.anchor.x = 1;
@@ -117,8 +130,10 @@ class AttackListing extends PIXI.Container {
 		this.accuracyText.resolution = window.devicePixelRatio;
 		this.addChild(this.accuracyText);
 
-		this.usesText = new PIXI.Text("", {
-			font: "300 16px Lato",
+		this.usesText = new Text("", {
+			fontFamily: "Lato",
+			fontSize: "16px",
+			fontWeight: "300",
 			fill: Colors.WHITE
 		});
 		this.usesText.anchor.x = .5;

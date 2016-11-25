@@ -9,7 +9,7 @@ interface ItemBlueprint {
 	actions?: {
 		[action: string]: string[]; // In reality, index is ItemActionType
 	};
-	graphics: GraphicsObjectDescriptor;
+	graphics: string;
 }
 
 interface Item extends ItemBlueprint {

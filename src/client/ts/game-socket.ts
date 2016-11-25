@@ -14,6 +14,8 @@ export default class GameSocket {
 			this.execute("invalid"));
 		this.socket.on("graphics", (key: string, graphics: EntityGraphicsDescriptor) =>
 			this.execute("graphics", key, graphics));
+		this.socket.on("entityGraphics", (key: string, graphics: EntityGraphicsDescriptor) =>
+			this.execute("entityGraphics", key, graphics));
 		this.socket.on("update", (message: UpdateMessage) =>
 			this.execute("update", message));
 	}
@@ -40,8 +42,12 @@ export default class GameSocket {
 		this.addListener("invalid", fn);
 	}
 
-	onGraphics(fn: (key: string, graphics: EntityGraphicsDescriptor) => void): void {
+	onGraphics(fn: (key: string, graphics: GraphicsObjectDescriptor) => void): void {
 		this.addListener("graphics", fn);
+	}
+
+	onEntityGraphics(fn: (key: string, graphics: EntityGraphicsDescriptor) => void): void {
+		this.addListener("entityGraphics", fn);
 	}
 
 	onUpdate(fn: (message: UpdateMessage) => void): void {

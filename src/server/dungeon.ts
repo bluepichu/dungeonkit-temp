@@ -160,59 +160,6 @@ function std(pattern: number): DungeonTileSelector {
 	};
 }
 
-let dungeonGraphics: DungeonGraphicsDescriptor = {
-	walls: [
-		std(0xff), // surrounded
-		std(0x7f), // one direction open
-		std(0xbf),
-		std(0xdf),
-		std(0xef),
-		std(0xf7),
-		std(0xfb),
-		std(0xfd),
-		std(0xfe),
-		std(0x3e), // one side open
-		std(0x8f),
-		std(0xe3),
-		std(0xf8),
-		std(0xe0), // two sides open
-		std(0x38),
-		std(0x0e),
-		std(0x83),
-		std(0x22),
-		std(0x88),
-		std(0x80), // three sides open
-		std(0x20),
-		std(0x08),
-		std(0x02),
-		std(0x00)  // island
-	],
-	open: {
-		base: "dng-proto",
-		animations: {
-			"default": [
-				{
-					duration: 0,
-					sprites: [{texture: "open", anchor: { x: 12, y: 5 } }]
-				}
-			]
-		}
-	},
-	stairs: {
-		base: "dng-proto",
-		animations: {
-			"default": [
-				{
-					duration: 0,
-					sprites: [
-						{ texture: "stairs", anchor: { x: 12, y: 5 } }
-					]
-				}
-			]
-		}
-	}
-};
-
 let features = {
 	rooms: roomFeatures,
 	corridors: corridorFeatures
@@ -399,52 +346,10 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
-let seedGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "seed", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let berryGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "berry", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let scarfGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "scarf", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
 let reviverSeed: ItemBlueprint = {
 	name: "Reviver Seed",
 	description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
-	graphics: seedGraphics,
+	graphics: "item-seed",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
@@ -511,7 +416,7 @@ let reviverSeed: ItemBlueprint = {
 let oranBerry: ItemBlueprint = {
 	name: "Oran Berry",
 	description: "A sweet berry.  Heals 20 HP and fills the belly slightly when eaten.",
-	graphics: berryGraphics,
+	graphics: "item-berry",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
@@ -565,7 +470,7 @@ let oranBerry: ItemBlueprint = {
 let antidefenseScarf: ItemBlueprint = {
 	name: "Antidefense Scarf",
 	description: "Why did you equip this?!?",
-	graphics: scarfGraphics,
+	graphics: "item-scarf",
 	equip(entity: UnplacedCrawlEntity) {
 		return deepProxy(entity, "stats.defense.modifier", {
 			get(target: BaseModifierStat, field: any): number {
@@ -611,7 +516,7 @@ export let dungeon: Dungeon = {
 	floors: 4,
 	direction: "up",
 	difficulty: 3,
-	graphics: dungeonGraphics,
+	graphics: "dng-proto",
 	blueprint: [
 		{
 			range: [1, 4],

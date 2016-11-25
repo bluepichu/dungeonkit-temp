@@ -1,27 +1,42 @@
 "use strict";
 
-import Colors     from "./colors";
-import GameSocket from "./game-socket";
-import Messages   from "./messages";
-import MessageLog from "./message-log";
+import {
+	CanvasRenderer,
+	Container,
+	Graphics,
+	Text,
+	TextStyle,
+	WebGLRenderer
+} from "pixi.js";
 
-const COMMAND_AREA_INACTIVE_STYLE = {
-	font: "300 16px Lato",
+import Colors         from "./colors";
+import GameSocket     from "./game-socket";
+import Messages       from "./messages";
+import MessageLog     from "./message-log";
+import MultiStyleText from "./pixi-multistyle-text";
+
+const COMMAND_AREA_INACTIVE_STYLE: TextStyle = {
+	fontFamily: "Lato",
+	fontSize: "16px",
+	fontWeight: "300",
 	fill: Colors.GRAY_5
 };
 
-const COMMAND_AREA_ACTIVE_STYLE = {
-	font: "400 16px Lato",
+const COMMAND_AREA_ACTIVE_STYLE: TextStyle = {
+	fontFamily: "Lato",
+	fontSize: "16px",
+	fontWeight: "400",
 	fill: Colors.WHITE
 };
 
-const COMMAND_AREA_SUGGESTION_STYLES: { [key: string]: PIXI.TextStyle } = {
+const COMMAND_AREA_SUGGESTION_STYLES: { [key: string]: TextStyle } = {
 	def: {
-		font: "400 14px Lato",
+		fontFamily: "Lato",
+		fontSize: "14px",
+		fontWeight: "400",
 		fill: Colors.WHITE
 	},
 	item: {
-		font: "400 14px Lato",
 		fill: Colors.BLUE
 	}
 };
@@ -35,10 +50,10 @@ type Handler = {
 	handler(socket: GameSocket, messageLog: MessageLog): void;
 };
 
-export default class CommandArea extends PIXI.Container {
+export default class CommandArea extends Container {
 	private _active: boolean;
-	private background: PIXI.Graphics;
-	private textInput: PIXI.Text;
+	private background: Graphics;
+	private textInput: Text;
 	private suggestions: Suggestion[];
 	private buffer: string;
 	private inputPromptFlashFrameCount: number;
@@ -50,12 +65,12 @@ export default class CommandArea extends PIXI.Container {
 	constructor(socket: GameSocket, messageLog: MessageLog) {
 		super();
 
-		this.background = new PIXI.Graphics();
+		this.background = new Graphics();
 		this.background.beginFill(0x666666);
 		this.background.drawRect(0, 0, 300, 36);
 		this.background.endFill();
 
-		this.textInput = new PIXI.Text(COMMAND_AREA_DEFAULT_TEXT);
+		this.textInput = new Text(COMMAND_AREA_DEFAULT_TEXT);
 		this.textInput.x = 8;
 		this.textInput.y = 8;
 		this.textInput.resolution = window.devicePixelRatio;
@@ -162,12 +177,12 @@ export default class CommandArea extends PIXI.Container {
 		this.suggestions.forEach((suggestion, index) => suggestion.highlighted = index === this.highlighted);
 	}
 
-	renderCanvas(renderer: PIXI.CanvasRenderer): void {
+	renderCanvas(renderer: CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	renderWebGL(renderer: PIXI.WebGLRenderer): void {
+	renderWebGL(renderer: WebGLRenderer): void {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}
@@ -220,18 +235,18 @@ function scoreSuggestion(input: string, suggestion: string): number {
 	return score;
 }
 
-class Suggestion extends PIXI.Container {
-	private background: PIXI.Graphics;
-	private text: PIXI.MultiStyleText;
+class Suggestion extends Container {
+	private background: Graphics;
+	private text: MultiStyleText;
 	private _value: string;
 
 	constructor(label: string, value: string) {
 		super();
 
-		this.background = new PIXI.Graphics();
+		this.background = new Graphics();
 		this.addChild(this.background);
 
-		this.text = new PIXI.MultiStyleText(label, COMMAND_AREA_SUGGESTION_STYLES);
+		this.text = new MultiStyleText(label, COMMAND_AREA_SUGGESTION_STYLES);
 		this.text.x = 12;
 		this.text.y = 4;
 		this.text.resolution = window.devicePixelRatio;

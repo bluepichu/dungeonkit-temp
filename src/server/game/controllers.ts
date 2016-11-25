@@ -1,13 +1,13 @@
 "use strict";
 
-import * as log      from "beautiful-log";
-import * as shortid  from "shortid";
+import * as log                     from "beautiful-log";
+import * as shortid                 from "shortid";
 
-import * as ai       from "./ai";
-import * as crawl    from "./crawl";
-import { graphics }  from "./graphics";
-import * as printer  from "./printer";
-import * as utils    from "../../common/utils";
+import * as ai                      from "./ai";
+import * as crawl                   from "./crawl";
+import { graphics, entityGraphics } from "./graphics";
+import * as printer                 from "./printer";
+import * as utils                   from "../../common/utils";
 
 export class AIController implements Controller {
 	await: boolean = false;
@@ -133,6 +133,14 @@ export class SocketController implements Controller {
 		}
 	}
 
+	checkEntityGraphics(key: string): void {
+		if (!this.knownGraphics.has(key)) {
+			this.socket.emit("entityGraphics", key, entityGraphics.get(key));
+			log.ok("Added entity graphics", key);
+			this.knownGraphics.add(key);
+		}
+	}
+
 	pushEvent(event: LogEvent): void {
 		if (event.type === "start") {
 			this.lastMap = undefined;
@@ -143,12 +151,28 @@ export class SocketController implements Controller {
 			this.dashing = false;
 		}
 
-		this.checkGraphics(event.entity.graphics);
+		this.checkEntityGraphics(event.entity.graphics);
 		this.log.push(event);
 	}
 
 	updateState(state: CensoredEntityCrawlState): void {
 		this.currentState = state;
+
+		for (let item of this.currentState.items) {
+			this.checkGraphics(item.graphics);
+		}
+
+		for (let item of this.currentState.self.items.bag.items) {
+			this.checkGraphics(item.graphics);
+		}
+
+		for (let item of this.currentState.self.items.held.items) {
+			this.checkGraphics(item.graphics);
+		}
+
+		for (let entity of this.currentState.entities) {
+			this.checkEntityGraphics(entity.graphics);
+		}
 
 		if (this.awaitingState) {
 			this.awaitingState = false;
@@ -211,7 +235,7 @@ export class SocketController implements Controller {
 			}
 		};
 
-		stateUpdate.entities.forEach((entity) => this.checkGraphics(entity.graphics));
+		stateUpdate.entities.forEach((entity) => this.checkEntityGraphics(entity.graphics));
 
 		let update: UpdateMessage = {
 			stateUpdate,
@@ -225,6 +249,7 @@ export class SocketController implements Controller {
 	}
 
 	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {
+		this.checkGraphics(dungeon.graphics);
 		this.socket.emit("init", dungeon);
 	}
 }

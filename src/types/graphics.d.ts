@@ -1,10 +1,9 @@
 /**
- * Describes the graphics for a dungeon.
+ * Describes a graphics object.
  */
-interface DungeonGraphicsDescriptor {
-	walls: DungeonTileSelector[];
-	open: GraphicsObjectDescriptor;
-	stairs: GraphicsObjectDescriptor;
+interface GraphicsObjectDescriptor {
+	base: string;
+	animations: { [key: string]: AnimationDescriptor };
 }
 
 /**
@@ -16,35 +15,39 @@ interface DungeonTileSelector {
 }
 
 /**
- * The cache for entity graphics.
+ * Describes an entity's graphics.
  */
-type EntityGraphicsCache = Map<string, EntityGraphicsDescriptor>;
+interface EntityGraphicsDescriptor {
+	useReflection?: boolean;
+	descriptors: { [key: number]: GraphicsObjectDescriptor };
+}
+
+interface ExpandedGraphicsObjectDescriptor {
+	[key: string]: ExpandedAnimationDescriptor;
+}
 
 /**
  * Describes an entity's graphics.
  */
-interface EntityGraphicsDescriptor extends GraphicsObjectDescriptor {
-	useReflection?: boolean;
-}
-
-/**
- * Describes an animated graphics object.
- */
-interface GraphicsObjectDescriptor {
-	base: string;
-	animations: { [key: string]: AnimationDescriptor };
-}
+type ExpandedEntityGraphicsDescriptor = ExpandedGraphicsObjectDescriptor[];
 
 /**
  * Describes an animation.
  */
 type AnimationDescriptor = FrameDescriptor[];
 
+type ExpandedAnimationDescriptor = ExpandedFrameDescriptor[];
+
 /**
  * Describes a single frame of an animation.
  */
 interface FrameDescriptor {
 	sprites: SpriteDescriptor[];
+	duration: number;
+}
+
+interface ExpandedFrameDescriptor {
+	texture: PIXI.Texture;
 	duration: number;
 }
 

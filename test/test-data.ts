@@ -15,12 +15,6 @@ export let floorBlueprint: FloorBlueprint = {
 	items: []
 };
 
-let mockDungeonGraphics: DungeonGraphicsDescriptor = {
-	walls: [],
-	open: { base: "<base>", animations: {} },
-	stairs: { base: "<base>", animations: {} }
-};
-
 export let dungeon: Dungeon = {
 	name: "<Dungeon Name>",
 	floors: 5,
@@ -36,7 +30,7 @@ export let dungeon: Dungeon = {
 			blueprint: floorBlueprint
 		}
 	],
-	graphics: mockDungeonGraphics
+	graphics: "<Dungeon Graphics>"
 };
 
 let X = -1;
@@ -82,17 +76,12 @@ export let map: FloorMap = {
 	grid: floorGrid
 };
 
-let mockGraphics: GraphicsObjectDescriptor = {
-	base: "<graphics base>",
-	animations: {}
-};
-
 export let item1: Item = {
 	id: "<Item 1 id>",
 	name: "<Item 1 name>",
 	description: "<Item 1 description>",
 	handlers: {},
-	graphics: mockGraphics
+	graphics: "<Item 1 graphics>"
 };
 
 export let item2: Item = {
@@ -100,7 +89,7 @@ export let item2: Item = {
 	name: "<Item 2 name>",
 	description: "<Item 2 description>",
 	handlers: {},
-	graphics: mockGraphics
+	graphics: "<Item 2 graphics>"
 };
 
 export let item3: CrawlItem = {
@@ -108,7 +97,7 @@ export let item3: CrawlItem = {
 	name: "<Item 3 name>",
 	description: "<Item 3 description>",
 	handlers: {},
-	graphics: mockGraphics,
+	graphics: "<Item 3 graphics>",
 	location: { r: 2, c: 6 }
 };
 
@@ -117,7 +106,7 @@ export let item4: CrawlItem = {
 	name: "<Item 4 name>",
 	description: "<Item 4 description>",
 	handlers: {},
-	graphics: mockGraphics,
+	graphics: "<Item 4 graphics>",
 	location: { r: 12, c: 16 }
 };
 

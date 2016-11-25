@@ -1,36 +1,29 @@
 "use strict";
 
+import {
+	Texture,
+	Sprite
+} from "pixi.js";
+
 import Constants      from "../constants";
 import GraphicsObject from "./graphics-object";
 import * as utils     from "../../../common/utils";
 
 export default class EntitySprite extends GraphicsObject {
 	private _direction: number;
-	private useReflection: boolean;
 	private statusMarkers: GraphicsObject[];
 	private statusIndex: number;
+	private entityGraphicsDescriptor: ExpandedEntityGraphicsDescriptor;
 
-	constructor(descriptor: EntityGraphicsDescriptor) {
-		super(descriptor);
-		this.useReflection = descriptor.useReflection;
+	constructor(descriptor: ExpandedEntityGraphicsDescriptor) {
+		super(descriptor[0]);
+		this.entityGraphicsDescriptor = descriptor;
 		this.direction = 6;
 		this.statusMarkers = [];
 		this.statusIndex = 0;
 	}
 
-	// temp
-
-	public get x() {
-		return super.x;
-	}
-
-	public set x(value) {
-		super.x = value;
-	}
-
-	// end temp
-
-	protected handleOffset(sprite: PIXI.Sprite, amount: number): void {
+	protected handleOffset(sprite: Sprite, amount: number): void {
 		let [dy, dx] = utils.decodeDirection(this.direction);
 
 		dx *= amount * Constants.GRID_SIZE;
@@ -45,41 +38,15 @@ export default class EntitySprite extends GraphicsObject {
 	}
 
 	public set direction(direction: number) {
-		this._direction = direction;
-		this.changed = true;
-	}
-
-	protected getTexture(sprite: SpriteDescriptor): PIXI.Texture {
-		let dir = this.direction !== undefined ? this.direction : 6; // default to straight ahead if not set
-
-		if (this.useReflection) {
-			switch (this.direction) {
-				case 0:
-					dir = 4;
-					break;
-
-				case 1:
-					dir = 3;
-					break;
-
-				case 7:
-					dir = 5;
-					break;
-			}
+		if (direction < 0 || direction >= 8 || !Number.isInteger(direction)) {
+			throw new Error(`Invalid direction ${direction}.`);
 		}
 
-		let textureName = sprintf(sprite.texture, { dir: dir });
-		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.descriptor.base, textureName));
-	}
-
-	protected prerenderLayer(layer: PIXI.Sprite, sprite: SpriteDescriptor) {
-		if (this.useReflection) {
-			if (this.direction < 2 || this.direction > 6) {
-				layer.scale.x = -1;
-				layer.x += layer.texture.width;
-			} else {
-				layer.scale.x = 1;
-			}
+		if (direction !== this._direction) {
+			this._direction = direction;
+			this.changed = true;
+			this.descriptor = this.entityGraphicsDescriptor[direction];
+			this.reset();
 		}
 	}
 

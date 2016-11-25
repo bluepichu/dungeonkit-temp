@@ -17,14 +17,23 @@ const SERVER_TS_CONFIG = {
 	"module": "commonjs",
 	"moduleResolution": "node",
 	"removeComments": true,
-	"sourceMap": true,
-	"noImplicitAny": true,
-	// "strictNullChecks": true // someday
+	"sourceMap": false,
+	"noImplicitAny": true
 };
 
 const CLIENT_TS_CONFIG = {
-	target: "es6",
-	moduleResolution: "node"
+	"emitDecoratorMetadata": true,
+	"experimentalDecorators": true,
+	"target": "es6",
+	"moduleResolution": "node",
+	"removeComments": true,
+	"sourceMap": false,
+	"noImplicitAny": true
+};
+
+const EXTERNAL_DEPENDENCY_LOOPUP = {
+	"pixi.js": "PIXI",
+	"webfontloader": "window.WebFont"
 };
 
 let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
@@ -65,7 +74,9 @@ gulp.task("client-ts", () =>
 	    .pipe($.sourcemaps.write(map))
 	    .pipe($.intermediate({ output: "out" }, (dir, cb) => {
 			rollup({
-				entry: path.join(dir, "client/ts/client.js")
+				entry: path.join(dir, "client/ts/client.js"),
+				format: "umd",
+				external: Object.keys(EXTERNAL_DEPENDENCY_LOOPUP)
 			})
 				.then((bundle) =>
 					bundle.write({
@@ -79,15 +90,17 @@ gulp.task("client-ts", () =>
 		}))
 		.pipe($.ignore.exclude("*.map"))
 		.pipe($.sourcemaps.init({ loadMaps: true }))
-		.pipe($.babel({ presets: [es2015] }))
 		.pipe($.sourcemaps.write(map))
-	    .pipe(gulp.dest(build("client/js")).on("end", () => notify("The client is ready!"))));
+		.pipe($.replace(/import (\{.*\}) from '([^\s;]*)'/g, (_, target, source) => `const ${target} = ${EXTERNAL_DEPENDENCY_LOOPUP[source]}`))
+		.pipe($.replace(/import \* as ([^\s]*) from '([^\s;]*)'/g, (_, target, source) => `const ${target} = ${EXTERNAL_DEPENDENCY_LOOPUP[source]}`))
+		.pipe(gulp.dest(build("client/js"))
+			.on("end", () => notify("The client is ready!"))));
 
 gulp.task("client-lib", () =>
-	merge(gulp.src($.mainBowerFiles())
-	          .pipe(gulp.dest(build("client/lib"))),
-	      gulp.src(src("client/lib/*.js"))
-	          .pipe(gulp.dest(build("client/lib")))));
+	gulp.src($.mainBowerFiles())
+		.pipe($.sourcemaps.init({ loadMaps: true }))
+		.pipe($.sourcemaps.write(map))
+		.pipe(gulp.dest(build("client/lib"))));
 
 gulp.task("watch-server", () => {
 	gulp.watch(src("server/**/*.ts", "index.ts", "types/**/*.*", "common/**/*.*"), ["server"])

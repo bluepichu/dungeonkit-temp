@@ -1,5 +1,11 @@
 "use strict";
 
+import {
+	CanvasRenderer,
+	Container,
+	WebGLRenderer
+} from "pixi.js";
+
 import Constants             from "./constants";
 import EntityManager         from "./entity-manager";
 import GraphicsObject        from "./graphics/graphics-object";
@@ -10,11 +16,11 @@ import * as state            from "./state";
 import * as Tweener          from "./graphics/tweener";
 import * as utils            from "../../common/utils";
 
-class Layer extends PIXI.Container {
+class Layer extends Container {
 	public children: GraphicsObject[]; // Narrower typing
 }
 
-export default class OverworldRenderer extends PIXI.Container {
+export default class OverworldRenderer extends Container { /*
 	public groundManager: GroundManager;
 	public itemManager: ItemManager;
 	public entityManager: EntityManager;
@@ -54,16 +60,16 @@ export default class OverworldRenderer extends PIXI.Container {
 	}
 
 	protected prerender(): void {
-		this.container.children.sort((a, b) => (a.z == b.z) ? (b.y - a.y) : (a.z - b.z));
+		this.container.children.sort((a, b) => (a.z === b.z) ? (b.y - a.y) : (a.z - b.z));
 	}
 
-	public renderCanvas(renderer: PIXI.CanvasRenderer) {
+	public renderCanvas(renderer: CanvasRenderer) {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	public renderWebGL(renderer: PIXI.WebGLRenderer) {
+	public renderWebGL(renderer: WebGLRenderer) {
 		this.prerender();
 		super.renderWebGL(renderer);
-	}
+	} */
 }

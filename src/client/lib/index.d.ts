@@ -1,1 +1,0 @@
-/// <reference path="pixi-multistyle-text.d.ts"/>

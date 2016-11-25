@@ -32,26 +32,21 @@ const DIRECTION_INPUT_DELAY = 4;
 export default class KeyboardCrawlInputHandler implements CrawlInputHandler {
 	public awaitingMove: boolean;
 
-	private minimap: Minimap;
 	private commandArea: CommandArea;
 	private socket: GameSocket;
-	private dungeonRenderer: DungeonRenderer;
-	private attackOverlay: AttackOverlay;
 	private direction: number;
 	private delay: number;
 
+	public minimap: Minimap;
+	public dungeonRenderer: DungeonRenderer;
+	public attackOverlay: AttackOverlay;
+
 	constructor(
-		socket: GameSocket,
-		commandArea: CommandArea,
-		minimap: Minimap,
-		dungeonRenderer: DungeonRenderer,
-		attackOverlay: AttackOverlay) {
+			socket: GameSocket,
+			commandArea: CommandArea) {
 		this.awaitingMove = false;
-		this.minimap = minimap;
-		this.dungeonRenderer = dungeonRenderer;
 		this.socket = socket;
 		this.commandArea = commandArea;
-		this.attackOverlay = attackOverlay;
 
 		document.addEventListener("keydown", (event) => this.commandArea.keypress(event));
 	}
@@ -61,8 +56,13 @@ export default class KeyboardCrawlInputHandler implements CrawlInputHandler {
 			return;
 		}
 
-		this.dungeonRenderer.zoomOut = key.isPressed(KEYS.M);
-		this.attackOverlay.active = key.isPressed(KEYS.SHIFT);
+		if (this.dungeonRenderer !== undefined) {
+			this.dungeonRenderer.zoomOut = key.isPressed(KEYS.M);
+		}
+
+		if (this.attackOverlay !== undefined) {
+			this.attackOverlay.active = key.isPressed(KEYS.SHIFT);
+		}
 
 		if (this.awaitingMove && key.isPressed(KEYS.W)) {
 			this.awaitingMove = false;

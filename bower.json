@@ -17,10 +17,9 @@
   "dependencies": {
     "howler.js": "howler#^1.1.29",
     "keymaster": "^1.6.3",
-    "sprintf": "sprintf.js#^1.0.3",
     "hammerjs": "hammer.js#^2.0.8",
-    "pixi.js": "^3.0.11",
     "stats.js": "*",
-    "webfontloader": "^1.6.26"
+    "webfontloader": "^1.6.26",
+    "pixi.js": "4.2.1"
   }
 }

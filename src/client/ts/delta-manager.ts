@@ -1,21 +1,28 @@
 "use strict";
 
+import {
+	Container,
+	Text
+} from "pixi.js";
+
 import Colors       from "./colors";
 import Constants    from "./constants";
 import * as Tweener from "./graphics/tweener";
 import * as utils   from "../../common/utils";
 
 export default class DeltaManager {
-	private container: PIXI.Container;
+	private container: Container;
 
-	public constructor(container: PIXI.Container) {
+	public constructor(container: Container) {
 		this.container = container;
 	}
 
 	public displayDelta(location: CrawlLocation, color: number, amount: number): Thenable {
-		let delta = new PIXI.Text((amount > 0 ? "+" : "") + amount,
+		let delta = new Text((amount > 0 ? "+" : "") + amount,
 			{
-				font: "500 8px Lato",
+				fontFamily: "Lato",
+				fontSize: "8px",
+				fontWeight: "500",
 				fill: color,
 				stroke: Colors.BLACK,
 				strokeThickness: 2,

@@ -1,5 +1,11 @@
 "use strict";
 
+import {
+	CanvasRenderer,
+	Container,
+	WebGLRenderer
+} from "pixi.js";
+
 import Constants      from "./constants";
 import DeltaManager   from "./delta-manager";
 import EntityManager  from "./entity-manager";
@@ -10,18 +16,18 @@ import * as state     from "./state";
 import * as Tweener   from "./graphics/tweener";
 import * as utils     from "../../common/utils";
 
-class Layer extends PIXI.Container {
+class Layer extends Container {
 	public children: GraphicsObject[]; // Narrower typing
 }
 
-export default class DungeonRenderer extends PIXI.Container {
+export default class DungeonRenderer extends Container {
 	public groundManager: GroundManager;
 	public itemManager: ItemManager;
 	public entityManager: EntityManager;
 	public deltaManager: DeltaManager;
 
 	private mainLayer: Layer;
-	private effectsLayer: PIXI.Container;
+	private effectsLayer: Container;
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
@@ -29,12 +35,12 @@ export default class DungeonRenderer extends PIXI.Container {
 		super();
 
 		this.mainLayer = new Layer();
-		this.effectsLayer = new PIXI.Container();
+		this.effectsLayer = new Container();
 
 		this.addChild(this.mainLayer);
 		this.addChild(this.effectsLayer);
 
-		this.groundManager = new GroundManager(this.mainLayer);
+		this.groundManager = new GroundManager(this.mainLayer, state.getState().dungeon.graphics);
 		this.itemManager = new ItemManager(this.mainLayer);
 		this.entityManager = new EntityManager(this.mainLayer);
 		this.deltaManager = new DeltaManager(this.effectsLayer);
@@ -131,15 +137,23 @@ export default class DungeonRenderer extends PIXI.Container {
 	}
 
 	protected prerender(): void {
-		this.mainLayer.children.sort((a, b) => (a.z == b.z) ? (b.y - a.y) : (a.z - b.z));
+		this.mainLayer.children.sort((a, b) => {
+			if (a.z === b.z && a.y === b.y) {
+				return a.x - b.x;
+			} else if (a.z === b.z) {
+				return b.y - a.y;
+			} else {
+				return a.z - b.z;
+			}
+		});
 	}
 
-	public renderCanvas(renderer: PIXI.CanvasRenderer) {
+	public renderCanvas(renderer: CanvasRenderer) {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	public renderWebGL(renderer: PIXI.WebGLRenderer) {
+	public renderWebGL(renderer: WebGLRenderer) {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}

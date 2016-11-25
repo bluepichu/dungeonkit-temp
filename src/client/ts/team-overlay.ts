@@ -1,44 +1,57 @@
 "use strict";
 
-import Colors         from "./colors";
-import EntityManager  from "./entity-manager";
-import EntitySprite   from "./graphics/entity-sprite";
-import GraphicsObject from "./graphics/graphics-object";
-import * as state     from "./state";
-import * as Tweener   from "./graphics/tweener";
+import {
+	Container,
+	Graphics,
+	Text,
+	TextStyle,
+	utils as PixiUtils
+} from "pixi.js";
 
-const STYLES: { [key: string]: PIXI.MultiTextStyle } = {
+import Colors                                from "./colors";
+import EntityManager                         from "./entity-manager";
+import EntitySprite                          from "./graphics/entity-sprite";
+import * as GraphicsDescriptorCache          from "./graphics/graphics-descriptor-cache";
+import GraphicsObject                        from "./graphics/graphics-object";
+import MultiStyleText, { ExtendedTextStyle } from "./pixi-multistyle-text";
+import * as state                            from "./state";
+import * as Tweener                          from "./graphics/tweener";
+
+const STYLES: { [key: string]: ExtendedTextStyle } = {
 	def: {
-		font: "300 14px Lato",
+		fontFamily: "Lato",
+		fontSize: "14px",
+		fontWeight: "300",
 		fill: Colors.WHITE
 	},
 	title: {
-		font: "300 20px Lato",
 		fill: Colors.YELLOW
 	},
 	header: {
-		font: "700 14px Lato",
 		fill: Colors.WHITE
 	},
 	strategy: {
-		font: "700 10px Lato",
 		fill: Colors.GRAY_6
 	},
 	icon: {
-		font: "300 12px DK Icons",
+		fontFamily: "DK Icons",
+		fontSize: "12px",
+		fontWeight: "300",
 		valign: "middle"
 	},
 	hp: {
-		font: "700 10px Lato",
+		fontSize: "10px",
+		fontWeight: "700",
 		fill: Colors.BLUE
 	},
 	hunger: {
-		font: "700 10px Lato",
+		fontSize: "10px",
+		fontWeight: "700",
 		fill: Colors.YELLOW
 	}
 };
 
-export default class TeamOverlay extends PIXI.Container {
+export default class TeamOverlay extends Container {
 	public children: TeamListing[];
 	private map: Map<string, TeamListing>;
 
@@ -90,28 +103,28 @@ export default class TeamOverlay extends PIXI.Container {
 	}
 }
 
-class TeamListing extends PIXI.Container {
-	private bg: PIXI.Graphics;
+class TeamListing extends Container {
+	private bg: Graphics;
 	private entitySprite: EntitySprite;
-	private nameText: PIXI.Text;
-	private strategyText: PIXI.Text;
-	private hpArc: PIXI.Graphics;
-	private hpText: PIXI.Text;
-	private hungerArc: PIXI.Graphics;
-	private hungerText: PIXI.Text;
+	private nameText: Text;
+	private strategyText: Text;
+	private hpArc: Graphics;
+	private hpText: Text;
+	private hungerArc: Graphics;
+	private hungerText: Text;
 	private items: ItemListing[];
 
 	constructor(entity: CensoredSelfCrawlEntity) {
 		super();
 
-		this.bg = new PIXI.Graphics();
+		this.bg = new Graphics();
 		this.addChild(this.bg);
 		this.bg.beginFill(Colors.BLACK, .9);
 		this.bg.drawRect(-240, -30, 240, 60);
 		this.bg.arc(0, 0, 30, Math.PI / 2, 3 * Math.PI / 2, true);
 		this.bg.endFill();
 
-		this.entitySprite = new EntitySprite(EntityManager.entityGraphicsCache.get(entity.graphics));
+		this.entitySprite = new EntitySprite(GraphicsDescriptorCache.getEntityGraphics(entity.graphics));
 		this.entitySprite.direction = 7;
 		this.entitySprite.x = -4;
 		this.entitySprite.y = 4;
@@ -119,7 +132,7 @@ class TeamListing extends PIXI.Container {
 		this.entitySprite.scale.y = 1.5;
 		this.addChild(this.entitySprite);
 
-		this.nameText = new PIXI.Text("", STYLES["title"]);
+		this.nameText = new Text("", STYLES["title"]);
 		this.nameText.anchor.x = 1;
 		this.nameText.anchor.y = 1;
 		this.nameText.x = -30;
@@ -127,7 +140,7 @@ class TeamListing extends PIXI.Container {
 		this.nameText.resolution = window.devicePixelRatio;
 		this.addChild(this.nameText);
 
-		this.strategyText = new PIXI.Text("", STYLES["strategy"]);
+		this.strategyText = new Text("", STYLES["strategy"]);
 		this.strategyText.anchor.x = 1;
 		this.strategyText.anchor.y = 0;
 		this.strategyText.x = -30;
@@ -135,10 +148,10 @@ class TeamListing extends PIXI.Container {
 		this.strategyText.resolution = window.devicePixelRatio;
 		this.addChild(this.strategyText);
 
-		this.hpArc = new PIXI.Graphics();
+		this.hpArc = new Graphics();
 		this.addChild(this.hpArc);
 
-		this.hpText = new PIXI.MultiStyleText("", STYLES);
+		this.hpText = new MultiStyleText("", STYLES);
 		this.hpText.anchor.x = 1;
 		this.hpText.anchor.y = 0;
 		this.hpText.x = -134;
@@ -146,13 +159,13 @@ class TeamListing extends PIXI.Container {
 		this.hpText.resolution = window.devicePixelRatio;
 		this.addChild(this.hpText);
 
-		this.hungerArc = new PIXI.Graphics();
+		this.hungerArc = new Graphics();
 		this.hungerArc.lineStyle(2, Colors.YELLOW);
 		this.hungerArc.arc(0, 0, 25, 0, Math.PI / 2, false);
 		this.hungerArc.moveTo(0, 25).lineTo(-130, 25);
 		this.addChild(this.hungerArc);
 
-		this.hungerText = new PIXI.MultiStyleText("", STYLES);
+		this.hungerText = new MultiStyleText("", STYLES);
 		this.hungerText.anchor.x = 1;
 		this.hungerText.anchor.y = 1;
 		this.hungerText.x = -134;
@@ -187,7 +200,7 @@ class TeamListing extends PIXI.Container {
 		let hpPct = entity.stats.hp.current / entity.stats.hp.max;
 		let hpLength = totalLength * hpPct;
 
-		STYLES["hp"].fill = PIXI.utils.hex2string(this.getHpColor(hpPct));
+		STYLES["hp"].fill = PixiUtils.hex2string(this.getHpColor(hpPct));
 
 		this.hpArc.clear();
 		this.hpArc.lineStyle(2, this.getHpColor(hpPct));
@@ -204,7 +217,7 @@ class TeamListing extends PIXI.Container {
 		let hungerPct = Math.ceil(entity.stats.belly.current / 6) / Math.ceil(entity.stats.belly.max / 6);
 		let hungerLength = totalLength * hungerPct;
 
-		STYLES["hunger"].fill = PIXI.utils.hex2string(this.getHungerColor(hungerPct));
+		STYLES["hunger"].fill = PixiUtils.hex2string(this.getHungerColor(hungerPct));
 
 		this.hungerArc.clear();
 		this.hungerArc.lineStyle(2, this.getHungerColor(hungerPct));
@@ -250,15 +263,15 @@ class TeamListing extends PIXI.Container {
 	}
 }
 
-class ItemListing extends PIXI.Container {
-	private bg: PIXI.Graphics;
+class ItemListing extends Container {
+	private bg: Graphics;
 	private _item: Item;
 	private sprite: GraphicsObject;
 
 	constructor() {
 		super();
 
-		this.bg = new PIXI.Graphics();
+		this.bg = new Graphics();
 		this.bg.beginFill(Colors.BLACK, .9);
 		this.bg.drawCircle(0, 0, 12);
 		this.addChild(this.bg);
@@ -274,7 +287,7 @@ class ItemListing extends PIXI.Container {
 			if (this._item !== undefined) {
 				this.removeChild(this.sprite);
 			}
-			this.sprite = new GraphicsObject(item.graphics);
+			this.sprite = new GraphicsObject(GraphicsDescriptorCache.getGraphics(item.graphics));
 			this.sprite.y = -2;
 			this.addChild(this.sprite);
 		}

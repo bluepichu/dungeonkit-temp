@@ -1,13 +1,18 @@
 "use strict";
 
+import {
+	Container,
+	Graphics
+} from "pixi.js";
+
 import Colors     from "./colors";
 import * as state from "./state";
 import * as utils from "../../common/utils";
 
-export default class Minimap extends PIXI.Container {
-	private mapMask: PIXI.Graphics;
-	private mapBackground: PIXI.Graphics;
-	private mapContent: PIXI.Graphics;
+export default class Minimap extends Container {
+	private mapMask: Graphics;
+	private mapBackground: Graphics;
+	private mapContent: Graphics;
 	private mapMaskWidth: number;
 	private mapMaskHeight: number;
 	private gridSize: number;
@@ -18,16 +23,16 @@ export default class Minimap extends PIXI.Container {
 		this.mapMaskWidth = width;
 		this.mapMaskHeight = height;
 
-		this.mapMask = new PIXI.Graphics();
+		this.mapMask = new Graphics();
 		this.mapMask.beginFill(0x000000);
 		this.mapMask.drawRect(0, 0, width, height);
 		this.mapMask.endFill();
 
-		this.mapBackground = new PIXI.Graphics();
+		this.mapBackground = new Graphics();
 		this.mapBackground.mask = this.mapMask;
 		this.drawBackground(width, height);
 
-		this.mapContent = new PIXI.Graphics();
+		this.mapContent = new Graphics();
 		this.mapContent.mask = this.mapMask;
 
 		this.addChild(this.mapMask);

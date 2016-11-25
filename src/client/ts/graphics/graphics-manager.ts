@@ -1,21 +1,26 @@
 "use strict";
 
-import GraphicsObject from "./graphics-object";
-import * as Tweener   from "./tweener";
+import {
+	Container
+} from "pixi.js";
+
+import * as GraphicsDescriptorCache from "./graphics-descriptor-cache";
+import GraphicsObject               from "./graphics-object";
+import * as Tweener                 from "./tweener";
 
 export default GraphicsManager;
-export abstract class GraphicsManager<Id, Descriptor> {
+export abstract class GraphicsManager<Id> {
 	protected map: Map<Id, GraphicsObject>;
-	protected container: PIXI.Container;
+	protected container: Container;
 
-	protected abstract generateGraphicsObject(descriptor: Descriptor): GraphicsObject;
-
-	constructor(container: PIXI.Container) {
+	constructor(container: Container) {
 		this.map = new Map();
 		this.container = container;
 	}
 
-	public addObject(id: Id, descriptor: Descriptor, location: Point): void {
+	protected abstract generateGraphicsObject(key: string): GraphicsObject;
+
+	public addObject(id: Id, descriptor: string, location: Point): void {
 		if (this.hasObject(id)) {
 			throw new Error(`Already have object with id ${id}.`);
 		}

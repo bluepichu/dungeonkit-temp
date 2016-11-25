@@ -14,5 +14,6 @@
 		"build",
 		"bower_components"
 	],
-	"compileOnSave": false
+	"compileOnSave": false,
+	"baseUrl": "."
 }

@@ -1,21 +1,28 @@
 "use strict";
 
+import {
+	CanvasRenderer,
+	Container,
+	Sprite,
+	Texture,
+	WebGLRenderer
+} from "pixi.js";
+
 import Constants from "../constants";
 import isMobile  from "../is-mobile";
 
-export default class GraphicsObject extends PIXI.Container {
+export default class GraphicsObject extends Sprite {
 	public z: number;
 
-	protected descriptor: GraphicsObjectDescriptor;
+	protected descriptor: ExpandedGraphicsObjectDescriptor;
 	protected changed: boolean;
-	protected sprites: PIXI.Sprite[];
 	protected animationEndListener: () => any;
 
 	private animation: string;
 	private step: number;
 	private frame: number;
 
-	constructor(descriptor: GraphicsObjectDescriptor) {
+	constructor(descriptor: ExpandedGraphicsObjectDescriptor) {
 		super();
 		this.descriptor = descriptor;
 		this.animation = "default";
@@ -24,24 +31,6 @@ export default class GraphicsObject extends PIXI.Container {
 		this.changed = true;
 		this.animationEndListener = undefined;
 		this.z = 0;
-
-		let spriteCount = 0;
-
-		for (let animation in this.descriptor.animations) {
-			this.descriptor.animations[animation].forEach((step) => {
-				spriteCount = Math.max(spriteCount, step.sprites.length);
-			});
-		}
-
-		this.sprites = [];
-
-		for (let i = 0; i < spriteCount; i++) {
-			this.sprites.push(new PIXI.Sprite());
-		}
-
-		for (let i = spriteCount - 1; i >= 0; i--) {
-			this.addChild(this.sprites[i]);
-		}
 
 		this.prerender();
 	}
@@ -61,23 +50,15 @@ export default class GraphicsObject extends PIXI.Container {
 		this.frame = 0;
 	}
 
-	protected handleOffset(sprite: PIXI.Sprite, amount: number): void { }
-
-	protected getTexture(sprite: SpriteDescriptor): PIXI.Texture {
-		return PIXI.Texture.fromFrame(sprintf("%s-%s", this.descriptor.base, sprite.texture));
-	}
+	protected handleOffset(sprite: Sprite, amount: number): void { }
 
 	private prerender() {
-		if (this.descriptor.animations[this.animation].length === 0) {
-			return; // Optimize static objects - no need to reset the texture every frame
-		}
-
 		this.frame++;
 
-		if (this.frame >= this.descriptor.animations[this.animation][this.step].duration) {
+		if (this.frame >= this.descriptor[this.animation][this.step].duration) {
 			this.frame = 0;
 			this.step++;
-			this.step %= this.descriptor.animations[this.animation].length;
+			this.step %= this.descriptor[this.animation].length;
 			this.changed = true;
 		}
 
@@ -92,42 +73,20 @@ export default class GraphicsObject extends PIXI.Container {
 			return;
 		}
 
-		let sprites = this.descriptor.animations[this.animation][this.step].sprites;
-
-		for (let i = 0; i < this.sprites.length; i++) {
-			if (i >= sprites.length) {
-				this.sprites[i].visible = false;
-			} else {
-				this.sprites[i].visible = true;
-				this.sprites[i].texture = this.getTexture(sprites[i]);
-
-				this.sprites[i].width = this.sprites[i].texture.width;
-				this.sprites[i].height = this.sprites[i].texture.height;
-
-				this.sprites[i].x = -sprites[i].anchor.x;
-				this.sprites[i].y = -sprites[i].anchor.y;
-
-				this.prerenderLayer(this.sprites[i], sprites[i]);
-
-				if (sprites[i].offset !== undefined) {
-					this.handleOffset(this.sprites[i], sprites[i].offset);
-				}
-			}
-		}
-
+		this.texture = this.descriptor[this.animation][this.step].texture;
 		this.changed = false;
 	}
 
-	protected prerenderLayer(layer: PIXI.Sprite, sprite: SpriteDescriptor): void {
+	protected prerenderLayer(layer: Sprite, sprite: SpriteDescriptor): void {
 		// do nothing
 	}
 
-	public renderCanvas(renderer: PIXI.CanvasRenderer): void {
+	public renderCanvas(renderer: CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	public renderWebGL(renderer: PIXI.WebGLRenderer): void {
+	public renderWebGL(renderer: WebGLRenderer): void {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}
