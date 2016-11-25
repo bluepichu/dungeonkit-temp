@@ -25,12 +25,15 @@ const STYLES: { [key: string]: ExtendedTextStyle } = {
 		fill: Colors.WHITE
 	},
 	title: {
+		fontFamily: "Lato",
+		fontSize: "20px",
+		fontWeight: "300",
 		fill: Colors.YELLOW
 	},
-	header: {
-		fill: Colors.WHITE
-	},
 	strategy: {
+		fontFamily: "Lato",
+		fontSize: "10px",
+		fontWeight: "700",
 		fill: Colors.GRAY_6
 	},
 	icon: {

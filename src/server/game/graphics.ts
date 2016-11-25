@@ -236,7 +236,7 @@ function dungeonGraphicsAnimations(): { [key: string]: AnimationDescriptor } {
 
 	let ret: { [key: string]: AnimationDescriptor }  = {};
 
-	for (let pattern = 0x00; pattern < 0xff; pattern++) {
+	for (let pattern = 0x00; pattern <= 0xff; pattern++) {
 		for (let match of wallPatterns) {
 			if ((match & pattern) === match) {
 				let animName = "wall-" + ("00" + pattern.toString(16)).substr(-2);
