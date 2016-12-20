@@ -30,7 +30,7 @@ export default class DeltaManager {
 			}
 		);
 
-		delta.resolution = 20; // sometimes, we zoom in a lot on this
+		delta.resolution = 40; // sometimes, we zoom in a lot on this
 		delta.anchor.x = .5;
 		delta.anchor.y = 1;
 		Object.assign(delta, utils.locationToPoint(location, Constants.GRID_SIZE));

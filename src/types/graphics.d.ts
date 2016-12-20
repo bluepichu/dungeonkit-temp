@@ -48,6 +48,7 @@ interface FrameDescriptor {
 
 interface ExpandedFrameDescriptor {
 	texture: PIXI.Texture;
+	anchor: Point;
 	duration: number;
 }
 

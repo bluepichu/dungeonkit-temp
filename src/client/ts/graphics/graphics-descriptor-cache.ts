@@ -113,14 +113,14 @@ function expandDescriptor(
 			for (let spriteDescriptor of frame.sprites) {
 				let sprite = Sprite.fromFrame(`${descriptor.base}-${spriteDescriptor.texture}`);
 
+				sprite.pivot.x = spriteDescriptor.anchor.x;
+				sprite.pivot.y = spriteDescriptor.anchor.y;
+
 				if (reflect) {
 					sprite.scale.x = -1;
 				}
 
-				sprite.x = -spriteDescriptor.anchor.x;
-				sprite.y = -spriteDescriptor.anchor.y;
-
-				container.addChild(sprite);
+				container.addChildAt(sprite, 0);
 			}
 
 			let texture = RenderTexture.create(
@@ -129,14 +129,19 @@ function expandDescriptor(
 					SCALE_MODES.NEAREST,
 					window.devicePixelRatio);
 
-			container.x = -container.getBounds().x;
-			container.y = -container.getBounds().y;
+			let anchor = {
+				x: -container.getBounds().x,
+				y: -container.getBounds().y
+			};
+
+			Object.assign(container, anchor);
 
 			renderer.render(container, texture);
 
 			expanded[animation].push({
 				duration: frame.duration,
-				texture
+				texture,
+				anchor
 			});
 		}
 	}

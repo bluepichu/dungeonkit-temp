@@ -74,6 +74,7 @@ export default class GraphicsObject extends Sprite {
 		}
 
 		this.texture = this.descriptor[this.animation][this.step].texture;
+		Object.assign(this.pivot, this.descriptor[this.animation][this.step].anchor);
 		this.changed = false;
 	}
 

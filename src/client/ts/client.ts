@@ -200,7 +200,7 @@ function init() {
 
 function startCrawl() {
 	dungeonRenderer = new DungeonRenderer();
-	gameContainer.addChild(dungeonRenderer);
+	gameContainer.addChildAt(dungeonRenderer, 0);
 
 	// minimap = new Minimap(300, 200);
 	// minimap.x = 50;
