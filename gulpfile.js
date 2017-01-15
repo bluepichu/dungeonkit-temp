@@ -33,6 +33,7 @@ const CLIENT_TS_CONFIG = {
 
 const EXTERNAL_DEPENDENCY_LOOPUP = {
 	"pixi.js": "PIXI",
+	"pixi-multistyle-text": false,
 	"webfontloader": "window.WebFont"
 };
 
@@ -91,8 +92,9 @@ gulp.task("client-ts", () =>
 		.pipe($.ignore.exclude("*.map"))
 		.pipe($.sourcemaps.init({ loadMaps: true }))
 		.pipe($.sourcemaps.write(map))
-		.pipe($.replace(/import (\{.*\}) from '([^\s;]*)'/g, (_, target, source) => `const ${target} = ${EXTERNAL_DEPENDENCY_LOOPUP[source]}`))
-		.pipe($.replace(/import \* as ([^\s]*) from '([^\s;]*)'/g, (_, target, source) => `const ${target} = ${EXTERNAL_DEPENDENCY_LOOPUP[source]}`))
+		.pipe($.replace(/import (\{.*\}) from '([^\s;]*)'/g, (_, target, source) => EXTERNAL_DEPENDENCY_LOOPUP[source] ? `const ${target} = ${EXTERNAL_DEPENDENCY_LOOPUP[source]}` : ``))
+		.pipe($.replace(/import \* as ([^\s]*) from '([^\s;]*)'/g, (_, target, source) => EXTERNAL_DEPENDENCY_LOOPUP[source] ? `const ${target} = ${EXTERNAL_DEPENDENCY_LOOPUP[source]}` : ``))
+		.pipe($.replace(/import .* from '([^\s;]*)'/g, (_, target, source) => ``))
 		.pipe(gulp.dest(build("client/js"))
 			.on("end", () => notify("The client is ready!"))));
 

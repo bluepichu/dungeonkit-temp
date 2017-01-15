@@ -148,11 +148,11 @@ function init() {
 		PixiUtils.TextureCache[name].baseTexture.scaleMode = SCALE_MODES.NEAREST;
 	}
 
-	let resolution = window.devicePixelRatio || 1;
+	PIXI.settings.RESOLUTION = window.devicePixelRatio || 1;
 
 	renderer = autoDetectRenderer(800, 600, {
-		resolution,
-		antialias: true
+		antialias: true,
+		resolution: PIXI.settings.RESOLUTION
 	});
 
 	GraphicsDescriptorCache.setRenderer(renderer);

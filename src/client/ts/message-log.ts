@@ -6,12 +6,16 @@ import {
 	TextStyle
 } from "pixi.js";
 
+import {
+	MultiStyleText,
+	TextStyleSet
+} from "pixi-multistyle-text";
+
 import Colors         from "./colors";
 import * as Tweener   from "./graphics/tweener";
-import MultiStyleText from "./pixi-multistyle-text";
 
-const MESSAGE_LOG_STYLES: { [key: string]: TextStyle } = {
-	def: {
+const MESSAGE_LOG_STYLES: TextStyleSet = {
+	default: {
 		fontFamily: "Lato",
 		fontSize: "16px",
 		fontWeight: "300",
@@ -118,7 +122,6 @@ export default class MessageLog extends Container {
 		let text = new MultiStyleText(message, MESSAGE_LOG_STYLES);
 		text.anchor.x = 1;
 		text.anchor.y = 1;
-		text.resolution = window.devicePixelRatio;
 
 		let bg = new Graphics();
 

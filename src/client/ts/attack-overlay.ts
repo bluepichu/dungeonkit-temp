@@ -88,7 +88,6 @@ class AttackListing extends Container {
 		this.indexText.anchor.y = .5;
 		this.indexText.x = 32;
 		this.indexText.y = 25;
-		this.indexText.resolution = window.devicePixelRatio;
 		this.addChild(this.indexText);
 
 		this.nameText = new Text("", {
@@ -101,7 +100,6 @@ class AttackListing extends Container {
 		this.nameText.x = 60;
 		this.nameText.y = 25;
 		this.nameText.alpha = .8;
-		this.nameText.resolution = window.devicePixelRatio;
 		this.addChild(this.nameText);
 
 		this.powerText = new Text("", {
@@ -114,7 +112,6 @@ class AttackListing extends Container {
 		this.powerText.x = 250;
 		this.powerText.y = 8;
 		this.powerText.alpha = .8;
-		this.powerText.resolution = window.devicePixelRatio;
 		this.addChild(this.powerText);
 
 		this.accuracyText = new Text("", {
@@ -127,7 +124,6 @@ class AttackListing extends Container {
 		this.accuracyText.x = 250;
 		this.accuracyText.y = 28;
 		this.accuracyText.alpha = .8;
-		this.accuracyText.resolution = window.devicePixelRatio;
 		this.addChild(this.accuracyText);
 
 		this.usesText = new Text("", {
@@ -142,7 +138,6 @@ class AttackListing extends Container {
 		this.usesText.y = 25;
 		this.usesText.rotation = -1.03;
 		this.usesText.alpha = .6;
-		this.usesText.resolution = window.devicePixelRatio;
 		this.addChild(this.usesText);
 
 		this.update(attack);

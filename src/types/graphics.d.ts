@@ -1,3 +1,5 @@
+/// <reference types="pixi.js" />
+
 /**
  * Describes a graphics object.
  */

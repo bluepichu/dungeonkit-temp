@@ -221,7 +221,10 @@ function entityAnimations(
 					: makeDefaultAnimation(dir, pivot, shadowPivot),
 			"walk": makeWalkAnimation(dir, pivot, shadowPivot),
 			"hurt": makeHurtAnimation(dir, pivot, shadowPivot),
-			"tackle": makeTackleAnimation(dir, pivot, shadowPivot)
+			"tackle": makeTackleAnimation(dir, pivot, shadowPivot),
+			"swift": makeTackleAnimation(dir, pivot, shadowPivot),
+			"growl": makeTackleAnimation(dir, pivot, shadowPivot),
+			"tailWhip": makeTackleAnimation(dir, pivot, shadowPivot)
 		}
 	};
 }

@@ -78,10 +78,6 @@ export default class GraphicsObject extends Sprite {
 		this.changed = false;
 	}
 
-	protected prerenderLayer(layer: Sprite, sprite: SpriteDescriptor): void {
-		// do nothing
-	}
-
 	public renderCanvas(renderer: CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);

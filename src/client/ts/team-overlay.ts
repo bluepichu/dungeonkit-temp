@@ -8,17 +8,21 @@ import {
 	utils as PixiUtils
 } from "pixi.js";
 
+import {
+	MultiStyleText,
+	TextStyleSet
+} from "pixi-multistyle-text";
+
 import Colors                                from "./colors";
 import EntityManager                         from "./entity-manager";
 import EntitySprite                          from "./graphics/entity-sprite";
 import * as GraphicsDescriptorCache          from "./graphics/graphics-descriptor-cache";
 import GraphicsObject                        from "./graphics/graphics-object";
-import MultiStyleText, { ExtendedTextStyle } from "./pixi-multistyle-text";
 import * as state                            from "./state";
 import * as Tweener                          from "./graphics/tweener";
 
-const STYLES: { [key: string]: ExtendedTextStyle } = {
-	def: {
+const STYLES: TextStyleSet = {
+	default: {
 		fontFamily: "Lato",
 		fontSize: "14px",
 		fontWeight: "300",
@@ -140,7 +144,6 @@ class TeamListing extends Container {
 		this.nameText.anchor.y = 1;
 		this.nameText.x = -30;
 		this.nameText.y = 4;
-		this.nameText.resolution = window.devicePixelRatio;
 		this.addChild(this.nameText);
 
 		this.strategyText = new Text("", STYLES["strategy"]);
@@ -148,7 +151,6 @@ class TeamListing extends Container {
 		this.strategyText.anchor.y = 0;
 		this.strategyText.x = -30;
 		this.strategyText.y = 6;
-		this.strategyText.resolution = window.devicePixelRatio;
 		this.addChild(this.strategyText);
 
 		this.hpArc = new Graphics();
@@ -159,7 +161,6 @@ class TeamListing extends Container {
 		this.hpText.anchor.y = 0;
 		this.hpText.x = -134;
 		this.hpText.y = -30;
-		this.hpText.resolution = window.devicePixelRatio;
 		this.addChild(this.hpText);
 
 		this.hungerArc = new Graphics();
@@ -173,7 +174,6 @@ class TeamListing extends Container {
 		this.hungerText.anchor.y = 1;
 		this.hungerText.x = -134;
 		this.hungerText.y = 32;
-		this.hungerText.resolution = window.devicePixelRatio;
 		this.addChild(this.hungerText);
 
 		this.items = [];

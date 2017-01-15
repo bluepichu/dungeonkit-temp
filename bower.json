@@ -20,6 +20,8 @@
     "hammerjs": "hammer.js#^2.0.8",
     "stats.js": "*",
     "webfontloader": "^1.6.26",
-    "pixi.js": "4.2.1"
+    "pixi.js": "4.2.1",
+    "pixi-tilemap": "https://github.com/pixijs/pixi-tilemap.git",
+    "pixi-multistyle-text": "https://github.com/tleunen/pixi-multistyle-text.git#^0.4.0"
   }
 }

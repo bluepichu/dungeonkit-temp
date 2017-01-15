@@ -5,32 +5,36 @@ import {
 	Container,
 	Graphics,
 	Text,
-	TextStyle,
+	TextStyleOptions,
 	WebGLRenderer
 } from "pixi.js";
 
-import Colors         from "./colors";
-import GameSocket     from "./game-socket";
-import Messages       from "./messages";
-import MessageLog     from "./message-log";
-import MultiStyleText from "./pixi-multistyle-text";
+import {
+	MultiStyleText,
+	TextStyleSet
+} from "pixi-multistyle-text";
 
-const COMMAND_AREA_INACTIVE_STYLE: TextStyle = {
+import Colors     from "./colors";
+import GameSocket from "./game-socket";
+import Messages   from "./messages";
+import MessageLog from "./message-log";
+
+const COMMAND_AREA_INACTIVE_STYLE: TextStyleOptions = {
 	fontFamily: "Lato",
 	fontSize: "16px",
 	fontWeight: "300",
 	fill: Colors.GRAY_5
 };
 
-const COMMAND_AREA_ACTIVE_STYLE: TextStyle = {
+const COMMAND_AREA_ACTIVE_STYLE: TextStyleOptions = {
 	fontFamily: "Lato",
 	fontSize: "16px",
 	fontWeight: "400",
 	fill: Colors.WHITE
 };
 
-const COMMAND_AREA_SUGGESTION_STYLES: { [key: string]: TextStyle } = {
-	def: {
+const COMMAND_AREA_SUGGESTION_STYLES: TextStyleSet = {
+	default: {
 		fontFamily: "Lato",
 		fontSize: "14px",
 		fontWeight: "400",
@@ -73,7 +77,6 @@ export default class CommandArea extends Container {
 		this.textInput = new Text(COMMAND_AREA_DEFAULT_TEXT);
 		this.textInput.x = 8;
 		this.textInput.y = 8;
-		this.textInput.resolution = window.devicePixelRatio;
 
 		this.addChild(this.background);
 		this.addChild(this.textInput);
@@ -96,12 +99,12 @@ export default class CommandArea extends Container {
 		this._active = active;
 
 		if (active) {
-			this.textInput.style = COMMAND_AREA_ACTIVE_STYLE;
+			this.textInput.style = COMMAND_AREA_ACTIVE_STYLE as PIXI.TextStyle;
 			this.buffer = "";
 			this.inputPromptFlashFrameCount = 0;
 			this.highlighted = 0;
 		} else {
-			this.textInput.style = COMMAND_AREA_INACTIVE_STYLE;
+			this.textInput.style = COMMAND_AREA_INACTIVE_STYLE as PIXI.TextStyle;
 			this.buffer = COMMAND_AREA_DEFAULT_TEXT;
 		}
 	}
@@ -249,7 +252,6 @@ class Suggestion extends Container {
 		this.text = new MultiStyleText(label, COMMAND_AREA_SUGGESTION_STYLES);
 		this.text.x = 12;
 		this.text.y = 4;
-		this.text.resolution = window.devicePixelRatio;
 		this.addChild(this.text);
 
 		this.highlighted = false;
