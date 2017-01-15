@@ -2,12 +2,12 @@
 
 import Constants                    from "./constants";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
-import GraphicsManager              from "./graphics/graphics-manager";
 import GraphicsObject               from "./graphics/graphics-object";
+import Layer                        from "./graphics/layer";
 import * as state                   from "./state";
 import * as utils                   from "../../common/utils";
 
-export default class ItemManager extends GraphicsManager<string> {
+export default class ItemLayer extends Layer<string> {
 	public update() {
 		this.clear();
 

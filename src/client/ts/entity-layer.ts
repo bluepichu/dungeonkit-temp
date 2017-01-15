@@ -3,14 +3,14 @@
 import Constants                    from "./constants";
 import EntitySprite                 from "./graphics/entity-sprite";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
-import GraphicsManager              from "./graphics/graphics-manager";
 import GraphicsObject               from "./graphics/graphics-object";
+import Layer                        from "./graphics/layer";
 import * as state                   from "./state";
 import * as Markers                 from "./graphics/markers";
 import * as Tweener                 from "./graphics/tweener";
 import * as utils                   from "../../common/utils";
 
-export default class EntityManager extends GraphicsManager<string> {
+export default class EntityLayer extends Layer<string> {
 	protected map: Map<string, EntitySprite>;
 
 	protected generateGraphicsObject(key: string): GraphicsObject {
@@ -50,5 +50,9 @@ export default class EntityManager extends GraphicsManager<string> {
 			throw new Error(`No object with id ${id}.`);
 		}
 		this.map.get(id).direction = direction;
+	}
+
+	protected prerender(): void {
+		this.children.sort((a, b) => a.y - b.y);
 	}
 }

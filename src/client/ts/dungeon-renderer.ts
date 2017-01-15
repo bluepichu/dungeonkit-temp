@@ -7,43 +7,36 @@ import {
 } from "pixi.js";
 
 import Constants      from "./constants";
-import DeltaManager   from "./delta-manager";
-import EntityManager  from "./entity-manager";
+import DeltaLayer     from "./delta-layer";
+import EntityLayer    from "./entity-layer";
 import GraphicsObject from "./graphics/graphics-object";
-import GroundManager  from "./ground-manager";
-import ItemManager    from "./item-manager";
+import GroundLayer    from "./ground-layer";
+import ItemLayer      from "./item-layer";
 import * as state     from "./state";
 import * as Tweener   from "./graphics/tweener";
 import * as utils     from "../../common/utils";
 
-class Layer extends Container {
-	public children: GraphicsObject[]; // Narrower typing
-}
-
 export default class DungeonRenderer extends Container {
-	public groundManager: GroundManager;
-	public itemManager: ItemManager;
-	public entityManager: EntityManager;
-	public deltaManager: DeltaManager;
+	public groundLayer: GroundLayer;
+	public itemLayer: ItemLayer;
+	public entityLayer: EntityLayer;
+	public deltaLayer: DeltaLayer;
 
-	private mainLayer: Layer;
-	private effectsLayer: Container;
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
 	constructor(renderer: CanvasRenderer | WebGLRenderer) {
 		super();
 
-		this.mainLayer = new Layer();
-		this.effectsLayer = new Container();
+		this.groundLayer = new GroundLayer(renderer, state.getState().dungeon.graphics);
+		this.itemLayer = new ItemLayer();
+		this.entityLayer = new EntityLayer();
+		this.deltaLayer = new DeltaLayer();
 
-		this.addChild(this.mainLayer);
-		this.addChild(this.effectsLayer);
-
-		this.groundManager = new GroundManager(this.mainLayer, renderer, state.getState().dungeon.graphics);
-		this.itemManager = new ItemManager(this.mainLayer);
-		this.entityManager = new EntityManager(this.mainLayer);
-		this.deltaManager = new DeltaManager(this.effectsLayer);
+		this.addChild(this.groundLayer);
+		this.addChild(this.itemLayer);
+		this.addChild(this.entityLayer);
+		this.addChild(this.deltaLayer);
 
 		this._zoomOut = false;
 	}
@@ -56,15 +49,15 @@ export default class DungeonRenderer extends Container {
 		animation?: string,
 		direction?: number): Thenable {
 
-		if (!this.entityManager.hasObject(entity.id)) {
-			this.entityManager.addObject(entity.id, entity.graphics, utils.locationToPoint(start, Constants.GRID_SIZE));
+		if (!this.entityLayer.hasObject(entity.id)) {
+			this.entityLayer.addObject(entity.id, entity.graphics, utils.locationToPoint(start, Constants.GRID_SIZE));
 		}
 
-		let prm = this.entityManager.moveObject(entity.id,
+		let prm = this.entityLayer.moveObject(entity.id,
 				utils.locationToPoint(end, Constants.GRID_SIZE),
 				Constants.WALK_SPEED);
-		this.entityManager.setObjectDirection(entity.id, direction);
-		this.entityManager.setObjectAnimation(entity.id, animation, false);
+		this.entityLayer.setObjectDirection(entity.id, direction);
+		this.entityLayer.setObjectAnimation(entity.id, animation, false);
 
 		if (isSelf) {
 			this.updatePosition(end);
@@ -88,8 +81,10 @@ export default class DungeonRenderer extends Container {
 
 		let {x: cx, y: cy} = utils.locationToPoint(center, Constants.GRID_SIZE);
 
-		Tweener.tween(this.mainLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
-		Tweener.tween(this.effectsLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.groundLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.itemLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.entityLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
+		Tweener.tween(this.deltaLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
 	}
 
 	set zoomOut(zoom: boolean) {
@@ -107,7 +102,7 @@ export default class DungeonRenderer extends Container {
 	}
 
 	public updatePosition(location: CrawlLocation): void {
-		let roomBounds = this.groundManager.getRoomBounds(utils.getTile(state.getState().floor.map, location).roomId);
+		let roomBounds = this.groundLayer.getRoomBounds(utils.getTile(state.getState().floor.map, location).roomId);
 
 		if (utils.isVoid(roomBounds)) { // in a hallway or don't know the bounds of the current room
 			this._viewport = {
@@ -127,34 +122,12 @@ export default class DungeonRenderer extends Container {
 	}
 
 	public displayDelta(location: CrawlLocation, color: number, amount: number): Thenable {
-		return this.deltaManager.displayDelta(location, color, amount);
+		return this.deltaLayer.displayDelta(location, color, amount);
 	}
 
 	public clear(): void {
-		this.groundManager.clear();
-		this.entityManager.clear();
-		this.itemManager.clear();
-	}
-
-	protected prerender(): void {
-		this.mainLayer.children.sort((a, b) => {
-			if (a.z === b.z && a.y === b.y) {
-				return a.x - b.x;
-			} else if (a.z === b.z) {
-				return b.y - a.y;
-			} else {
-				return a.z - b.z;
-			}
-		});
-	}
-
-	public renderCanvas(renderer: CanvasRenderer) {
-		this.prerender();
-		super.renderCanvas(renderer);
-	}
-
-	public renderWebGL(renderer: WebGLRenderer) {
-		this.prerender();
-		super.renderWebGL(renderer);
+		this.groundLayer.clear();
+		this.entityLayer.clear();
+		this.itemLayer.clear();
 	}
 }

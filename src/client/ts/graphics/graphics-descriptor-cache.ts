@@ -9,6 +9,9 @@ import {
 	WebGLRenderer
 } from "pixi.js";
 
+import Constants  from "../constants";
+import * as utils from "../../../common/utils";
+
 abstract class Cache<U, E> {
 	private cache: Map<string, E>;
 	protected _renderer: CanvasRenderer | WebGLRenderer;
@@ -65,7 +68,7 @@ class EntityGraphicsCache extends Cache<EntityGraphicsDescriptor, ExpandedEntity
 				throw new Error(`[Error x]: Illegal entity graphics descriptor does not contain a key for direction ${i}.`);
 			}
 
-			let expanded = expandDescriptor(this._renderer, descriptor.descriptors[key], reflect);
+			let expanded = expandDescriptor(this._renderer, descriptor.descriptors[key], i, reflect);
 
 			ret.push(expanded);
 		}
@@ -101,8 +104,10 @@ export function getEntityGraphics(key: string): ExpandedEntityGraphicsDescriptor
 function expandDescriptor(
 		renderer: WebGLRenderer | CanvasRenderer,
 		descriptor: GraphicsObjectDescriptor,
+		direction: number = 0,
 		reflect: boolean = false): ExpandedGraphicsObjectDescriptor {
 	let expanded: ExpandedGraphicsObjectDescriptor = {};
+	let [dr, dc] = utils.decodeDirection(direction);
 
 	for (let animation in descriptor.animations) {
 		expanded[animation] = [];
@@ -118,6 +123,11 @@ function expandDescriptor(
 
 				if (reflect) {
 					sprite.scale.x = -1;
+				}
+
+				if (spriteDescriptor.offset) {
+					sprite.x = dc * spriteDescriptor.offset * Constants.GRID_SIZE;
+					sprite.y = dr * spriteDescriptor.offset * Constants.GRID_SIZE;
 				}
 
 				container.addChildAt(sprite, 0);

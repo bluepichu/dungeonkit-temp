@@ -17,10 +17,9 @@ export default class GraphicsObject extends Sprite {
 	protected descriptor: ExpandedGraphicsObjectDescriptor;
 	protected changed: boolean;
 	protected animationEndListener: () => any;
-
-	private animation: string;
-	private step: number;
-	private frame: number;
+	protected animation: string;
+	protected step: number;
+	protected frame: number;
 
 	constructor(descriptor: ExpandedGraphicsObjectDescriptor) {
 		super();
@@ -50,9 +49,7 @@ export default class GraphicsObject extends Sprite {
 		this.frame = 0;
 	}
 
-	protected handleOffset(sprite: Sprite, amount: number): void { }
-
-	private prerender() {
+	protected prerender() {
 		this.frame++;
 
 		if (this.frame >= this.descriptor[this.animation][this.step].duration) {

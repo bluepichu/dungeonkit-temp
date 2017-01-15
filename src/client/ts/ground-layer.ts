@@ -11,30 +11,27 @@ import {
 
 import Constants                    from "./constants";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
-import GraphicsManager              from "./graphics/graphics-manager";
 import GraphicsObject               from "./graphics/graphics-object";
+import Layer                        from "./graphics/layer";
 import * as state                   from "./state";
 import * as utils                   from "../../common/utils";
 
-export default class GroundManager {
+export default class GroundLayer extends Sprite {
+	public texture: RenderTexture;
+
 	private roomBounds: Map<number, Viewport>;
 	private _descriptor: ExpandedGraphicsObjectDescriptor;
-	private texture: RenderTexture;
-	private container: Container;
 	private map: Container;
 	private renderer: WebGLRenderer | CanvasRenderer;
-	private sprite: Sprite;
 	private textureNeedsUpdate: boolean;
 
-	constructor(container: Container, renderer: WebGLRenderer | CanvasRenderer, descriptor: string) {
-		this.container = container;
+	constructor(renderer: WebGLRenderer | CanvasRenderer, descriptor: string) {
+		super();
 		this.map = new Container();
 		this.roomBounds = new Map();
 		this.renderer = renderer;
-		this.texture = RenderTexture.create(2048, 2048, SCALE_MODES.NEAREST, window.devicePixelRatio || 1);
+		this.clear();
 		this._descriptor = GraphicsDescriptorCache.getGraphics(descriptor);
-		this.sprite = new Sprite(this.texture);
-		this.container.addChild(this.sprite);
 		this.textureNeedsUpdate = false;
 	}
 
@@ -135,7 +132,6 @@ export default class GroundManager {
 		this.roomBounds.clear();
 		this.map.removeChildren();
 		this.texture.destroy();
-		this.texture = RenderTexture.create(2048, 2048);
-		this.sprite.texture = this.texture;
+		this.texture = RenderTexture.create(2048, 2048, SCALE_MODES.NEAREST, window.devicePixelRatio || 1);
 	}
 }

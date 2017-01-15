@@ -19,7 +19,7 @@ import CommandArea                  from "./command-area";
 import Constants                    from "./constants";
 import DungeonRenderer              from "./dungeon-renderer";
 import Messages                     from "./messages";
-import EntityManager                from "./entity-manager";
+import EntityLayer                  from "./entity-layer";
 import EntitySprite                 from "./graphics/entity-sprite";
 import GameSocket                   from "./game-socket";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
@@ -237,7 +237,6 @@ function startCrawl() {
 
 	floorSign = new Container();
 	floorSign.alpha = 0;
-	floorSign.visible = false;
 	gameContainer.addChild(floorSign);
 
 	let g = new Graphics();
@@ -340,19 +339,19 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				doneEvent.state.floor.mapUpdates.forEach((update) => {
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
-					dungeonRenderer.groundManager.update(update.location);
+					dungeonRenderer.groundLayer.update(update.location);
 				});
 
-				dungeonRenderer.groundManager.updateTexture();
+				dungeonRenderer.groundLayer.updateTexture();
 
 				state.getState().entities = doneEvent.state.entities;
 				state.getState().items = doneEvent.state.items;
 				state.getState().self = doneEvent.state.self;
 
 				dungeonRenderer.updatePosition(state.getState().self.location);
-				dungeonRenderer.entityManager.update();
-				// dungeonRenderer.entityManager.forceUpdate(); // would like to remove this if possible
-				dungeonRenderer.itemManager.update();
+				dungeonRenderer.entityLayer.update();
+				// dungeonRenderer.entityLayer.forceUpdate(); // would like to remove this if possible
+				dungeonRenderer.itemLayer.update();
 				// minimap.update();
 				attackOverlay.update();
 				teamOverlay.update();
@@ -476,12 +475,10 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.getState().self = startEvent.self;
 
-				floorSign.visible = true;
-
 				Tweener.tween(floorSign, { alpha: 1 }, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
 					.then(() => {
-						setTimeout(() => Tweener.tween(floorSign, { alpha: 0 }, .1).then(() => { floorSign.visible = false; }), 400);
+						setTimeout(() => Tweener.tween(floorSign, { alpha: 0 }, .1), 400);
 						setTimeout(done, 400);
 					});
 
@@ -500,7 +497,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						evt.entity.id === state.getState().self.id,
 						"walk",
 						evt.direction)
-						.then(() => dungeonRenderer.entityManager.setObjectAnimation(evt.entity.id, "default", false));
+						.then(() => dungeonRenderer.entityLayer.setObjectAnimation(evt.entity.id, "default", false));
 
 				let movePromises: Thenable[] = [];
 				let deferred: Processable[] = [];
@@ -526,17 +523,17 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				let attackEvent = proc as AttackLogEvent;
 				messageLog.push(`${highlightEntity(attackEvent.entity)} used <attack>${attackEvent.attack.name}`);
 
-				if (!dungeonRenderer.entityManager.hasObject(attackEvent.entity.id)) {
-					dungeonRenderer.entityManager.addObject(
+				if (!dungeonRenderer.entityLayer.hasObject(attackEvent.entity.id)) {
+					dungeonRenderer.entityLayer.addObject(
 							attackEvent.entity.id,
 							attackEvent.entity.graphics,
 							utils.locationToPoint(attackEvent.location, Constants.GRID_SIZE));
 				}
 
-				dungeonRenderer.entityManager.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
+				dungeonRenderer.entityLayer.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
 
-				dungeonRenderer.entityManager.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
-					.then(() => dungeonRenderer.entityManager.setObjectAnimation(attackEvent.entity.id, "default", false))
+				dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
+					.then(() => dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, "default", false))
 					.then(done);
 
 				break;
@@ -549,16 +546,16 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						if (statEvent.change < 0) {
 							messageLog.push(`${highlightEntity(statEvent.entity)} took <attack>${-statEvent.change} damage!`);
 
-							dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "hurt", false);
+							dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "hurt", false);
 
 							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, statEvent.change)
-								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else {
 							messageLog.push(`${highlightEntity(statEvent.entity)} recovered <attack>${statEvent.change} HP!`);
 
 							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
-								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						}
 						break;
@@ -568,19 +565,19 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							messageLog.push(`${highlightEntity(statEvent.entity)} suddenly became hungrier!`);
 
 							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, Math.ceil(statEvent.change / 6))
-								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else if (statEvent.change <= 60) {
 							messageLog.push(`${highlightEntity(statEvent.entity)}'s belly filled somewhat!`);
 
 							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, Math.ceil(statEvent.change / 6))
-								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						} else {
 							messageLog.push(`${highlightEntity(statEvent.entity)}'s belly filled greatly!`);
 
 							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, Math.ceil(statEvent.change / 6))
-								.then(() => dungeonRenderer.entityManager.setObjectAnimation(statEvent.entity.id, "default", false))
+								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
 								.then(done);
 						}
 						break;
@@ -614,7 +611,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 			case "defeat":
 				let defeatEvent = proc as DefeatLogEvent;
 				messageLog.push(`${highlightEntity(defeatEvent.entity)} was defeated!`);
-				dungeonRenderer.entityManager.removeObject(defeatEvent.entity.id);
+				dungeonRenderer.entityLayer.removeObject(defeatEvent.entity.id);
 				done();
 				break;
 

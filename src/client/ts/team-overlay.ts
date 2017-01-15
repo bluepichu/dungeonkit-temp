@@ -14,7 +14,6 @@ import {
 } from "pixi-multistyle-text";
 
 import Colors                                from "./colors";
-import EntityManager                         from "./entity-manager";
 import EntitySprite                          from "./graphics/entity-sprite";
 import * as GraphicsDescriptorCache          from "./graphics/graphics-descriptor-cache";
 import GraphicsObject                        from "./graphics/graphics-object";

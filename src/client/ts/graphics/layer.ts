@@ -1,21 +1,22 @@
 "use strict";
 
 import {
-	Container
+	CanvasRenderer,
+	Container,
+	WebGLRenderer
 } from "pixi.js";
 
 import * as GraphicsDescriptorCache from "./graphics-descriptor-cache";
 import GraphicsObject               from "./graphics-object";
 import * as Tweener                 from "./tweener";
 
-export default GraphicsManager;
-export abstract class GraphicsManager<Id> {
+export default Layer;
+export abstract class Layer<Id> extends Container {
 	protected map: Map<Id, GraphicsObject>;
-	protected container: Container;
 
-	constructor(container: Container) {
+	constructor() {
+		super();
 		this.map = new Map();
-		this.container = container;
 	}
 
 	protected abstract generateGraphicsObject(key: string): GraphicsObject;
@@ -32,7 +33,7 @@ export abstract class GraphicsManager<Id> {
 
 		this.map.set(id, obj);
 
-		this.container.addChild(obj);
+		this.addChild(obj);
 	}
 
 	public hasObject(id: Id): boolean {
@@ -41,7 +42,7 @@ export abstract class GraphicsManager<Id> {
 
 	public removeObject(id: Id): void {
 		if (this.map.has(id)) {
-			this.container.removeChild(this.map.get(id));
+			this.removeChild(this.map.get(id));
 			this.map.delete(id);
 		}
 	}
@@ -69,7 +70,19 @@ export abstract class GraphicsManager<Id> {
 	}
 
 	public clear(): void {
-		this.map.forEach((child) => this.container.removeChild(child));
+		this.map.forEach((child) => this.removeChild(child));
 		this.map.clear();
+	}
+
+	protected prerender(): void { }
+
+	public renderWebGL(renderer: WebGLRenderer): void {
+		this.prerender();
+		super.renderWebGL(renderer);
+	}
+
+	public renderCanvas(renderer: CanvasRenderer): void {
+		this.prerender();
+		super.renderCanvas(renderer);
 	}
 }

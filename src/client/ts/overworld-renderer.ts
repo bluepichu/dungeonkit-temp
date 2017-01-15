@@ -7,18 +7,14 @@ import {
 } from "pixi.js";
 
 import Constants             from "./constants";
-import EntityManager         from "./entity-manager";
+import EntityManager         from "./entity-layer";
 import GraphicsObject        from "./graphics/graphics-object";
-import GroundManager         from "./ground-manager";
-import ItemManager           from "./item-manager";
+import GroundManager         from "./ground-layer";
+import ItemManager           from "./item-layer";
 import {generate as shortid} from "shortid";
 import * as state            from "./state";
 import * as Tweener          from "./graphics/tweener";
 import * as utils            from "../../common/utils";
-
-class Layer extends Container {
-	public children: GraphicsObject[]; // Narrower typing
-}
 
 export default class OverworldRenderer extends Container { /*
 	public groundManager: GroundManager;

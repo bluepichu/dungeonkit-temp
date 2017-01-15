@@ -47,6 +47,7 @@ export default class KeyboardCrawlInputHandler implements CrawlInputHandler {
 		this.awaitingMove = false;
 		this.socket = socket;
 		this.commandArea = commandArea;
+		this.direction = 6;
 
 		document.addEventListener("keydown", (event) => this.commandArea.keypress(event));
 	}
@@ -108,7 +109,7 @@ export default class KeyboardCrawlInputHandler implements CrawlInputHandler {
 
 					if (this.awaitingMove) {
 						this.dungeonRenderer
-						.entityManager
+						.entityLayer
 						.setObjectDirection(state.getState().self.id, this.direction);
 
 						if (!key.isPressed(KEYS.R)) {

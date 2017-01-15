@@ -23,16 +23,6 @@ export default class EntitySprite extends GraphicsObject {
 		this.statusIndex = 0;
 	}
 
-	protected handleOffset(sprite: Sprite, amount: number): void {
-		let [dy, dx] = utils.decodeDirection(this.direction);
-
-		dx *= amount * Constants.GRID_SIZE;
-		dy *= amount * Constants.GRID_SIZE;
-
-		sprite.x += dx;
-		sprite.y += dy;
-	}
-
 	public get direction(): number {
 		return this._direction;
 	}
