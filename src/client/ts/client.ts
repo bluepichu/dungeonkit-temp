@@ -199,7 +199,7 @@ function init() {
 }
 
 function startCrawl() {
-	dungeonRenderer = new DungeonRenderer();
+	dungeonRenderer = new DungeonRenderer(renderer);
 	gameContainer.addChildAt(dungeonRenderer, 0);
 
 	// minimap = new Minimap(300, 200);
@@ -237,6 +237,7 @@ function startCrawl() {
 
 	floorSign = new Container();
 	floorSign.alpha = 0;
+	floorSign.visible = false;
 	gameContainer.addChild(floorSign);
 
 	let g = new Graphics();
@@ -341,6 +342,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
 					dungeonRenderer.groundManager.update(update.location);
 				});
+
+				dungeonRenderer.groundManager.updateTexture();
 
 				state.getState().entities = doneEvent.state.entities;
 				state.getState().items = doneEvent.state.items;
@@ -473,12 +476,14 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.getState().self = startEvent.self;
 
+				floorSign.visible = true;
+
 				Tweener.tween(floorSign, { alpha: 1 }, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
-						.then(() => {
-							setTimeout(() => Tweener.tween(floorSign, { alpha: 0 }, .1), 400);
-							setTimeout(done, 400);
-						});
+					.then(() => {
+						setTimeout(() => Tweener.tween(floorSign, { alpha: 0 }, .1).then(() => { floorSign.visible = false; }), 400);
+						setTimeout(done, 400);
+					});
 
 				break;
 

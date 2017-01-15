@@ -21,18 +21,19 @@ export default class DeltaManager {
 		let delta = new Text((amount > 0 ? "+" : "") + amount,
 			{
 				fontFamily: "Lato",
-				fontSize: "8px",
+				fontSize: "800px",
 				fontWeight: "500",
 				fill: color,
 				stroke: Colors.BLACK,
-				strokeThickness: 2,
+				strokeThickness: 200,
 				lineJoin: "round"
 			}
 		);
 
-		delta.resolution = 40; // sometimes, we zoom in a lot on this
 		delta.anchor.x = .5;
 		delta.anchor.y = 1;
+		delta.scale.x = 0.01;
+		delta.scale.y = 0.01;
 		Object.assign(delta, utils.locationToPoint(location, Constants.GRID_SIZE));
 		delta.y -= Constants.GRID_SIZE / 2;
 

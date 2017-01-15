@@ -31,7 +31,7 @@ export default class DungeonRenderer extends Container {
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
 
-	constructor() {
+	constructor(renderer: CanvasRenderer | WebGLRenderer) {
 		super();
 
 		this.mainLayer = new Layer();
@@ -40,7 +40,7 @@ export default class DungeonRenderer extends Container {
 		this.addChild(this.mainLayer);
 		this.addChild(this.effectsLayer);
 
-		this.groundManager = new GroundManager(this.mainLayer, state.getState().dungeon.graphics);
+		this.groundManager = new GroundManager(this.mainLayer, renderer, state.getState().dungeon.graphics);
 		this.itemManager = new ItemManager(this.mainLayer);
 		this.entityManager = new EntityManager(this.mainLayer);
 		this.deltaManager = new DeltaManager(this.effectsLayer);

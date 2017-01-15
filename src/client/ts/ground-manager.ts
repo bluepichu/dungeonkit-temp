@@ -1,7 +1,12 @@
 "use strict";
 
 import {
-	Container
+	CanvasRenderer,
+	Container,
+	RenderTexture,
+	SCALE_MODES,
+	Sprite,
+	WebGLRenderer
 } from "pixi.js";
 
 import Constants                    from "./constants";
@@ -11,15 +16,26 @@ import GraphicsObject               from "./graphics/graphics-object";
 import * as state                   from "./state";
 import * as utils                   from "../../common/utils";
 
-export default class GroundManager extends GraphicsManager<string> {
+export default class GroundManager {
 	private roomBounds: Map<number, Viewport>;
 	private _descriptor: ExpandedGraphicsObjectDescriptor;
+	private texture: RenderTexture;
+	private container: Container;
+	private map: Container;
+	private renderer: WebGLRenderer | CanvasRenderer;
+	private sprite: Sprite;
+	private textureNeedsUpdate: boolean;
 
-	constructor(container: Container, descriptor: string) {
-		super(container);
-
+	constructor(container: Container, renderer: WebGLRenderer | CanvasRenderer, descriptor: string) {
+		this.container = container;
+		this.map = new Container();
 		this.roomBounds = new Map();
+		this.renderer = renderer;
+		this.texture = RenderTexture.create(2048, 2048, SCALE_MODES.NEAREST, window.devicePixelRatio || 1);
 		this._descriptor = GraphicsDescriptorCache.getGraphics(descriptor);
+		this.sprite = new Sprite(this.texture);
+		this.container.addChild(this.sprite);
+		this.textureNeedsUpdate = false;
 	}
 
 	public set descriptor(descriptor: string) {
@@ -55,12 +71,22 @@ export default class GroundManager extends GraphicsManager<string> {
 				let tileType = this.getTileType(state.getState().floor.map, { r: i, c: j });
 
 				if (tileType !== undefined) {
-					let obj = this.addObject(
-						`${i}, ${j}`,
-						tileType,
-						utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE));
+					let object = this.generateGraphicsObject(tileType);
+					let {x, y} = utils.locationToPoint({ r: i, c: j }, Constants.GRID_SIZE);
+					object.x = x;
+					object.y = y;
+
+					this.map.addChild(object);
+					this.textureNeedsUpdate = true;
 				}
 			}
+		}
+	}
+
+	public updateTexture(): void {
+		if (this.textureNeedsUpdate) {
+			this.renderer.render(this.map, this.texture);
+			this.textureNeedsUpdate = false;
 		}
 	}
 
@@ -106,7 +132,10 @@ export default class GroundManager extends GraphicsManager<string> {
 	}
 
 	public clear(): void {
-		super.clear();
 		this.roomBounds.clear();
+		this.map.removeChildren();
+		this.texture.destroy();
+		this.texture = RenderTexture.create(2048, 2048);
+		this.sprite.texture = this.texture;
 	}
 }
