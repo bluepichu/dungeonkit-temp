@@ -7,14 +7,14 @@ function makeDefaultAnimation(dir: number, pivot: Point, shadowPivot: Point): An
 				{ texture: `idle-${dir}a`, anchor: pivot },
 				{ texture: "shadow", anchor: shadowPivot }
 			],
-			duration: 30
+			duration: 20
 		},
 		{
 			sprites: [
 				{ texture: `idle-${dir}b`, anchor: pivot },
 				{ texture: "shadow", anchor: shadowPivot }
 			],
-			duration: 30
+			duration: 20
 		}
 	];
 }
