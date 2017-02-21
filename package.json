@@ -46,7 +46,7 @@
     "mocha": "^2.5.3",
     "nconf": "^0.8.4",
     "nodeunit": "^0.9.1",
-    "pixi-multistyle-text": "git+https://github.com/bluepichu/pixi-multistyle-text.git#iss34-es5",
+    "pixi-multistyle-text": "^0.5.1",
     "pixi-tilemap": "git+https://github.com/pixijs/pixi-tilemap.git",
     "rewire": "^2.5.2",
     "rollup": "^0.31.0",

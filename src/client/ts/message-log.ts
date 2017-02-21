@@ -6,10 +6,7 @@ import {
 	TextStyle
 } from "pixi.js";
 
-import {
-	MultiStyleText,
-	TextStyleSet
-} from "pixi-multistyle-text";
+import MultiStyleText, { TextStyleSet } from "pixi-multistyle-text";
 
 import Colors         from "./colors";
 import * as Tweener   from "./graphics/tweener";

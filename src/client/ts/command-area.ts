@@ -9,10 +9,7 @@ import {
 	WebGLRenderer
 } from "pixi.js";
 
-import {
-	MultiStyleText,
-	TextStyleSet
-} from "pixi-multistyle-text";
+import MultiStyleText, { TextStyleSet } from "pixi-multistyle-text";
 
 import Colors     from "./colors";
 import GameSocket from "./game-socket";

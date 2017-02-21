@@ -8,10 +8,7 @@ import {
 	utils as PixiUtils
 } from "pixi.js";
 
-import {
-	MultiStyleText,
-	TextStyleSet
-} from "pixi-multistyle-text";
+import MultiStyleText, { TextStyleSet } from "pixi-multistyle-text";
 
 import Colors                                from "./colors";
 import EntitySprite                          from "./graphics/entity-sprite";
