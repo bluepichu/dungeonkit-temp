@@ -36,6 +36,15 @@ export default class GameSocket {
 	}
 
 	/**
+	 * Logs in a user.
+	 * @param user - The username to send.
+	 * @param pass - the password to send.
+	 */
+	public login(user: string, pass: string): void {
+		this.socket.emit("login", { user, pass });
+	}
+
+	/**
 	 * Interacts with an overworld hotzone.
 	 * @param entity - The id of the hotzone to interact with.
 	 */
@@ -86,6 +95,7 @@ export default class GameSocket {
 		this.socket.on("entity-graphics", fn);
 	}
 
+<<<<<<< a57001e1687c84c2bd7374440235d7f2b9793865
 	/**
 	 * Adds a hook for the "crawl-update" event.
 	 * @param fn - The function to call.
@@ -116,6 +126,14 @@ export default class GameSocket {
 	 */
 	public onInteractEnd(fn: () => void): void {
 		this.socket.on("overworld-interact-end", fn);
+	}
+
+	/**
+	 * Adds a hook for the "feed" event.
+	 * @param fn - The function to call.
+	 */
+	public onFeed(fn: (message: FeedMessage) => void): void {
+		this.socket.on("feed", fn);
 	}
 
 	/**

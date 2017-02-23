@@ -10,3 +10,6 @@
 /// <reference path="overworld.d.ts"/>
 /// <reference path="probability.d.ts"/>
 /// <reference path="story.d.ts"/>
+/// <reference path="user.d.ts"/>
+
+/// <reference path="promised-mongo.d.ts"/>

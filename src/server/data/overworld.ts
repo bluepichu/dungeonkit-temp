@@ -158,3 +158,24 @@ export let scene: OverworldScene = {
 };
 
 sc = scene;
+
+export let alphaScene: OverworldScene = Object.assign({}, scene);
+alphaScene.hotzones = alphaScene.hotzones.map((x) => x);
+alphaScene.hotzones.push({
+	id: "to-special",
+	area: [ { x: 926, y: 407 }, { x: 958, y: 407 }, { x: 958, y: 439 }, { x: 926, y: 439 } ],
+	*interact() {
+		let selection = yield {
+			type: "speak",
+			text: "Would you like to enter the special dungeon?",
+			responses: [ "Yes", "No" ]
+		};
+
+		if (selection === 0) {
+			return {
+				type: "crawl",
+				dungeon: "proto-forest"
+			};
+		}
+	}
+})

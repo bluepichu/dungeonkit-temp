@@ -68,3 +68,30 @@ interface SelfOverworldEntity extends Entity {
 }
 
 type ClientInteractionResponse = number;
+
+interface ConnectFeedMessage {
+	type: "connect";
+	user: string;
+}
+
+interface LoginFeedMessage {
+	type: "login";
+	user: string;
+	special: boolean;
+}
+
+interface WinFeedMessage {
+	type: "win";
+	dungeon: string;
+	user: string;
+	special: boolean;
+}
+
+interface LoseFeedMessage {
+	type: "lose";
+	dungeon: string;
+	user: string;
+	special: boolean;
+}
+
+type FeedMessage = ConnectFeedMessage | LoginFeedMessage | WinFeedMessage | LoseFeedMessage;

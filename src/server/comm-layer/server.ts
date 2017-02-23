@@ -12,9 +12,10 @@ import * as socketio         from "socket.io";
 import * as socketioRedis    from "socket.io-redis";
 
 import { generatePlayer }    from "../data/player";
-import { scene }             from "../data/overworld";
+import { scene, alphaScene } from "../data/overworld";
 
 import CommController        from "./comm-controller";
+import * as login            from "./login";
 
 const log = require("beautiful-log")("dungeonkit:comm-server", { showDelta: false });
 const redisClient = redis.createClient();
@@ -49,6 +50,9 @@ export function start(queue: kue.Queue) {
 		log(`<green>+ ${socket.id}</green>`);
 		redisClient.hincrby(`comm_${process.env["worker_index"]}_stats`, "connections", 1);
 
+		let player = generatePlayer();
+		controllerMap.set(socket.id, new CommController(socket, queue, player));
+
 		socket.on("disconnect", () => {
 			log(`<red>- ${socket.id}</red>`);
 			redisClient.hincrby(`comm_${process.env["worker_index"]}_stats`, "connections", -1);
@@ -59,11 +63,20 @@ export function start(queue: kue.Queue) {
 
 		socket.on("start", () => {
 			log(`<magenta>S ${socket.id}</magenta>`);
-
-			let player = generatePlayer();
-			controllerMap.set(socket.id, new CommController(socket, queue, player));
-			controllerMap.get(socket.id).initOverworld(scene);
+			let controller = controllerMap.get(socket.id);
+			controller.initOverworld(controller.user ? alphaScene : scene);
 		});
+
+		socket.on("login", (user: string, pass: string) => {
+			login.checkLogin(user, pass)
+				.then((user) => {
+					controllerMap.get(socket.id).user = user;
+					io.emit("feed", { type: "login", user: user.display, id: socket.id });
+				})
+				.catch(() => {
+					// Do nothing
+				});
+		})
 	});
 
 	process.on("message", (message: string, connection: net.Socket) => {

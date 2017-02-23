@@ -13,6 +13,8 @@ const redisClient = redis.createClient();
  * Represents a single client.
  */
 export default class CommController {
+	public user: User;
+
 	private entity: PlayerOverworldEntity;
 	private socket: SocketIO.Socket;
 	private knownGraphics: Set<String>;

@@ -50,6 +50,7 @@
     "pixi-multistyle-text": "^0.5.1",
     "pixi-tilemap": "git+https://github.com/pixijs/pixi-tilemap.git",
     "pixi.js": "^4.4.1",
+    "promised-mongo": "^1.2.0",
     "redis": "^2.7.1",
     "rewire": "^2.5.2",
     "rollup": "^0.31.0",
