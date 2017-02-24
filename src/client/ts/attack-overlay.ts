@@ -6,7 +6,6 @@ import {
 	Graphics,
 	Text
 }                   from "pixi.js";
-import * as state   from "./state";
 import * as Tweener from "./graphics/tweener";
 
 export default class AttackOverlay extends Container {
@@ -33,10 +32,10 @@ export default class AttackOverlay extends Container {
 		return this._active;
 	}
 
-	public update(): void {
+	public update(attacks: Attack[]): void {
 		this.removeChildren();
 
-		state.getState().self.attacks.forEach((attack: Attack, i: number) => {
+		attacks.forEach((attack: Attack, i: number) => {
 			if (this.children.length <= i) {
 				let child = new AttackListing(i + 1, attack);
 

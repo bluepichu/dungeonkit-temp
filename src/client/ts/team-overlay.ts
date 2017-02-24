@@ -14,7 +14,6 @@ import Colors                                from "./colors";
 import EntitySprite                          from "./graphics/entity-sprite";
 import * as GraphicsDescriptorCache          from "./graphics/graphics-descriptor-cache";
 import GraphicsObject                        from "./graphics/graphics-object";
-import * as state                            from "./state";
 import * as Tweener                          from "./graphics/tweener";
 
 const STYLES: TextStyleSet = {
@@ -64,12 +63,12 @@ export default class TeamOverlay extends Container {
 		this.map = new Map();
 	}
 
-	public update() {
+	public update(state: CensoredClientCrawlState) {
 		let current = new Set(this.map.keys());
 		let visible = new Set(
-			state.getState()
+			state
 				.entities
-				.filter((entity) => entity.alignment === state.getState().self.alignment)
+				.filter((entity) => entity.alignment === state.self.alignment)
 				.map((entity) => entity.id));
 		let toAdd = new Set([...visible].filter((id) => !current.has(id)));
 		let toRemove = new Set([...current].filter((id) => !visible.has(id)));
@@ -85,12 +84,12 @@ export default class TeamOverlay extends Container {
 		});
 
 		this.map.forEach((listing, id) => {
-			let entity = state.getState().entities.filter((entity) => entity.id === id)[0];
+			let entity = state.entities.filter((entity) => entity.id === id)[0];
 			listing.update(entity as CensoredSelfCrawlEntity);
 		});
 
 		toAdd.forEach((id) => {
-			let entity = state.getState().entities.filter((entity) => entity.id === id)[0];
+			let entity = state.entities.filter((entity) => entity.id === id)[0];
 			let listing = new TeamListing(entity as CensoredSelfCrawlEntity);
 			this.addChild(listing);
 			listing.x = 170;

@@ -29,7 +29,6 @@ import KeyboardInputHandler         from "./input/keyboard-input-handler";
 import Keys                         from "./input/keys";
 import MessageLog                   from "./message-log";
 import Minimap                      from "./minimap";
-import * as state                   from "./state";
 import TeamOverlay                  from "./team-overlay";
 import TouchCrawlInputHandler       from "./input/touch-crawl-input-handler";
 import * as Tweener                 from "./graphics/tweener";
@@ -57,6 +56,7 @@ let inputHandler: KeyboardInputHandler = undefined;
 let teamOverlay: TeamOverlay = undefined;
 let main: HTMLElement = undefined;
 let awaitingMove: boolean = false;
+let state: CensoredClientCrawlState;
 
 ticker.shared.autoStart = false;
 
@@ -97,7 +97,7 @@ function init() {
 	socket.onInit((dungeon: CensoredDungeon) => {
 		console.info("init");
 
-		state.setState({
+		state = {
 			dungeon,
 			floor: {
 				number: 0,
@@ -110,7 +110,7 @@ function init() {
 			entities: [],
 			items: [],
 			self: undefined
-		});
+		};
 
 		startCrawl();
 	});
@@ -138,8 +138,8 @@ function init() {
 		if (stateUpdate !== undefined) {
 			updates.push({ type: "done", move, state: stateUpdate });
 
-			if (state.getState().self === undefined) {
-				state.getState().self = stateUpdate.self; // required for the very first step
+			if (state.self === undefined) {
+				state.self = stateUpdate.self; // required for the very first step
 			}
 		}
 
@@ -205,7 +205,7 @@ function init() {
 function startCrawl() {
 	setGamePhase(GamePhase.CRAWL);
 
-	dungeonRenderer = new DungeonRenderer(renderer, state.getState().dungeon.graphics);
+	dungeonRenderer = new DungeonRenderer(renderer, state.dungeon.graphics);
 	gameContainer.addChildAt(dungeonRenderer, 0);
 
 	// minimap = new Minimap(300, 200);
@@ -334,25 +334,22 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 			case "done":
 				console.log("done");
 				event.state.floor.mapUpdates.forEach((update) => {
-					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
-					dungeonRenderer.updateGround(update.location, state.getState().floor.map);
+					state.floor.map.grid[update.location.r][update.location.c] = update.tile;
+					dungeonRenderer.updateGround(update.location, state.floor.map);
 				});
 
-				state.getState().entities = event.state.entities;
-				state.getState().items = event.state.items;
-				state.getState().self = event.state.self;
+				state.entities = event.state.entities;
+				state.items = event.state.items;
+				state.self = event.state.self;
 
-				dungeonRenderer.update(state.getState());
-				dungeonRenderer.updatePosition(state.getState().floor.map, state.getState().self.location);
-				attackOverlay.update();
-				teamOverlay.update();
+				dungeonRenderer.update(state);
+				dungeonRenderer.updatePosition(state.floor.map, state.self.location);
+				attackOverlay.update(state.self.attacks);
+				teamOverlay.update(state);
 
 				commandArea.clearHandlers();
 
-				if (state.getState().floor.map.grid
-				[state.getState().self.location.r]
-				[state.getState().self.location.c]
-					.stairs) {
+				if (state.floor.map.grid[state.self.location.r][state.self.location.c].stairs) {
 					commandArea.addHandler("stairs", {
 						label: "stairs",
 						handler: () => {
@@ -372,8 +369,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					}
 				});
 
-				if (state.getState().self.items.bag.items !== undefined) {
-					for (let item of state.getState().self.items.bag.items) {
+				if (state.self.items.bag.items !== undefined) {
+					for (let item of state.self.items.bag.items) {
 						for (let action in item.actions) {
 							for (let alias of item.actions[action]) {
 								commandArea.addHandler(`${alias} ${item.name}`, {
@@ -390,7 +387,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							}
 						}
 
-						if (state.getState().self.items.held.items.length < state.getState().self.items.held.capacity) {
+						if (state.self.items.held.items.length < state.self.items.held.capacity) {
 							commandArea.addHandler(`equip ${item.name}`, {
 								label: `equip <item>${item.name}</item>`,
 								handler: () => {
@@ -406,7 +403,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					}
 				}
 
-				for (let item of state.getState().self.items.held.items) {
+				for (let item of state.self.items.held.items) {
 					for (let action in item.actions) {
 						for (let alias of item.actions[action]) {
 							commandArea.addHandler(`${alias} ${item.name}`, {
@@ -423,8 +420,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						}
 					}
 
-					if (state.getState().self.items.bag !== undefined
-						&& state.getState().self.items.bag.items.length < state.getState().self.items.bag.capacity) {
+					if (state.self.items.bag !== undefined
+						&& state.self.items.bag.items.length < state.self.items.bag.capacity) {
 						commandArea.addHandler(`unequip ${item.name}`, {
 							label: `unequip <item>${item.name}</item>`,
 							handler: () => {
@@ -444,25 +441,25 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				return done();
 
 			case "start":
-				state.getState().floor.number = event.floorInformation.number;
-				state.getState().floor.map.width = event.floorInformation.width;
-				state.getState().floor.map.height = event.floorInformation.height;
+				state.floor.number = event.floorInformation.number;
+				state.floor.map.width = event.floorInformation.width;
+				state.floor.map.height = event.floorInformation.height;
 
 				let floorName =
-					(state.getState().dungeon.direction === "down" ? "B" : "")
+					(state.dungeon.direction === "down" ? "B" : "")
 					+ "F"
-					+ state.getState().floor.number;
+					+ state.floor.number;
 
-				floorSignText.text = `${state.getState().dungeon.name}\n${floorName}`;
+				floorSignText.text = `${state.dungeon.name}\n${floorName}`;
 
-				state.getState().floor.map.grid =
+				state.floor.map.grid =
 					utils.tabulate((row) =>
 						utils.tabulate((col) => ({ type: DungeonTileType.UNKNOWN }), (event as StartLogEvent).floorInformation.width),
 					event.floorInformation.height);
 
-				state.getState().self = event.self;
+				state.self = event.self;
 
-				dungeonRenderer.showFloorStart(state.getState().self.location);
+				dungeonRenderer.showFloorStart(state.self.location);
 
 				Tweener.tween(floorSign, { alpha: 1 }, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
@@ -479,8 +476,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 			case "move":
 				let getMovePromise = (evt: MoveLogEvent) => {
-					if (evt.entity.id === state.getState().self.id) {
-						dungeonRenderer.updatePosition(state.getState().floor.map, evt.end);
+					if (evt.entity.id === state.self.id) {
+						dungeonRenderer.updatePosition(state.floor.map, evt.end);
 					}
 					return dungeonRenderer.showWalk(evt.entity, evt.start, evt.end, evt.direction);
 				};
@@ -597,7 +594,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 }
 
 function highlightEntity(entity: CondensedEntity): string {
-	if (entity.id === state.getState().self.id) {
+	if (entity.id === state.self.id) {
 		return `<self>${entity.name}</self>`;
 	} else {
 		return `<enemy>${entity.name}</enemy>`;

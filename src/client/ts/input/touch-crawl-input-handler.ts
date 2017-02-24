@@ -15,7 +15,6 @@ import isMobile        from "../is-mobile";
 import Messages        from "../messages";
 import MessageLog      from "../message-log";
 import Minimap         from "../minimap";
-import * as state      from "../state";
 import * as utils      from "../../../common/utils";
 
 export default class TouchCrawlInputHandler {

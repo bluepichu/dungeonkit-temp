@@ -12,7 +12,6 @@ import GraphicsObject        from "./graphics/graphics-object";
 import GroundManager         from "./ground-layer";
 import ItemManager           from "./item-layer";
 import {generate as shortid} from "shortid";
-import * as state            from "./state";
 import * as Tweener          from "./graphics/tweener";
 import * as utils            from "../../common/utils";
 
