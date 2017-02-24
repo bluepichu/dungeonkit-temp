@@ -7,7 +7,7 @@ import {
 
 import Colors       from "./colors";
 import Constants    from "./constants";
-import Layer                        from "./graphics/layer";
+import Layer        from "./graphics/layer";
 import * as Tweener from "./graphics/tweener";
 import * as utils   from "../../common/utils";
 

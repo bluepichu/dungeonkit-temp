@@ -44,26 +44,24 @@ const COMMAND_AREA_SUGGESTION_STYLES: TextStyleSet = {
 
 const COMMAND_AREA_DEFAULT_TEXT = "Press space to input a command...";
 
-const INVALID_COMMAND = "<command>%s</command> is not a valid command.";
-
-type Handler = {
+interface Handler {
 	label: string;
-	handler(socket: GameSocket, messageLog: MessageLog): void;
-};
+	handler(): any;
+}
 
 export default class CommandArea extends Container {
+	public onInvalid: (cmd: string) => any;
+
 	private _active: boolean;
 	private background: Graphics;
 	private textInput: Text;
 	private suggestions: Suggestion[];
 	private buffer: string;
 	private inputPromptFlashFrameCount: number;
-	private socket: GameSocket;
-	private messageLog: MessageLog;
 	private handlers: { [key: string]: Handler };
 	private highlighted: number;
 
-	constructor(socket: GameSocket, messageLog: MessageLog) {
+	constructor() {
 		super();
 
 		this.background = new Graphics();
@@ -78,8 +76,6 @@ export default class CommandArea extends Container {
 		this.addChild(this.background);
 		this.addChild(this.textInput);
 
-		this.socket = socket;
-		this.messageLog = messageLog;
 		this.active = false;
 		this.handlers = {};
 		this.suggestions = [];
@@ -163,9 +159,9 @@ export default class CommandArea extends Container {
 			: this.buffer.toLowerCase();
 
 		if (command in this.handlers) {
-			this.handlers[command].handler(this.socket, this.messageLog);
-		} else {
-			this.messageLog.push(sprintf(INVALID_COMMAND, command));
+			this.handlers[command].handler();
+		} else if (this.onInvalid) {
+			this.onInvalid(`<command>${command}</command> is not a valid command.`);
 		}
 	}
 

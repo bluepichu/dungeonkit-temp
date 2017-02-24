@@ -18,7 +18,7 @@ import Minimap         from "../minimap";
 import * as state      from "../state";
 import * as utils      from "../../../common/utils";
 
-export default class TouchCrawlInputHandler implements CrawlInputHandler {
+export default class TouchCrawlInputHandler {
 	public awaitingMove: boolean;
 
 	private moveInput: number;

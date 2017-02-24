@@ -1,3 +1,5 @@
+/// <reference path="references.ts" /> // wat
+
 "use strict";
 
 import {
@@ -6,29 +8,28 @@ import {
 	WebGLRenderer
 } from "pixi.js";
 
+import Colors         from "./colors";
 import Constants      from "./constants";
 import DeltaLayer     from "./delta-layer";
 import EntityLayer    from "./entity-layer";
 import GraphicsObject from "./graphics/graphics-object";
 import GroundLayer    from "./ground-layer";
 import ItemLayer      from "./item-layer";
-import * as state     from "./state";
 import * as Tweener   from "./graphics/tweener";
 import * as utils     from "../../common/utils";
 
 export default class DungeonRenderer extends Container {
-	public groundLayer: GroundLayer;
-	public itemLayer: ItemLayer;
-	public entityLayer: EntityLayer;
-	public deltaLayer: DeltaLayer;
-
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
+	private groundLayer: GroundLayer;
+	private itemLayer: ItemLayer;
+	private entityLayer: EntityLayer;
+	private deltaLayer: DeltaLayer;
 
-	constructor(renderer: CanvasRenderer | WebGLRenderer) {
+	constructor(renderer: CanvasRenderer | WebGLRenderer, dungeonGraphics: string) {
 		super();
 
-		this.groundLayer = new GroundLayer(renderer, state.getState().dungeon.graphics);
+		this.groundLayer = new GroundLayer(renderer, dungeonGraphics);
 		this.itemLayer = new ItemLayer();
 		this.entityLayer = new EntityLayer();
 		this.deltaLayer = new DeltaLayer();
@@ -41,29 +42,73 @@ export default class DungeonRenderer extends Container {
 		this._zoomOut = false;
 	}
 
-	moveEntity(
-		entity: CondensedEntity,
-		start: CrawlLocation,
-		end: CrawlLocation,
-		isSelf: boolean,
-		animation?: string,
-		direction?: number): Thenable {
+	public update(state: CensoredInProgressCrawlState): void {
+		this.groundLayer.updateTexture();
+		this.itemLayer.update(state.items);
+		this.entityLayer.update(state.entities);
+	}
 
-		if (!this.entityLayer.hasObject(entity.id)) {
-			this.entityLayer.addObject(entity.id, entity.graphics, utils.locationToPoint(start, Constants.GRID_SIZE));
+	public updateGround(location: CrawlLocation, map: FloorMap): void {
+		this.groundLayer.update(location, map);
+	}
+
+	private ensureEntityExists(entity: CondensedEntity, location: CrawlLocation): void {
+		if (!this.entityLayer.has(entity.id)) {
+			this.entityLayer.add(entity.id, entity.graphics, utils.locationToPoint(location, Constants.GRID_SIZE));
 		}
+	}
 
-		let prm = this.entityLayer.moveObject(entity.id,
+	public showWalk(entity: CondensedEntity, start: CrawlLocation, end: CrawlLocation, direction?: number): Thenable {
+		this.ensureEntityExists(entity, start);
+
+		this.entityLayer.setAnimation(entity.id, "walk");
+		this.entityLayer.setDirection(entity.id, direction);
+
+		return this.entityLayer.move(
+				entity.id,
+				utils.locationToPoint(start, Constants.GRID_SIZE),
 				utils.locationToPoint(end, Constants.GRID_SIZE),
-				Constants.WALK_SPEED);
-		this.entityLayer.setObjectDirection(entity.id, direction);
-		this.entityLayer.setObjectAnimation(entity.id, animation, false);
+				Constants.WALK_SPEED)
+			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
+	}
 
-		if (isSelf) {
-			this.updatePosition(end);
+	public showAttack(entity: CondensedEntity, location: CrawlLocation, direction: number, animation: string): Thenable {
+		this.ensureEntityExists(entity, location);
+
+		this.entityLayer.setDirection(entity.id, direction);
+
+		return this.entityLayer.waitForAnimation(entity.id, animation)
+			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
+	}
+
+	public showHurt(entity: CondensedEntity, location: CrawlLocation, amount: number): Thenable {
+		this.ensureEntityExists(entity, location);
+
+		this.displayDelta(location, Colors.YELLOW, amount);
+
+		return this.entityLayer.waitForAnimation(entity.id, "hurt")
+			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
+	}
+
+	public showHeal(entity: CondensedEntity, location: CrawlLocation, amount: number): Thenable {
+		this.ensureEntityExists(entity, location);
+
+		return this.displayDelta(location, Colors.GREEN, amount);
+	}
+
+	public showBelly(entity: CondensedEntity, location: CrawlLocation, amount: number): Thenable {
+		this.ensureEntityExists(entity, location);
+
+		return this.displayDelta(location, Colors.GREEN, amount);
+	}
+
+	public showDefeat(entity: CondensedEntity): Thenable {
+		if (!this.entityLayer.has(entity.id)) {
+			return Promise.resolve();
 		}
 
-		return prm;
+		return this.entityLayer.waitForAnimation(entity.id, "defeat")
+			.then(() => this.entityLayer.remove(entity.id));
 	}
 
 	private updateViewport(nextView: Viewport) {
@@ -87,22 +132,24 @@ export default class DungeonRenderer extends Container {
 		Tweener.tween(this.deltaLayer, {x: -cx, y: -cy}, Constants.VIEW_MOVE_VELOCITY, "smooth");
 	}
 
-	set zoomOut(zoom: boolean) {
-		if (this._zoomOut !== zoom) {
-			if (zoom) {
-				this.updateViewport({
-					r: [0, state.getState().floor.map.height],
-					c: [0, state.getState().floor.map.width]
-				});
-			} else {
-				this.updateViewport(this._viewport);
-			}
-		}
-		this._zoomOut = zoom;
+	public showFloorStart(location: CrawlLocation): void {
+		this.scale.x = 4;
+		this.scale.y = 4;
+
+		let {x: cx, y: cy} = utils.locationToPoint(location, Constants.GRID_SIZE);
+
+		this.groundLayer.x = -cx;
+		this.groundLayer.y = -cy;
+		this.itemLayer.x = -cx;
+		this.itemLayer.y = -cy;
+		this.entityLayer.x = -cx;
+		this.entityLayer.y = -cy;
+		this.deltaLayer.x = -cx;
+		this.deltaLayer.y = -cy;
 	}
 
-	public updatePosition(location: CrawlLocation): void {
-		let roomBounds = this.groundLayer.getRoomBounds(utils.getTile(state.getState().floor.map, location).roomId);
+	public updatePosition(map: FloorMap, location: CrawlLocation): void {
+		let roomBounds = this.groundLayer.getRoomBounds(utils.getTile(map, location).roomId);
 
 		if (utils.isVoid(roomBounds)) { // in a hallway or don't know the bounds of the current room
 			this._viewport = {

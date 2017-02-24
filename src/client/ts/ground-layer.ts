@@ -13,7 +13,6 @@ import Constants                    from "./constants";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
 import GraphicsObject               from "./graphics/graphics-object";
 import Layer                        from "./graphics/layer";
-import * as state                   from "./state";
 import * as utils                   from "../../common/utils";
 
 export default class GroundLayer extends Sprite {
@@ -45,8 +44,8 @@ export default class GroundLayer extends Sprite {
 		return tile;
 	}
 
-	public update(location: CrawlLocation) {
-		let roomId = utils.getTile(state.getState().floor.map, location).roomId;
+	public update(location: CrawlLocation, map: FloorMap) {
+		let roomId = utils.getTile(map, location).roomId;
 
 		if (roomId > 0) {
 			if (!this.roomBounds.has(roomId)) {
@@ -61,11 +60,11 @@ export default class GroundLayer extends Sprite {
 
 		for (let i = location.r - 1; i <= location.r + 1; i++) {
 			for (let j = location.c - 1; j <= location.c + 1; j++) {
-				if (i < 0 || i >= state.getState().floor.map.height || j < 0 || j >= state.getState().floor.map.width) {
+				if (i < 0 || i >= map.height || j < 0 || j >= map.width) {
 					continue;
 				}
 
-				let tileType = this.getTileType(state.getState().floor.map, { r: i, c: j });
+				let tileType = this.getTileType(map, { r: i, c: j });
 
 				if (tileType !== undefined) {
 					let object = this.generateGraphicsObject(tileType);

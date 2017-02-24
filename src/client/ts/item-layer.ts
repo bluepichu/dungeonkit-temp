@@ -4,16 +4,15 @@ import Constants                    from "./constants";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
 import GraphicsObject               from "./graphics/graphics-object";
 import Layer                        from "./graphics/layer";
-import * as state                   from "./state";
 import * as utils                   from "../../common/utils";
 
-export default class ItemLayer extends Layer<string> {
-	public update() {
+export default class ItemLayer extends Layer<GraphicsObject> {
+	public update(items: CrawlItem[]) {
 		this.clear();
 
-		for (let item of state.getState().items) {
+		for (let item of items) {
 			let {x, y} = utils.locationToPoint(item.location, Constants.GRID_SIZE);
-			this.addObject(item.id, item.graphics, {x, y});
+			this.add(item.id, item.graphics, {x, y});
 		}
 	}
 

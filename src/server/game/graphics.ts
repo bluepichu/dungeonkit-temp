@@ -78,7 +78,7 @@ function makeHurtAnimation(dir: number, pivot: Point, shadowPivot: Point): Anima
 				{ texture: `hurt-${dir}`, anchor: pivot },
 				{ texture: "shadow", anchor: shadowPivot }
 			],
-			duration: 1000
+			duration: 80
 		}
 	];
 }

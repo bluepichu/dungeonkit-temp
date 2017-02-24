@@ -25,7 +25,8 @@ import GameSocket                   from "./game-socket";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
 import GraphicsObject               from "./graphics/graphics-object";
 import isMobile                     from "./is-mobile";
-import KeyboardCrawlInputHandler    from "./input/keyboard-crawl-input-handler";
+import KeyboardInputHandler         from "./input/keyboard-input-handler";
+import Keys                         from "./input/keys";
 import MessageLog                   from "./message-log";
 import Minimap                      from "./minimap";
 import * as state                   from "./state";
@@ -52,9 +53,10 @@ let processChain: Thenable = Promise.resolve();
 let floorSign: Container = undefined;
 let floorSignText: Text = undefined;
 let attackOverlay: AttackOverlay = undefined;
-let inputHandler: CrawlInputHandler = undefined;
+let inputHandler: KeyboardInputHandler = undefined;
 let teamOverlay: TeamOverlay = undefined;
 let main: HTMLElement = undefined;
+let awaitingMove: boolean = false;
 
 ticker.shared.autoStart = false;
 
@@ -115,7 +117,7 @@ function init() {
 
 	socket.onInvalid(() => {
 		console.info("invalid");
-		inputHandler.awaitingMove = true;
+		awaitingMove = true;
 	});
 
 	socket.onGraphics((key: string, graphics: GraphicsObjectDescriptor) => {
@@ -161,27 +163,29 @@ function init() {
 	main = document.getElementsByTagName("main")[0] as HTMLElement;
 	main.appendChild(renderer.view);
 
-	commandArea = new CommandArea(socket, messageLog);
+	commandArea = new CommandArea();
 
 	commandArea.addHandler("start", {
 		label: "start",
-		handler(socket) {
+		handler: () => {
 			socket.emitTempSignal("start");
 		}
 	});
 
 	commandArea.addHandler("help", {
 		label: "help",
-		handler(socket, messageLog) {
+		handler: () => {
 			messageLog.push(Messages.CONTROLS, 15000);
 		}
 	});
 
+	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); }
+
 	if (!isMobile()) {
-		inputHandler = new KeyboardCrawlInputHandler(socket, commandArea);
+		inputHandler = new KeyboardInputHandler();
 		gameContainer.addChild(commandArea);
 	} else {
-		inputHandler = new TouchCrawlInputHandler(socket, messageLog, main, gameContainer);
+		// idk lol
 	}
 
 	messageLog = new MessageLog();
@@ -199,7 +203,9 @@ function init() {
 }
 
 function startCrawl() {
-	dungeonRenderer = new DungeonRenderer(renderer);
+	setGamePhase(GamePhase.CRAWL);
+
+	dungeonRenderer = new DungeonRenderer(renderer, state.getState().dungeon.graphics);
 	gameContainer.addChildAt(dungeonRenderer, 0);
 
 	// minimap = new Minimap(300, 200);
@@ -258,14 +264,6 @@ function startCrawl() {
 	floorSignText.y = window.innerHeight / 2;
 	floorSignText.resolution = window.devicePixelRatio;
 	floorSign.addChild(floorSignText);
-
-	if (!isMobile()) {
-		(inputHandler as KeyboardCrawlInputHandler).attackOverlay = attackOverlay;
-		(inputHandler as KeyboardCrawlInputHandler).dungeonRenderer = dungeonRenderer;
-		(inputHandler as KeyboardCrawlInputHandler).minimap = minimap;
-	} else {
-		(inputHandler as TouchCrawlInputHandler).dungeonRenderer = dungeonRenderer;
-	}
 
 	handleWindowResize();
 }
@@ -327,32 +325,25 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 			return;
 		}
 
-		let proc = processes.shift();
+		let event = processes.shift();
 
 		let done = () =>
 			resolve(getResolutionPromise(processes));
 
-		switch (proc.type) {
+		switch (event.type) {
 			case "done":
 				console.log("done");
-				let doneEvent = proc as { type: "done", move: boolean, state: StateUpdate };
-
-				doneEvent.state.floor.mapUpdates.forEach((update) => {
+				event.state.floor.mapUpdates.forEach((update) => {
 					state.getState().floor.map.grid[update.location.r][update.location.c] = update.tile;
-					dungeonRenderer.groundLayer.update(update.location);
+					dungeonRenderer.updateGround(update.location, state.getState().floor.map);
 				});
 
-				dungeonRenderer.groundLayer.updateTexture();
+				state.getState().entities = event.state.entities;
+				state.getState().items = event.state.items;
+				state.getState().self = event.state.self;
 
-				state.getState().entities = doneEvent.state.entities;
-				state.getState().items = doneEvent.state.items;
-				state.getState().self = doneEvent.state.self;
-
-				dungeonRenderer.updatePosition(state.getState().self.location);
-				dungeonRenderer.entityLayer.update();
-				// dungeonRenderer.entityLayer.forceUpdate(); // would like to remove this if possible
-				dungeonRenderer.itemLayer.update();
-				// minimap.update();
+				dungeonRenderer.update(state.getState());
+				dungeonRenderer.updatePosition(state.getState().floor.map, state.getState().self.location);
 				attackOverlay.update();
 				teamOverlay.update();
 
@@ -364,7 +355,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					.stairs) {
 					commandArea.addHandler("stairs", {
 						label: "stairs",
-						handler(socket) {
+						handler: () => {
 							socket.sendAction({
 								type: "stairs"
 							});
@@ -374,7 +365,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				commandArea.addHandler("wait", {
 					label: "wait",
-					handler(socket) {
+					handler: () => {
 						socket.sendAction({
 							type: "wait"
 						});
@@ -387,7 +378,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							for (let alias of item.actions[action]) {
 								commandArea.addHandler(`${alias} ${item.name}`, {
 									label: `${alias} <item>${item.name}</item>`,
-									handler(socket) {
+									handler: () => {
 										socket.sendAction({
 											type: "item",
 											direction: 0,
@@ -402,7 +393,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						if (state.getState().self.items.held.items.length < state.getState().self.items.held.capacity) {
 							commandArea.addHandler(`equip ${item.name}`, {
 								label: `equip <item>${item.name}</item>`,
-								handler(socket) {
+								handler: () => {
 									socket.sendAction({
 										type: "item",
 										direction: 0,
@@ -420,7 +411,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						for (let alias of item.actions[action]) {
 							commandArea.addHandler(`${alias} ${item.name}`, {
 								label: `${alias} <item>${item.name}</item>`,
-								handler(socket) {
+								handler: () => {
 									socket.sendAction({
 										type: "item",
 										direction: 0,
@@ -436,7 +427,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						&& state.getState().self.items.bag.items.length < state.getState().self.items.bag.capacity) {
 						commandArea.addHandler(`unequip ${item.name}`, {
 							label: `unequip <item>${item.name}</item>`,
-							handler(socket) {
+							handler: () => {
 								socket.sendAction({
 									type: "item",
 									direction: 0,
@@ -448,16 +439,14 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					}
 				}
 
-				inputHandler.awaitingMove = inputHandler.awaitingMove || doneEvent.move;
+				awaitingMove = awaitingMove || event.move;
 
 				return done();
 
 			case "start":
-				let startEvent = proc as StartLogEvent;
-
-				state.getState().floor.number = startEvent.floorInformation.number;
-				state.getState().floor.map.width = startEvent.floorInformation.width;
-				state.getState().floor.map.height = startEvent.floorInformation.height;
+				state.getState().floor.number = event.floorInformation.number;
+				state.getState().floor.map.width = event.floorInformation.width;
+				state.getState().floor.map.height = event.floorInformation.height;
 
 				let floorName =
 					(state.getState().dungeon.direction === "down" ? "B" : "")
@@ -468,12 +457,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.getState().floor.map.grid =
 					utils.tabulate((row) =>
-						utils.tabulate((col) =>
-							({ type: DungeonTileType.UNKNOWN }),
-							startEvent.floorInformation.width),
-						startEvent.floorInformation.height);
+						utils.tabulate((col) => ({ type: DungeonTileType.UNKNOWN }), (event as StartLogEvent).floorInformation.width),
+					event.floorInformation.height);
 
-				state.getState().self = startEvent.self;
+				state.getState().self = event.self;
+
+				dungeonRenderer.showFloorStart(state.getState().self.location);
 
 				Tweener.tween(floorSign, { alpha: 1 }, .1)
 					.then(() => new Promise((resolve, _) => setTimeout(resolve, 2000)))
@@ -489,20 +478,17 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "move":
-				let getMovePromise = (evt: MoveLogEvent) =>
-					dungeonRenderer.moveEntity(
-						evt.entity,
-						evt.start,
-						evt.end,
-						evt.entity.id === state.getState().self.id,
-						"walk",
-						evt.direction)
-						.then(() => dungeonRenderer.entityLayer.setObjectAnimation(evt.entity.id, "default", false));
+				let getMovePromise = (evt: MoveLogEvent) => {
+					if (evt.entity.id === state.getState().self.id) {
+						dungeonRenderer.updatePosition(state.getState().floor.map, evt.end);
+					}
+					return dungeonRenderer.showWalk(evt.entity, evt.start, evt.end, evt.direction);
+				};
 
 				let movePromises: Thenable[] = [];
 				let deferred: Processable[] = [];
 
-				processes.unshift(proc);
+				processes.unshift(event);
 
 				while (processes.length > 0) {
 					if (processes[0].type === "move") {
@@ -520,80 +506,47 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "attack":
-				let attackEvent = proc as AttackLogEvent;
-				messageLog.push(`${highlightEntity(attackEvent.entity)} used <attack>${attackEvent.attack.name}`);
-
-				if (!dungeonRenderer.entityLayer.hasObject(attackEvent.entity.id)) {
-					dungeonRenderer.entityLayer.addObject(
-							attackEvent.entity.id,
-							attackEvent.entity.graphics,
-							utils.locationToPoint(attackEvent.location, Constants.GRID_SIZE));
-				}
-
-				dungeonRenderer.entityLayer.setObjectDirection(attackEvent.entity.id, attackEvent.direction);
-
-				dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, attackEvent.attack.animation, true)
-					.then(() => dungeonRenderer.entityLayer.setObjectAnimation(attackEvent.entity.id, "default", false))
+				messageLog.push(`${highlightEntity(event.entity)} used <attack>${event.attack.name}</attack>.`);
+				dungeonRenderer.showAttack(event.entity, event.location, event.direction, event.attack.animation)
 					.then(done);
-
 				break;
 
 			case "stat":
-				let statEvent = proc as StatLogEvent;
-
-				switch (statEvent.stat) {
+				switch (event.stat) {
 					case "hp":
-						if (statEvent.change < 0) {
-							messageLog.push(`${highlightEntity(statEvent.entity)} took <attack>${-statEvent.change} damage!`);
-
-							dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "hurt", false);
-
-							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, statEvent.change)
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
-								.then(done);
+						if (event.change < 0) {
+							messageLog.push(`${highlightEntity(event.entity)} took <attack>${-event.change}</attack> damage!`);
+							dungeonRenderer.showHurt(event.entity, event.location, event.change).then(done);
 						} else {
-							messageLog.push(`${highlightEntity(statEvent.entity)} recovered <attack>${statEvent.change} HP!`);
-
-							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, statEvent.change)
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
-								.then(done);
+							messageLog.push(`${highlightEntity(event.entity)} recovered <attack>${event.change}</attack> HP!`);
+							dungeonRenderer.showHeal(event.entity, event.location, event.change).then(done);
 						}
 						break;
 
 					case "belly":
-						if (statEvent.change <= 0) {
-							messageLog.push(`${highlightEntity(statEvent.entity)} suddenly became hungrier!`);
-
-							dungeonRenderer.displayDelta(statEvent.location, Colors.YELLOW, Math.ceil(statEvent.change / 6))
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
-								.then(done);
-						} else if (statEvent.change <= 60) {
-							messageLog.push(`${highlightEntity(statEvent.entity)}'s belly filled somewhat!`);
-
-							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, Math.ceil(statEvent.change / 6))
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
-								.then(done);
+						if (event.change <= 0) {
+							// idk lol
+							done();
 						} else {
-							messageLog.push(`${highlightEntity(statEvent.entity)}'s belly filled greatly!`);
+							messageLog.push(`${highlightEntity(event.entity)}'s belly filled ${event.change <= 60 ? "somewhat" : "greatly"}!`);
 
-							dungeonRenderer.displayDelta(statEvent.location, Colors.GREEN, Math.ceil(statEvent.change / 6))
-								.then(() => dungeonRenderer.entityLayer.setObjectAnimation(statEvent.entity.id, "default", false))
+							dungeonRenderer.showBelly(event.entity, event.location, Math.ceil(event.change / 6))
 								.then(done);
 						}
 						break;
 
 					default:
-						if (statEvent.change < 0) {
-							if (statEvent.change < -1) {
-								messageLog.push(`${highlightEntity(statEvent.entity)}'s ${statEvent.stat} fell sharply!`);
+						if (event.change < 0) {
+							if (event.change < -1) {
+								messageLog.push(`${highlightEntity(event.entity)}'s ${event.stat} fell sharply!`);
 							} else {
-								messageLog.push(`${highlightEntity(statEvent.entity)}'s ${statEvent.stat} fell!`);
+								messageLog.push(`${highlightEntity(event.entity)}'s ${event.stat} fell!`);
 							}
 						} else {
-							if (statEvent.change > 1) {
-								messageLog.push(`${highlightEntity(statEvent.entity)}'s ${statEvent.stat} rose sharply!`);
+							if (event.change > 1) {
+								messageLog.push(`${highlightEntity(event.entity)}'s ${event.stat} rose sharply!`);
 							} else {
-								messageLog.push(`${highlightEntity(statEvent.entity)}'s ${statEvent.stat} rose!`);
+								messageLog.push(`${highlightEntity(event.entity)}'s ${event.stat} rose!`);
 							}
 						}
 
@@ -603,21 +556,18 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "miss":
-				let missEvent = proc as MissLogEvent;
-				messageLog.push(`The attack missed ${highlightEntity(missEvent.entity)}!`);
+				messageLog.push(`The attack missed ${highlightEntity(event.entity)}!`);
 				done();
 				break;
 
 			case "defeat":
-				let defeatEvent = proc as DefeatLogEvent;
-				messageLog.push(`${highlightEntity(defeatEvent.entity)} was defeated!`);
-				dungeonRenderer.entityLayer.removeObject(defeatEvent.entity.id);
+				messageLog.push(`${highlightEntity(event.entity)} was defeated!`);
+				dungeonRenderer.showDefeat(event.entity);
 				done();
 				break;
 
 			case "stairs":
-				let stairsEvent = proc as StairsLogEvent;
-				messageLog.push(`${highlightEntity(stairsEvent.entity)} went up the stairs!`);
+				messageLog.push(`${highlightEntity(event.entity)} went up the stairs!`);
 				new Promise((resolve, _) => setTimeout(resolve, 600))
 					.then(() => Tweener.tween(floorSign, { alpha: 1 }, .1))
 					.then(() => {
@@ -629,21 +579,17 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "message":
-				let messageEvent = proc as MessageLogEvent;
-
-				messageLog.push(messageEvent.message);
+				messageLog.push(event.message);
 				done();
 				break;
 
 			case "item_pickup":
-				let itemPickupEvent = proc as ItemPickupLogEvent;
-				messageLog.push(`${highlightEntity(itemPickupEvent.entity)} picked up the <item>${itemPickupEvent.item.name}</item>.`);
+				messageLog.push(`${highlightEntity(event.entity)} picked up the <item>${event.item.name}</item>.`);
 				done();
 				break;
 
 			case "item_drop":
-				let itemDropEvent = proc as ItemDropLogEvent;
-				messageLog.push(`${highlightEntity(itemDropEvent.entity)} dropped the <item>${itemDropEvent.item.name}</item>.`);
+				messageLog.push(`${highlightEntity(event.entity)} dropped the <item>${event.item.name}</item>.`);
 				done();
 				break;
 		}
@@ -659,10 +605,34 @@ function highlightEntity(entity: CondensedEntity): string {
 }
 
 function setGamePhase(state: GamePhase): void {
-	if (state === GamePhase.CRAWL) {
+	switch (state) {
+		case GamePhase.CRAWL:
+			inputHandler.hooks = [
+				{
+					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT],
+					delay: 4,
+					handle: ([up, down, left, right]: boolean[]) => {
+						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up ? 8 : 0) + (down ? 4 : 0) + (left ? 2 : 0) + (right ? 1 : 0)];
+						if (direction < 0) {
+							return;
+						}
+						if (awaitingMove) {
+							socket.sendAction({
+								type: "move",
+								direction
+							}, {
+								dash: key.isPressed(Keys.B)
+							});
+							awaitingMove = false;
+						}
+					},
+					enabled: () => awaitingMove
+				}
+			]
+			break;
 
-	} else {
-
+		case GamePhase.OVERWORLD:
+			break;
 	}
 }
 
