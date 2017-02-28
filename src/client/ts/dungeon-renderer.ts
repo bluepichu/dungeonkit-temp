@@ -1,5 +1,3 @@
-/// <reference path="references.ts" /> // wat
-
 "use strict";
 
 import {

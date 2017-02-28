@@ -24,13 +24,11 @@ import EntitySprite                 from "./graphics/entity-sprite";
 import GameSocket                   from "./game-socket";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
 import GraphicsObject               from "./graphics/graphics-object";
-import isMobile                     from "./is-mobile";
 import KeyboardInputHandler         from "./input/keyboard-input-handler";
 import Keys                         from "./input/keys";
 import MessageLog                   from "./message-log";
 import Minimap                      from "./minimap";
 import TeamOverlay                  from "./team-overlay";
-import TouchCrawlInputHandler       from "./input/touch-crawl-input-handler";
 import * as Tweener                 from "./graphics/tweener";
 import * as utils                   from "../../common/utils";
 import * as WebFont                 from "webfontloader";
@@ -60,8 +58,11 @@ let state: CensoredClientCrawlState;
 
 ticker.shared.autoStart = false;
 
+/**
+ * Loads the webfonts and kicks off asset loading on completion.
+ */
 document.addEventListener("DOMContentLoaded", () => {
-	if ("WebFont" in window) { // fails if not online
+	if ("WebFont" in window) { // Fails in offline mode
 		WebFont.load({
 			google: {
 				families: ["Lato:100,300,400,700"]
@@ -77,7 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 });
 
-function loadAssets() {
+/**
+ * Loads the assets needed to run the game.  TEMPORARY: a better solution is
+ * needed (probably dynamic loading).
+ */
+function loadAssets(): void {
 	loader
 		.add("dng-proto", "/assets/tiles.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
@@ -91,7 +96,10 @@ function loadAssets() {
 
 key.filter = (event: KeyboardEvent) => commandArea ? commandArea.active : false;
 
-function init() {
+/**
+ * Initializes the client.
+ */
+function init(): void {
 	socket = new GameSocket();
 
 	socket.onInit((dungeon: CensoredDungeon) => {
@@ -181,12 +189,9 @@ function init() {
 
 	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); }
 
-	if (!isMobile()) {
-		inputHandler = new KeyboardInputHandler();
-		gameContainer.addChild(commandArea);
-	} else {
-		// idk lol
-	}
+	// TODO (bluepichu): Handle mobile users
+	inputHandler = new KeyboardInputHandler();
+	gameContainer.addChild(commandArea);
 
 	messageLog = new MessageLog();
 	gameContainer.addChild(messageLog);
@@ -202,7 +207,10 @@ function init() {
 	requestAnimationFrame(animate);
 }
 
-function startCrawl() {
+/**
+ * Initiates a crawl.
+ */
+function startCrawl(): void {
 	setGamePhase(GamePhase.CRAWL);
 
 	dungeonRenderer = new DungeonRenderer(renderer, state.dungeon.graphics);
@@ -268,17 +276,15 @@ function startCrawl() {
 	handleWindowResize();
 }
 
+/**
+ * Handles a window resize event.
+ */
 function handleWindowResize(): void {
 	let windowWidth = window.innerWidth;
 	let windowHeight = window.innerHeight;
 
 	let rendererWidth = windowWidth;
 	let rendererHeight = windowHeight;
-
-	if (isMobile()) {
-		rendererHeight = 640;
-		rendererWidth = windowWidth / windowHeight * rendererHeight;
-	}
 
 	renderer.view.style.width = `${windowWidth}px`;
 	renderer.view.style.height = `${windowHeight}px`;
@@ -309,6 +315,10 @@ function handleWindowResize(): void {
 	// (renderer.view.requestFullscreen || renderer.view.webkitRequestFullscreen || (() => undefined))();
 }
 
+/**
+ * Processes all of the given updates.
+ * @param updates - The updates to process.
+ */
 function processAll(updates: Processable[]): void {
 	processChain = processChain
 		.then(() => console.warn("starting chain", updates))
@@ -316,6 +326,11 @@ function processAll(updates: Processable[]): void {
 		.then(() => console.warn("finished chain"));
 }
 
+/**
+ * Produces a promise chain to resolve the given processes.
+ * @param processes - The processes to resolve.
+ * @return The promise chain to resolve the oriesses.
+ */
 function getResolutionPromise(processes: Processable[]): Promise<void> {
 	console.log(processes.map(p => p.type));
 
@@ -593,6 +608,11 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 	});
 }
 
+/**
+ * Prepares an entity to be displayed in the message log.
+ * @param entity - The entity whose name should be displayed.
+ * @return The entity's name with the appropriate tags.
+ */
 function highlightEntity(entity: CondensedEntity): string {
 	if (entity.id === state.self.id) {
 		return `<self>${entity.name}</self>`;
@@ -601,8 +621,12 @@ function highlightEntity(entity: CondensedEntity): string {
 	}
 }
 
-function setGamePhase(state: GamePhase): void {
-	switch (state) {
+/**
+ * Sets up the appropraite display and input hooks for the given game phase.
+ * @param phase - The game phase to which to switch.
+ */
+function setGamePhase(phase: GamePhase): void {
+	switch (phase) {
 		case GamePhase.CRAWL:
 			inputHandler.hooks = [
 				{
@@ -624,6 +648,14 @@ function setGamePhase(state: GamePhase): void {
 						}
 					},
 					enabled: () => awaitingMove
+				},
+				{
+					keys: [Keys.W],
+					handle: () => {
+						socket.sendAction({
+							type: "wait"
+						});
+					}
 				}
 			]
 			break;
@@ -633,7 +665,10 @@ function setGamePhase(state: GamePhase): void {
 	}
 }
 
-function animate() {
+/**
+ * Does a single frame of animation and input.
+ */
+function animate(): void {
 	inputHandler.handleInput();
 	Tweener.step();
 	renderer.render(gameContainer);
