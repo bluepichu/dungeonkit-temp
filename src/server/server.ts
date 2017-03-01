@@ -9,7 +9,6 @@ import * as path             from "path";
 import {generate as shortid} from "shortid";
 import * as socketio         from "socket.io";
 import * as sourcemap        from "source-map-support";
-import {sprintf}             from "sprintf-js";
 
 import * as crawl            from "./game/crawl";
 import * as controllers      from "./game/controllers";

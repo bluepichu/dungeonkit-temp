@@ -25,6 +25,7 @@ import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
 import GraphicsObject               from "./graphics/graphics-object";
 import KeyboardInputHandler         from "./input/keyboard-input-handler";
 import Keys                         from "./input/keys";
+import Menu                         from "./menu";
 import MessageLog                   from "./message-log";
 import Minimap                      from "./minimap";
 import OverworldRenderer            from "./overworld/overworld-renderer";
@@ -60,8 +61,8 @@ let overworldRenderer: OverworldRenderer = undefined;
 let scene: ClientOverworldScene = undefined;
 let interacting: boolean = false;
 let speakingArea: SpeakingArea = undefined;
-let advancing: boolean = false;
 let currentPhase: GamePhase = undefined;
+let currentMenu: Menu = undefined;
 
 ticker.shared.autoStart = false;
 
@@ -745,25 +746,48 @@ function setGamePhase(phase: GamePhase): void {
 				},
 				{
 					keys: [Keys.Z],
-					handle: ([pressed]) => {
-						if (pressed && advancing) {
-							return;
-						} else if (!pressed) {
-							advancing = false;
-							return;
+					handle: () => {
+						if (currentMenu !== undefined) {
+							speakingArea.hide();
+							gameContainer.removeChild(currentMenu);
+							socket.sendInteractionResponse(currentMenu.selection);
+							currentMenu = undefined;
+						} else {
+							if (speakingArea.finished) {
+								speakingArea.hide();
+								socket.sendInteractionResponse(0);
+							} else {
+								speakingArea.skip();
+							}
 						}
-
+					},
+					startOnly: true,
+					enabled: () => interacting
+				},
+				{
+					keys: [Keys.Z],
+					handle: () => {
 						console.log("interacting");
 						// TODO (bluepichu): decide if we should interact, choose nearest
 
+						overworldRenderer.idle();
 						socket.sendInteraction(scene.scene.entities[0].id);
 						interacting = true;
-						advancing = true;
 
 						socket.onInteractContinue((interaction: Interaction) => {
 							console.log(interaction);
 							if (interaction.type === "speak") {
 								speakingArea.showSpeech(interaction);
+
+								if (interaction.responses !== undefined && interaction.responses.length > 0) {
+									let menu = new Menu(interaction.responses);
+									speakingArea.onFinished = () => {
+										currentMenu = menu;
+										menu.x = speakingArea.x + speakingArea.width / 2 - menu.width;
+										menu.y = speakingArea.y - 120 - menu.height;
+										gameContainer.addChild(currentMenu);
+									};
+								}
 							}
 						})
 
@@ -772,27 +796,22 @@ function setGamePhase(phase: GamePhase): void {
 							socket.clearInteractHandlers();
 						});
 					},
-					always: true,
+					startOnly: true,
 					enabled: () => !interacting
 				},
 				{
-					keys: [Keys.Z],
-					handle: ([pressed]) => {
-						if (pressed && !advancing) {
-							if (speakingArea.finished) {
-								speakingArea.hide();
-								socket.sendInteractionResponse(0);
-							} else {
-								speakingArea.skip();
-							}
+					keys: [Keys.UP, Keys.DOWN],
+					handle: ([up, down]) => {
+						if (up) {
+							currentMenu.prev();
+						}
 
-							advancing = true;
-						} else if (!pressed) {
-							advancing = false;
+						if (down) {
+							currentMenu.next();
 						}
 					},
-					always: true,
-					enabled: () => interacting
+					startOnly: true,
+					enabled: () => currentMenu !== undefined
 				}
 			]
 			break;

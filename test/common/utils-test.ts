@@ -130,11 +130,11 @@ export function testUtils(): void {
 					let x = utils.randint(4, 8);
 
 					if (!Number.isInteger(x)) {
-						throw new Error(sprintf("Expected an integer but received %f", x));
+						throw new Error(`Expected an integer but received ${x}.`);
 					}
 
 					if (x < 4 || x > 8) {
-						throw new Error(sprintf("Expected a value between 4 and 8 inclusive but received %d", x));
+						throw new Error(`Expected a value between 4 and 8 inclusive but received ${x}.`);
 					}
 
 					min = Math.min(min, x);
@@ -143,10 +143,8 @@ export function testUtils(): void {
 
 				if (min !== 4 || max !== 8) {
 					throw new Error(
-						sprintf("Expected values in the range [4, 8] but received values in the range [%d, %d]"
-							+ " (Note that this has a MINISCULE (< 1e-100) chance of failure.)",
-							min,
-							max));
+						`Expected values in the range [4, 8] but received values in the range [${min}, ${max}]`
+							+ " (Note that this has a MINISCULE (< 1e-100) chance of failure.)");
 				}
 			});
 

@@ -57,6 +57,8 @@ export default class SpeakingArea extends Container {
 	private targetText: string;
 	private frameCounter: number;
 
+	public onFinished: () => void;
+
 	public constructor() {
 		super();
 
@@ -85,6 +87,8 @@ export default class SpeakingArea extends Container {
 	}
 
 	public showSpeech(speech: SpeakingInteraction) : void {
+		this.removeChildren();
+
 		this.addChild(this.background);
 		this.addChild(this.text);
 		this.text.text = "";
@@ -120,7 +124,14 @@ export default class SpeakingArea extends Container {
 	}
 
 	public skip(): void {
-		this.text.text = this.targetText;
+		if (this.text.text.length < this.targetText.length) {
+			this.text.text = this.targetText;
+
+			if (this.onFinished !== undefined) {
+				this.onFinished();
+				this.onFinished = undefined;
+			}
+		}
 	}
 
 	public get finished(): boolean {
@@ -129,8 +140,14 @@ export default class SpeakingArea extends Container {
 
 	private prerender(): void {
 		this.frameCounter++;
+
 		if (this.frameCounter % 2 === 0 && this.text.text.length < this.targetText.length) {
 			this.text.text = this.targetText.substring(0, this.text.text.length + 1);
+
+			if (this.finished && this.onFinished !== undefined) {
+				this.onFinished();
+				this.onFinished = undefined;
+			}
 		}
 	}
 

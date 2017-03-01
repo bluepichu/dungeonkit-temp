@@ -62,12 +62,12 @@ export default class OverworldRenderer extends Container {
 	}
 
 	public idle(): void {
-		this.entityLayer.get(this.selfId).setAnimation("default");
+		this.entityLayer.get(this.selfId).setAnimationOrContinue("default");
 	}
 
 	private updateViewport(position: Point): void {
-		this.scale.x = 3;
-		this.scale.y = 3;
+		this.scale.x = 2;
+		this.scale.y = 2;
 
 		this.groundLayer.x = -position.x;
 		this.groundLayer.y = -position.y;
