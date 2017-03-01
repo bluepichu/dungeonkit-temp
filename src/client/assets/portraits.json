@@ -1,0 +1,10 @@
+{
+	"frames": {
+		"portrait-mudkip-neutral": { "frame": {"x": 0, "y": 520, "w": 40, "h": 40}, "sourceSize": {"x": 160, "y": 520, "w": 40, "h": 40} },
+		"portrait-mudkip-happy": { "frame": {"x": 40, "y": 520, "w": 40, "h": 40}, "sourceSize": {"x": 160, "y": 520, "w": 40, "h": 40} },
+		"portrait-mudkip-sad": { "frame": {"x": 160, "y": 520, "w": 40, "h": 40}, "sourceSize": {"x": 160, "y": 520, "w": 40, "h": 40} }
+	},
+	"meta": {
+		"image": "portraits.png"
+	}
+}

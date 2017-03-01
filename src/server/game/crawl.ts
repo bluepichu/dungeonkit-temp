@@ -8,7 +8,6 @@ import { SocketController } from "./controllers";
 
 import * as clone     from "clone";
 import * as log       from "beautiful-log";
-import {sprintf}      from "sprintf-js";
 
 /**
  * Starts a new crawl in the given dungeon with the given entities.
@@ -32,7 +31,7 @@ export function startCrawl(
 				}
 			});
 	} else {
-		throw new Error(sprintf("[Code 1] Dungeon blueprint for dungeon '%s' failed validation.", dungeon.name));
+		throw new Error(`[Code 1] Dungeon blueprint for dungeon '${dungeon.name}' failed validation.`);
 	}
 }
 
@@ -207,7 +206,7 @@ function advanceToFloor(
  */
 function getFloorBlueprint(dungeon: Dungeon, floor: number): FloorBlueprint {
 	if (floor < 0 || floor > dungeon.floors) {
-		throw new RangeError(sprintf("[Code 2] Floor %d is out of range for dungeon '%s'.", floor, dungeon.name));
+		throw new RangeError(`[Code 2] Floor ${floor} is out of range for dungeon '${dungeon.name}'.`);
 	}
 
 	let lo = 0;
@@ -226,8 +225,7 @@ function getFloorBlueprint(dungeon: Dungeon, floor: number): FloorBlueprint {
 		}
 	}
 
-	throw new RangeError(sprintf("[Code 3] A blueprint for floor %d was not found in the blueprint for dungeon '%s'.",
-		dungeon.name));
+	throw new RangeError(`[Code 3] A blueprint for floor ${floor} was not found in the blueprint for dungeon '${dungeon.name}'.`);
 }
 
 /**

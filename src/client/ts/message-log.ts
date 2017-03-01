@@ -122,7 +122,7 @@ export default class MessageLog extends Container {
 
 		let bg = new Graphics();
 
-		bg.beginFill(Colors.BLACK, .8);
+		bg.beginFill(Colors.BLACK, .9);
 		bg.drawRect(-text.width - 8, -text.height - 8, text.width + 16, text.height + 16);
 		bg.endFill();
 

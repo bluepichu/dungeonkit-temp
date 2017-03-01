@@ -94,7 +94,8 @@ export class SocketController implements Controller {
 		return new Promise((resolve, reject) => {
 			this.currentState = state;
 			this.flushLog(true);
-			this.socket.on("crawl-action", (action: Action, options: ActionOptions) => {
+
+			let setListener = () => this.socket.once("crawl-action", (action: Action, options: ActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
 
 				if (action.type === "attack" && "attack" in action) {
@@ -103,8 +104,6 @@ export class SocketController implements Controller {
 				}
 
 				if (crawl.isValidAction(state, entity, action)) {
-					this.socket.removeAllListeners("action");
-
 					if (action.type === "move" && options.dash) {
 						this.dashPattern = pattern;
 						this.dashing = true;
@@ -114,8 +113,11 @@ export class SocketController implements Controller {
 					resolve(action);
 				} else {
 					this.socket.emit("crawl-invalid");
+					setListener();
 				}
 			});
+
+			setListener();
 		});
 	}
 

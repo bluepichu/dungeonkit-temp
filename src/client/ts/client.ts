@@ -91,11 +91,13 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 function loadAssets(): void {
 	loader
+		.add("bg", "/assets/pkmn-square.json")
 		.add("dng-proto", "/assets/tiles.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
 		.add("ent-eevee", "/assets/eevee.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
+		.add("portraits", "/assets/portraits.json")
 		.once("complete", init);
 
 	loader.load();
@@ -777,8 +779,13 @@ function setGamePhase(phase: GamePhase): void {
 					keys: [Keys.Z],
 					handle: ([pressed]) => {
 						if (pressed && !advancing) {
-							speakingArea.hide();
-							socket.sendInteractionResponse(0);
+							if (speakingArea.finished) {
+								speakingArea.hide();
+								socket.sendInteractionResponse(0);
+							} else {
+								speakingArea.skip();
+							}
+
 							advancing = true;
 						} else if (!pressed) {
 							advancing = false;
