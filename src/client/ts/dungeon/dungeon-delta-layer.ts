@@ -5,13 +5,13 @@ import {
 	Text
 } from "pixi.js";
 
-import Colors       from "./colors";
-import Constants    from "./constants";
-import Layer        from "./graphics/layer";
-import * as Tweener from "./graphics/tweener";
-import * as utils   from "../../common/utils";
+import Colors       from "../colors";
+import Constants    from "../constants";
+import Layer        from "../graphics/layer";
+import * as Tweener from "../graphics/tweener";
+import * as utils   from "../../../common/utils";
 
-export default class DeltaManager extends Container {
+export default class DungeonDeltaLayer extends Container {
 	public displayDelta(location: CrawlLocation, color: number, amount: number): Thenable {
 		let delta = new Text((amount > 0 ? "+" : "") + amount,
 			{

@@ -1,19 +1,21 @@
 "use strict";
 
-import * as log                  from "beautiful-log";
-import * as express              from "express";
-import * as fs                   from "fs";
-import * as http                 from "http";
-import * as nconf                from "nconf";
-import * as path                 from "path";
-import {generate as shortid}     from "shortid";
-import * as socketio             from "socket.io";
-import * as sourcemap            from "source-map-support";
-import {sprintf}                 from "sprintf-js";
+import * as log              from "beautiful-log";
+import * as express          from "express";
+import * as fs               from "fs";
+import * as http             from "http";
+import * as nconf            from "nconf";
+import * as path             from "path";
+import {generate as shortid} from "shortid";
+import * as socketio         from "socket.io";
+import * as sourcemap        from "source-map-support";
+import {sprintf}             from "sprintf-js";
 
-import * as crawl                from "./game/crawl";
-import * as controllers          from "./game/controllers";
-import {dungeon, generatePlayer} from "./dungeon";
+import * as crawl            from "./game/crawl";
+import * as controllers      from "./game/controllers";
+
+import { generatePlayer }    from "./data/player";
+import { scene }             from "./data/overworld";
 
 interface GameInfo {
 	room: string;
@@ -38,57 +40,22 @@ export function start() {
 	});
 
 	const io: SocketIO.Server = socketio(server);
-	let games: Map<string, GameInfo> = new Map();
 
 	io.on("connection", (socket: SocketIO.Socket) => {
 		log.logf("<green>+ %s</green>", socket.id);
-		games.set(socket.id, {
-			room: shortid(),
-			name: "Eevee"
-		});
 
 		socket.on("disconnect", () => {
 			log.logf("<red>- %s</red>", socket.id);
-			games.delete(socket.id);
 		});
 
 		socket.on("error", (err: Error) => log.error(err.stack));
 
-		socket.on("join", (game: string) => {
-			games.get(socket.id).room = game;
-			log.logf("<blue>%s joins %s</blue>", socket.id, game);
-		});
-
-		socket.on("name", (name: string) => {
-			games.get(socket.id).name = name;
-			log.logf("<blue>%s sets name to %s</blue>", socket.id, name);
-		});
 
 		socket.on("start", () => {
 			log.logf("<cyan>S %s</cyan>", socket.id);
 
-			if (!games.has(socket.id)) {
-				return;
-			}
-
-			let game = games.get(socket.id);
-			let socketIds: string[] = Object.keys(io.sockets.sockets).filter((socket) =>
-				games.has(socket) && games.get(socket).room === game.room);
-
-			if (socketIds.length === 0) {
-				return;
-			}
-
-			let sockets: SocketIO.Socket[] = socketIds.map((id) => io.sockets.connected[id]);
-			let players: UnplacedCrawlEntity[] =
-				socketIds.map((id) => generatePlayer(io.sockets.connected[id], games.get(id).name));
-
-			socketIds.forEach((socket) => games.delete(socket));
-			players.forEach((player) => player.controller.init(player, dungeon));
-
-			crawl.startCrawl(dungeon, players)
-				.then((state) => log.logf("<blue>%s %s</blue>", state.success ? "✓" : "✗", socket.id))
-				.catch((err) => log.error(err));
+			let player = generatePlayer(socket);
+			(player.controller as controllers.SocketController).initOverworld(player, scene); // TODO (bluepichu): figure this out
 		});
 	});
 }

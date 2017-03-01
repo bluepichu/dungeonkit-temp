@@ -6,20 +6,20 @@ import {
 	WebGLRenderer
 } from "pixi.js";
 
-import Colors         from "./colors";
-import Constants      from "./constants";
-import DeltaLayer     from "./delta-layer";
-import EntityLayer    from "./entity-layer";
-import GraphicsObject from "./graphics/graphics-object";
-import GroundLayer    from "./ground-layer";
-import ItemLayer      from "./item-layer";
-import * as Tweener   from "./graphics/tweener";
-import * as utils     from "../../common/utils";
+import Colors             from "../colors";
+import Constants          from "../constants";
+import DeltaLayer         from "./dungeon-delta-layer";
+import EntityLayer        from "./dungeon-entity-layer";
+import GraphicsObject     from "../graphics/graphics-object";
+import DungeonGroundLayer from "./dungeon-ground-layer";
+import ItemLayer          from "./dungeon-item-layer";
+import * as Tweener       from "../graphics/tweener";
+import * as utils         from "../../../common/utils";
 
 export default class DungeonRenderer extends Container {
 	private _viewport: Viewport;
 	private _zoomOut: boolean;
-	private groundLayer: GroundLayer;
+	private groundLayer: DungeonGroundLayer;
 	private itemLayer: ItemLayer;
 	private entityLayer: EntityLayer;
 	private deltaLayer: DeltaLayer;
@@ -27,7 +27,7 @@ export default class DungeonRenderer extends Container {
 	constructor(renderer: CanvasRenderer | WebGLRenderer, dungeonGraphics: string) {
 		super();
 
-		this.groundLayer = new GroundLayer(renderer, dungeonGraphics);
+		this.groundLayer = new DungeonGroundLayer(renderer, dungeonGraphics);
 		this.itemLayer = new ItemLayer();
 		this.entityLayer = new EntityLayer();
 		this.deltaLayer = new DeltaLayer();
@@ -66,7 +66,7 @@ export default class DungeonRenderer extends Container {
 				entity.id,
 				utils.locationToPoint(start, Constants.GRID_SIZE),
 				utils.locationToPoint(end, Constants.GRID_SIZE),
-				Constants.WALK_SPEED)
+				Constants.CRAWL_WALK_SPEED)
 			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
 	}
 

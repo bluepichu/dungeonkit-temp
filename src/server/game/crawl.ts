@@ -4,6 +4,8 @@ import * as generator from "./generator";
 import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
 
+import { SocketController } from "./controllers";
+
 import * as clone     from "clone";
 import * as log       from "beautiful-log";
 import {sprintf}      from "sprintf-js";
@@ -17,6 +19,9 @@ import {sprintf}      from "sprintf-js";
 export function startCrawl(
 	dungeon: Dungeon,
 	entities: UnplacedCrawlEntity[]): Promise<ConcludedCrawlState> {
+	for (let entity of entities) {
+		(entity.controller as SocketController).initCrawl(entity, dungeon);
+	}
 	if (validateDungeonBlueprint(dungeon)) {
 		return advanceToFloor(dungeon, 1, entities)
 			.then((state) => {

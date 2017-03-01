@@ -52,3 +52,18 @@ interface Viewport {
 	r: [number, number];
 	c: [number, number];
 }
+
+interface ClientOverworldScene {
+	scene: OverworldScene;
+	self: SelfOverworldEntity;
+}
+
+interface ClientOverworldEntity {
+	position: Point;
+}
+
+interface SelfOverworldEntity extends Entity {
+	position: Point;
+}
+
+type ClientInteractionResponse = number;

@@ -5,7 +5,7 @@ import * as shortid                 from "shortid";
 
 import * as ai                      from "./ai";
 import * as crawl                   from "./crawl";
-import { graphics, entityGraphics } from "./graphics";
+import { graphics, entityGraphics } from "../data/graphics";
 import * as printer                 from "./printer";
 import * as utils                   from "../../common/utils";
 
@@ -13,9 +13,6 @@ export class AIController implements Controller {
 	await: boolean = false;
 	attackTarget: CensoredCrawlEntity;
 	moveTarget: CrawlLocation;
-
-	constructor() {
-	}
 
 	getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Promise<Action> {
 		return new Promise((resolve, reject) => {
@@ -34,10 +31,6 @@ export class AIController implements Controller {
 	wait(): void {
 		// TODO
 	}
-
-	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {
-		// TODO
-	}
 }
 
 export class SocketController implements Controller {
@@ -52,6 +45,7 @@ export class SocketController implements Controller {
 	dashDirection: number;
 	knownGraphics: Set<String>;
 	awaitingState: boolean;
+	entity: PlayerOverworldEntity;
 
 	constructor(socket: SocketIO.Socket) {
 		this.socket = socket;
@@ -100,7 +94,7 @@ export class SocketController implements Controller {
 		return new Promise((resolve, reject) => {
 			this.currentState = state;
 			this.flushLog(true);
-			this.socket.on("action", (action: Action, options: ActionOptions) => {
+			this.socket.on("crawl-action", (action: Action, options: ActionOptions) => {
 				log.logf("<magenta>M %s</magenta>", this.socket.id);
 
 				if (action.type === "attack" && "attack" in action) {
@@ -119,7 +113,7 @@ export class SocketController implements Controller {
 
 					resolve(action);
 				} else {
-					this.socket.emit("invalid");
+					this.socket.emit("crawl-invalid");
 				}
 			});
 		});
@@ -135,7 +129,7 @@ export class SocketController implements Controller {
 
 	checkEntityGraphics(key: string): void {
 		if (!this.knownGraphics.has(key)) {
-			this.socket.emit("entityGraphics", key, entityGraphics.get(key));
+			this.socket.emit("entity-graphics", key, entityGraphics.get(key));
 			log.ok("Added entity graphics", key);
 			this.knownGraphics.add(key);
 		}
@@ -243,13 +237,87 @@ export class SocketController implements Controller {
 			move
 		};
 
-		this.socket.emit("update", update);
+		this.socket.emit("crawl-update", update);
 
 		this.log = [];
 	}
 
-	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {
+	initOverworld(entity: PlayerOverworldEntity, scene: OverworldScene): void {
+		this.entity = entity;
+
+		for (let obj of scene.background) {
+			this.checkGraphics(obj.graphics);
+		}
+
+		for (let ent of scene.entities) {
+			this.checkEntityGraphics(ent.graphics);
+		}
+
+		this.checkEntityGraphics(entity.graphics);
+
+		let self: SelfOverworldEntity = {
+			id: entity.id,
+			graphics: entity.graphics,
+			name: entity.name,
+			stats: entity.stats,
+			attacks: entity.attacks,
+			items: entity.items,
+			position: entity.position
+		};
+
+		this.socket.emit("overworld-init", {
+			self,
+			scene
+		});
+
+		this.socket.on("overworld-interact", (id: string) => {
+			log.logf("<magenta>I init %s</magenta>", this.socket.id);
+			let entities = scene.entities.filter((ent) => ent.id === id);
+
+			if (entities.length > 0 && entities[0].interact) {
+				let interaction = entities[0].interact();
+
+				let advance = ({ value, done }: IteratorResult<Interaction>) => {
+						if (value.type === "speak") {
+							log.logf("<magenta>I continue %s</magenta>", this.socket.id);
+							this.socket.emit("overworld-interact-continue", value);
+
+							this.socket.once("overworld-respond", (response: ClientInteractionResponse) => {
+								log.logf("<magenta>I respond %s</magenta>", this.socket.id);
+								if (done) {
+									log.logf("<magenta>I end (no more speech) %s</magenta>", this.socket.id);
+									this.socket.emit("overworld-interact-end");
+								} else {
+									advance(interaction.next(response));
+								}
+							})
+						} else {
+							log.logf("<magenta>I end (dungeon) %s</magenta>", this.socket.id);
+							this.socket.emit("overworld-interact-end");
+							crawl.startCrawl(value.dungeon, [{
+								id: this.entity.id,
+								graphics: this.entity.graphics,
+								name: this.entity.name,
+								stats: this.entity.stats,
+								attacks: this.entity.attacks,
+								items: this.entity.items,
+								controller: this.entity.controller,
+								alignment: 1,
+								advances: true
+							}]);
+						}
+					}
+
+				advance(interaction.next());
+			} else {
+				log.logf("<magenta>I end %s</magenta>", this.socket.id);
+				this.socket.emit("overworld-interact-end");
+			}
+		});
+	}
+
+	initCrawl(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {
 		this.checkGraphics(dungeon.graphics);
-		this.socket.emit("init", dungeon);
+		this.socket.emit("crawl-init", dungeon);
 	}
 }

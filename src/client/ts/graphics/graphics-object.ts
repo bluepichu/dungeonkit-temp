@@ -9,7 +9,6 @@ import {
 } from "pixi.js";
 
 import Constants from "../constants";
-import isMobile  from "../is-mobile";
 
 export default class GraphicsObject extends Sprite {
 	public z: number;
@@ -41,6 +40,15 @@ export default class GraphicsObject extends Sprite {
 			this.frame = 0;
 			this.changed = true;
 			this.animationEndListener = resolve;
+		});
+	}
+
+	public setAnimationOrContinue(animation: string): Thenable {
+		return new Promise((resolve, reject) => {
+			if (this.animation === animation) {
+				return Promise.resolve;
+			}
+			return this.setAnimation(animation);
 		});
 	}
 

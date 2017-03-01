@@ -17,9 +17,8 @@ import AttackOverlay                from "./attack-overlay";
 import Colors                       from "./colors";
 import CommandArea                  from "./command-area";
 import Constants                    from "./constants";
-import DungeonRenderer              from "./dungeon-renderer";
+import DungeonRenderer              from "./dungeon/dungeon-renderer";
 import Messages                     from "./messages";
-import EntityLayer                  from "./entity-layer";
 import EntitySprite                 from "./graphics/entity-sprite";
 import GameSocket                   from "./game-socket";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
@@ -28,6 +27,8 @@ import KeyboardInputHandler         from "./input/keyboard-input-handler";
 import Keys                         from "./input/keys";
 import MessageLog                   from "./message-log";
 import Minimap                      from "./minimap";
+import OverworldRenderer            from "./overworld/overworld-renderer";
+import SpeakingArea                 from "./speaking-area";
 import TeamOverlay                  from "./team-overlay";
 import * as Tweener                 from "./graphics/tweener";
 import * as utils                   from "../../common/utils";
@@ -55,6 +56,12 @@ let teamOverlay: TeamOverlay = undefined;
 let main: HTMLElement = undefined;
 let awaitingMove: boolean = false;
 let state: CensoredClientCrawlState;
+let overworldRenderer: OverworldRenderer = undefined;
+let scene: ClientOverworldScene = undefined;
+let interacting: boolean = false;
+let speakingArea: SpeakingArea = undefined;
+let advancing: boolean = false;
+let currentPhase: GamePhase = undefined;
 
 ticker.shared.autoStart = false;
 
@@ -102,28 +109,11 @@ key.filter = (event: KeyboardEvent) => commandArea ? commandArea.active : false;
 function init(): void {
 	socket = new GameSocket();
 
-	socket.onInit((dungeon: CensoredDungeon) => {
-		console.info("init");
+	socket.onCrawlInit(startCrawl);
 
-		state = {
-			dungeon,
-			floor: {
-				number: 0,
-				map: {
-					width: 0,
-					height: 0,
-					grid: []
-				}
-			},
-			entities: [],
-			items: [],
-			self: undefined
-		};
+	socket.onOverworldInit(showScene);
 
-		startCrawl();
-	});
-
-	socket.onInvalid(() => {
+	socket.onCrawlInvalid(() => {
 		console.info("invalid");
 		awaitingMove = true;
 	});
@@ -196,6 +186,9 @@ function init(): void {
 	messageLog = new MessageLog();
 	gameContainer.addChild(messageLog);
 
+	speakingArea = new SpeakingArea();
+	gameContainer.addChild(speakingArea);
+
 	messageLog.push(Messages.WELCOME, 10000);
 	messageLog.push(Messages.START_HELP, 10000);
 
@@ -209,8 +202,24 @@ function init(): void {
 
 /**
  * Initiates a crawl.
+ * @param dungeon - The dungeon in which the crawl will take place.
  */
-function startCrawl(): void {
+function startCrawl(dungeon: Dungeon): void {
+	state = {
+		dungeon,
+		floor: {
+			number: 0,
+			map: {
+				width: 0,
+				height: 0,
+				grid: []
+			}
+		},
+		entities: [],
+		items: [],
+		self: undefined
+	};
+
 	setGamePhase(GamePhase.CRAWL);
 
 	dungeonRenderer = new DungeonRenderer(renderer, state.dungeon.graphics);
@@ -297,6 +306,9 @@ function handleWindowResize(): void {
 	commandArea.x = rendererWidth - 310;
 	commandArea.y = 10;
 
+	speakingArea.x = rendererWidth / 2;
+	speakingArea.y = rendererHeight - 10;
+
 	if (floorSignText !== undefined) {
 		floorSignText.x = rendererWidth / 2;
 		floorSignText.y = rendererHeight / 2;
@@ -305,6 +317,11 @@ function handleWindowResize(): void {
 	if (dungeonRenderer !== undefined) {
 		dungeonRenderer.x = rendererWidth / 2;
 		dungeonRenderer.y = rendererHeight / 2;
+	}
+
+	if (overworldRenderer !== undefined) {
+		overworldRenderer.x = rendererWidth / 2;
+		overworldRenderer.y = rendererHeight / 2;
 	}
 
 	if (teamOverlay !== undefined) {
@@ -368,7 +385,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					commandArea.addHandler("stairs", {
 						label: "stairs",
 						handler: () => {
-							socket.sendAction({
+							socket.sendCrawlAction({
 								type: "stairs"
 							});
 						}
@@ -378,7 +395,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				commandArea.addHandler("wait", {
 					label: "wait",
 					handler: () => {
-						socket.sendAction({
+						socket.sendCrawlAction({
 							type: "wait"
 						});
 					}
@@ -391,7 +408,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								commandArea.addHandler(`${alias} ${item.name}`, {
 									label: `${alias} <item>${item.name}</item>`,
 									handler: () => {
-										socket.sendAction({
+										socket.sendCrawlAction({
 											type: "item",
 											direction: 0,
 											action: action as ItemActionType,
@@ -406,7 +423,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							commandArea.addHandler(`equip ${item.name}`, {
 								label: `equip <item>${item.name}</item>`,
 								handler: () => {
-									socket.sendAction({
+									socket.sendCrawlAction({
 										type: "item",
 										direction: 0,
 										action: "equip",
@@ -424,7 +441,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							commandArea.addHandler(`${alias} ${item.name}`, {
 								label: `${alias} <item>${item.name}</item>`,
 								handler: () => {
-									socket.sendAction({
+									socket.sendCrawlAction({
 										type: "item",
 										direction: 0,
 										action: action as ItemActionType,
@@ -440,7 +457,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						commandArea.addHandler(`unequip ${item.name}`, {
 							label: `unequip <item>${item.name}</item>`,
 							handler: () => {
-								socket.sendAction({
+								socket.sendCrawlAction({
 									type: "item",
 									direction: 0,
 									action: "unequip",
@@ -622,10 +639,38 @@ function highlightEntity(entity: CondensedEntity): string {
 }
 
 /**
+ * Shows an overworld scene.
+ * @param scene - The overworld scene to show.
+ */
+function showScene(cos: ClientOverworldScene) {
+	scene = cos;
+	setGamePhase(GamePhase.OVERWORLD);
+
+	overworldRenderer = new OverworldRenderer();
+	overworldRenderer.displayScene(scene);
+
+	gameContainer.addChildAt(overworldRenderer, 0);
+
+	handleWindowResize();
+}
+
+/**
  * Sets up the appropraite display and input hooks for the given game phase.
  * @param phase - The game phase to which to switch.
  */
 function setGamePhase(phase: GamePhase): void {
+	switch (currentPhase) {
+		case GamePhase.CRAWL:
+			gameContainer.removeChild(dungeonRenderer);
+			break;
+
+		case GamePhase.OVERWORLD:
+			gameContainer.removeChild(overworldRenderer);
+			break;
+	}
+
+	currentPhase = phase;
+
 	switch (phase) {
 		case GamePhase.CRAWL:
 			inputHandler.hooks = [
@@ -638,7 +683,7 @@ function setGamePhase(phase: GamePhase): void {
 							return;
 						}
 						if (awaitingMove) {
-							socket.sendAction({
+							socket.sendCrawlAction({
 								type: "move",
 								direction
 							}, {
@@ -652,7 +697,7 @@ function setGamePhase(phase: GamePhase): void {
 				{
 					keys: [Keys.W],
 					handle: () => {
-						socket.sendAction({
+						socket.sendCrawlAction({
 							type: "wait"
 						});
 					}
@@ -661,6 +706,88 @@ function setGamePhase(phase: GamePhase): void {
 			break;
 
 		case GamePhase.OVERWORLD:
+			inputHandler.hooks = [
+				{
+					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT],
+					handle: ([up, down, left, right]: boolean[]) => {
+						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up && !down ? 8 : 0) + (down && !up ? 4 : 0) + (left && !right ? 2 : 0) + (right && !left ? 1 : 0)];
+
+						if (up) {
+							scene.self.position.y -= Constants.OVERWORLD_WALK_SPEED;
+						}
+
+						if (down) {
+							scene.self.position.y += Constants.OVERWORLD_WALK_SPEED;
+						}
+
+						if (left) {
+							scene.self.position.x -= Constants.OVERWORLD_WALK_SPEED;
+						}
+
+						if (right) {
+							scene.self.position.x += Constants.OVERWORLD_WALK_SPEED;
+						}
+
+						overworldRenderer.moveTo(scene.self.position);
+
+						// TODO (bluepichu): check bounds
+
+						if (direction === -1) {
+							overworldRenderer.idle();
+						} else {
+							overworldRenderer.walk(direction);
+						}
+					},
+					always: true,
+					enabled: () => !interacting
+				},
+				{
+					keys: [Keys.Z],
+					handle: ([pressed]) => {
+						if (pressed && advancing) {
+							return;
+						} else if (!pressed) {
+							advancing = false;
+							return;
+						}
+
+						console.log("interacting");
+						// TODO (bluepichu): decide if we should interact, choose nearest
+
+						socket.sendInteraction(scene.scene.entities[0].id);
+						interacting = true;
+						advancing = true;
+
+						socket.onInteractContinue((interaction: Interaction) => {
+							console.log(interaction);
+							if (interaction.type === "speak") {
+								speakingArea.showSpeech(interaction);
+							}
+						})
+
+						socket.onInteractEnd(() => {
+							interacting = false;
+							socket.clearInteractHandlers();
+						});
+					},
+					always: true,
+					enabled: () => !interacting
+				},
+				{
+					keys: [Keys.Z],
+					handle: ([pressed]) => {
+						if (pressed && !advancing) {
+							speakingArea.hide();
+							socket.sendInteractionResponse(0);
+							advancing = true;
+						} else if (!pressed) {
+							advancing = false;
+						}
+					},
+					always: true,
+					enabled: () => interacting
+				}
+			]
 			break;
 	}
 }

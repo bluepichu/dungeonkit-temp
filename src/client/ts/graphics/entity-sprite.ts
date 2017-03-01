@@ -36,7 +36,6 @@ export default class EntitySprite extends GraphicsObject {
 			this._direction = direction;
 			this.changed = true;
 			this.descriptor = this.entityGraphicsDescriptor[direction];
-			this.reset();
 		}
 	}
 

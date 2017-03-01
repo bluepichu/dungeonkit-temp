@@ -9,13 +9,13 @@ import {
 	WebGLRenderer
 } from "pixi.js";
 
-import Constants                    from "./constants";
-import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
-import GraphicsObject               from "./graphics/graphics-object";
-import Layer                        from "./graphics/layer";
-import * as utils                   from "../../common/utils";
+import Constants                    from "../constants";
+import * as GraphicsDescriptorCache from "../graphics/graphics-descriptor-cache";
+import GraphicsObject               from "../graphics/graphics-object";
+import Layer                        from "../graphics/layer";
+import * as utils                   from "../../../common/utils";
 
-export default class GroundLayer extends Sprite {
+export default class DungeonGroundLayer extends Sprite {
 	public texture: RenderTexture;
 
 	private roomBounds: Map<number, Viewport>;

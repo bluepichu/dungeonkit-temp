@@ -72,15 +72,6 @@ interface CondensedEntity {
 	graphics: string;
 }
 
-interface Controller {
-	await: boolean;
-	getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Promise<Action>;
-	updateState(state: CensoredEntityCrawlState): void;
-	pushEvent(event: LogEvent): void;
-	wait(): void;
-	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void;
-}
-
 type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
 	| StartLogEvent | MissLogEvent | MessageLogEvent | ItemPickupLogEvent | ItemDropLogEvent;
 

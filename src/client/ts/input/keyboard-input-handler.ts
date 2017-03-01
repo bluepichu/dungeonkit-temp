@@ -8,6 +8,7 @@ interface Handler {
 	delay?: number;
 	handle: (pressed: boolean[]) => any;
 	enabled?: () => boolean;
+	always?: boolean;
 }
 
 interface ExpandedHandler {
@@ -17,6 +18,7 @@ interface ExpandedHandler {
 	currentDelay: number;
 	handle: (pressed: boolean[]) => any;
 	enabled?: () => boolean;
+	always?: boolean;
 }
 
 const DIRECTION_INPUT_DELAY = 4;
@@ -38,7 +40,7 @@ export default class KeyboardInputHandler {
 
 	public set hooks(hooks: Handler[]) {
 		this._hooks = hooks.map((handler: Handler) =>
-			({ keys: handler.keys, currentKeys: handler.keys.map(() => false), baseDelay: handler.delay ? handler.delay : 0, currentDelay: 0, handle: handler.handle, enabled: handler.enabled }));
+			({ keys: handler.keys, currentKeys: handler.keys.map(() => false), baseDelay: handler.delay ? handler.delay : 0, currentDelay: 0, handle: handler.handle, enabled: handler.enabled, always: handler.always }));
 	}
 
 	public handleInput(): void {
@@ -52,7 +54,7 @@ export default class KeyboardInputHandler {
 			if (hook.currentDelay > 0) {
 				hook.currentDelay--;
 				hook.currentKeys = hook.currentKeys.map((val, i) => val || hitKeys[i]);
-			} else if (hitKeys.some((hit) => hit)) {
+			} else if (hitKeys.some((hit) => hit) || hook.always) {
 				hook.currentDelay = hook.baseDelay || 0;
 				hook.currentKeys = hitKeys;
 			} else {

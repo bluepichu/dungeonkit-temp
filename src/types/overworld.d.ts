@@ -1,5 +1,5 @@
 interface PlacedGraphicsObject {
-	graphics: GraphicsObjectDescriptor;
+	graphics: string;
 	position: Point;
 }
 
@@ -7,14 +7,27 @@ type OverworldBackground = PlacedGraphicsObject[];
 
 interface OverworldEntity extends Entity {
 	position: Point;
-	interact?(): Iterable<Interaction>;
+	interact?(): IterableIterator<Interaction>;
 }
 
-interface Interaction {
+interface PlayerOverworldEntity extends Entity {
+	position: Point;
+	controller: Controller;
+}
+
+type Interaction = SpeakingInteraction | CrawlInteraction;
+
+interface SpeakingInteraction {
+	type: "speak";
 	speaker: string;
-	portrait: string;
+	portrait?: string;
 	text: string;
 	responses?: string[];
+}
+
+interface CrawlInteraction {
+	type: "crawl";
+	dungeon: Dungeon;
 }
 
 interface OverworldScene {
