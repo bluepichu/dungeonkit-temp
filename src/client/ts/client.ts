@@ -21,6 +21,7 @@ import DungeonRenderer              from "./dungeon/dungeon-renderer";
 import Messages                     from "./messages";
 import EntitySprite                 from "./graphics/entity-sprite";
 import GameSocket                   from "./game-socket";
+import * as Geometry                from "./geometry";
 import * as GraphicsDescriptorCache from "./graphics/graphics-descriptor-cache";
 import GraphicsObject               from "./graphics/graphics-object";
 import KeyboardInputHandler         from "./input/keyboard-input-handler";
@@ -714,26 +715,30 @@ function setGamePhase(phase: GamePhase): void {
 					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT],
 					handle: ([up, down, left, right]: boolean[]) => {
 						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up && !down ? 8 : 0) + (down && !up ? 4 : 0) + (left && !right ? 2 : 0) + (right && !left ? 1 : 0)];
+						let nextPos = Object.assign({}, scene.self.position);
 
 						if (up) {
-							scene.self.position.y -= Constants.OVERWORLD_WALK_SPEED;
+							nextPos.y -= Constants.OVERWORLD_WALK_SPEED;
 						}
 
 						if (down) {
-							scene.self.position.y += Constants.OVERWORLD_WALK_SPEED;
+							nextPos.y += Constants.OVERWORLD_WALK_SPEED;
 						}
 
 						if (left) {
-							scene.self.position.x -= Constants.OVERWORLD_WALK_SPEED;
+							nextPos.x -= Constants.OVERWORLD_WALK_SPEED;
 						}
 
 						if (right) {
-							scene.self.position.x += Constants.OVERWORLD_WALK_SPEED;
+							nextPos.x += Constants.OVERWORLD_WALK_SPEED;
 						}
 
-						overworldRenderer.moveTo(scene.self.position);
-
-						// TODO (bluepichu): check bounds
+						if (Geometry.pointInPolygon(nextPos, scene.scene.bounds)
+								&& scene.scene.obstacles.every((obst) => !Geometry.pointInPolygon(nextPos, obst))
+								&& scene.scene.entities.every((ent) => Geometry.dist(nextPos, ent.position) >= 20)) {
+							overworldRenderer.moveTo(nextPos);
+							scene.self.position = nextPos;
+						}
 
 						if (direction === -1) {
 							overworldRenderer.idle();
@@ -768,10 +773,16 @@ function setGamePhase(phase: GamePhase): void {
 					keys: [Keys.Z],
 					handle: () => {
 						console.log("interacting");
-						// TODO (bluepichu): decide if we should interact, choose nearest
+						// TODO (bluepichu): take into account which direction we're facing
+
+						let nearest = scene.scene.entities.reduce((entA, entB) => Geometry.dist(scene.self.position, entA.position) < Geometry.dist(scene.self.position, entB.position) ? entA : entB);
+
+						if (Geometry.dist(nearest.position, scene.self.position) > 32) {
+							return;
+						}
 
 						overworldRenderer.idle();
-						socket.sendInteraction(scene.scene.entities[0].id);
+						socket.sendInteraction(nearest.id);
 						interacting = true;
 
 						socket.onInteractContinue((interaction: Interaction) => {

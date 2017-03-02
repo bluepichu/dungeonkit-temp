@@ -34,4 +34,5 @@ interface OverworldScene {
 	background: OverworldBackground;
 	bounds: Polygon;
 	entities: OverworldEntity[];
+	obstacles: Polygon[];
 }
