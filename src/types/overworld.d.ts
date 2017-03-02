@@ -19,7 +19,7 @@ type Interaction = SpeakingInteraction | CrawlInteraction;
 
 interface SpeakingInteraction {
 	type: "speak";
-	speaker: string;
+	speaker?: string;
 	portrait?: string;
 	text: string;
 	responses?: string[];
@@ -30,9 +30,16 @@ interface CrawlInteraction {
 	dungeon: Dungeon;
 }
 
+interface Hotzone {
+	id: string;
+	area: Polygon;
+	interact?(): IterableIterator<Interaction>;
+}
+
 interface OverworldScene {
 	background: OverworldBackground;
 	bounds: Polygon;
 	entities: OverworldEntity[];
 	obstacles: Polygon[];
+	hotzones: Hotzone[];
 }

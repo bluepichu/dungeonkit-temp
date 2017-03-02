@@ -658,6 +658,33 @@ function showScene(cos: ClientOverworldScene) {
 	handleWindowResize();
 }
 
+function startInteraction(): void {
+	overworldRenderer.idle();
+	interacting = true;
+
+	socket.onInteractContinue((interaction: Interaction) => {
+		console.log(interaction);
+		if (interaction.type === "speak") {
+			speakingArea.showSpeech(interaction);
+
+			if (interaction.responses !== undefined && interaction.responses.length > 0) {
+				let menu = new Menu(interaction.responses);
+				speakingArea.onFinished = () => {
+					currentMenu = menu;
+					menu.x = speakingArea.x + speakingArea.width / 2 - menu.width;
+					menu.y = speakingArea.y - 120 - menu.height;
+					gameContainer.addChild(currentMenu);
+				};
+			}
+		}
+	})
+
+	socket.onInteractEnd(() => {
+		interacting = false;
+		socket.clearInteractHandlers();
+	});
+}
+
 /**
  * Sets up the appropraite display and input hooks for the given game phase.
  * @param phase - The game phase to which to switch.
@@ -733,6 +760,16 @@ function setGamePhase(phase: GamePhase): void {
 							nextPos.x += Constants.OVERWORLD_WALK_SPEED;
 						}
 
+						let hotzones = scene.scene.hotzones.filter((hotzone) => Geometry.pointInPolygon(nextPos, hotzone.area));
+
+						if (hotzones.length > 0) {
+							console.log("hotzone");
+							let hotzone = hotzones[0];
+							socket.sendHotzoneInteraction(hotzone.id);
+							startInteraction();
+							return;
+						}
+
 						if (Geometry.pointInPolygon(nextPos, scene.scene.bounds)
 								&& scene.scene.obstacles.every((obst) => !Geometry.pointInPolygon(nextPos, obst))
 								&& scene.scene.entities.every((ent) => Geometry.dist(nextPos, ent.position) >= 20)) {
@@ -781,31 +818,8 @@ function setGamePhase(phase: GamePhase): void {
 							return;
 						}
 
-						overworldRenderer.idle();
-						socket.sendInteraction(nearest.id);
-						interacting = true;
-
-						socket.onInteractContinue((interaction: Interaction) => {
-							console.log(interaction);
-							if (interaction.type === "speak") {
-								speakingArea.showSpeech(interaction);
-
-								if (interaction.responses !== undefined && interaction.responses.length > 0) {
-									let menu = new Menu(interaction.responses);
-									speakingArea.onFinished = () => {
-										currentMenu = menu;
-										menu.x = speakingArea.x + speakingArea.width / 2 - menu.width;
-										menu.y = speakingArea.y - 120 - menu.height;
-										gameContainer.addChild(currentMenu);
-									};
-								}
-							}
-						})
-
-						socket.onInteractEnd(() => {
-							interacting = false;
-							socket.clearInteractHandlers();
-						});
+						socket.sendEntityInteraction(nearest.id);
+						startInteraction();
 					},
 					startOnly: true,
 					enabled: () => !interacting

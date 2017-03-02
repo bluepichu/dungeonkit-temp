@@ -272,50 +272,73 @@ export class SocketController implements Controller {
 			scene
 		});
 
-		this.socket.on("overworld-interact", (id: string) => {
+		this.socket.on("overworld-interact-entity", (id: string) => {
 			log.logf("<magenta>I init %s</magenta>", this.socket.id);
 			let entities = scene.entities.filter((ent) => ent.id === id);
 
 			if (entities.length > 0 && entities[0].interact) {
-				let interaction = entities[0].interact();
-
-				let advance = ({ value, done }: IteratorResult<Interaction>) => {
-						if (value.type === "speak") {
-							log.logf("<magenta>I continue %s</magenta>", this.socket.id);
-							this.socket.emit("overworld-interact-continue", value);
-
-							this.socket.once("overworld-respond", (response: ClientInteractionResponse) => {
-								log.logf("<magenta>I respond %s</magenta>", this.socket.id);
-								if (done) {
-									log.logf("<magenta>I end (no more speech) %s</magenta>", this.socket.id);
-									this.socket.emit("overworld-interact-end");
-								} else {
-									advance(interaction.next(response));
-								}
-							})
-						} else {
-							log.logf("<magenta>I end (dungeon) %s</magenta>", this.socket.id);
-							this.socket.emit("overworld-interact-end");
-							crawl.startCrawl(value.dungeon, [{
-								id: this.entity.id,
-								graphics: this.entity.graphics,
-								name: this.entity.name,
-								stats: this.entity.stats,
-								attacks: this.entity.attacks,
-								items: this.entity.items,
-								controller: this.entity.controller,
-								alignment: 1,
-								advances: true
-							}]);
-						}
-					}
-
-				advance(interaction.next());
+				this.handleInteraction(entities[0].interact());
 			} else {
 				log.logf("<magenta>I end %s</magenta>", this.socket.id);
 				this.socket.emit("overworld-interact-end");
 			}
 		});
+
+		this.socket.on("overworld-interact-hotzone", (id: string) => {
+			log.logf("<magenta>I init hz %s</magenta>", this.socket.id);
+			let hotzones = scene.hotzones.filter((hz) => hz.id === id);
+
+			if (hotzones.length > 0 && hotzones[0].interact) {
+				this.handleInteraction(hotzones[0].interact());
+			} else {
+				log.logf("<magenta>I end hz %s</magenta>", this.socket.id);
+				this.socket.emit("overworld-interact-end");
+			}
+		});
+	}
+
+	handleInteraction(interaction: IterableIterator<Interaction>): void {
+		let advance = ({ value, done }: IteratorResult<Interaction>) => {
+			if (!value) {
+				this.socket.emit("overworld-interact-end");
+				return;
+			}
+
+			switch (value.type) {
+				case "speak":
+					log.logf("<magenta>I continue %s</magenta>", this.socket.id);
+					this.socket.emit("overworld-interact-continue", value);
+
+					this.socket.once("overworld-respond", (response: ClientInteractionResponse) => {
+						log.logf("<magenta>I respond %s</magenta>", this.socket.id);
+						if (done) {
+							log.logf("<magenta>I end (no more speech) %s</magenta>", this.socket.id);
+							this.socket.emit("overworld-interact-end");
+						} else {
+							advance(interaction.next(response));
+						}
+					})
+					break;
+
+				case "crawl":
+					log.logf("<magenta>I end (dungeon) %s</magenta>", this.socket.id);
+					this.socket.emit("overworld-interact-end");
+					crawl.startCrawl(value.dungeon, [{
+						id: this.entity.id,
+						graphics: this.entity.graphics,
+						name: this.entity.name,
+						stats: this.entity.stats,
+						attacks: this.entity.attacks,
+						items: this.entity.items,
+						controller: this.entity.controller,
+						alignment: 1,
+						advances: true
+					}]);
+					break;
+			}
+		};
+
+		advance(interaction.next());
 	}
 
 	initCrawl(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon): void {

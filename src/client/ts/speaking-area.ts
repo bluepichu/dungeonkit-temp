@@ -94,19 +94,21 @@ export default class SpeakingArea extends Container {
 		this.text.text = "";
 		this.targetText = speech.text;
 
-		this.addChild(this.speakerBackgorund);
-		this.speakerBackgorund.clear();
-		this.addChild(this.speakerText);
-		this.speakerText.text = speech.speaker;
+		if (speech.speaker !== undefined) {
+			this.addChild(this.speakerBackgorund);
+			this.speakerBackgorund.clear();
+			this.addChild(this.speakerText);
+			this.speakerText.text = speech.speaker;
 
-		this.speakerBackgorund.beginFill(Colors.PURPLE);
-		this.speakerBackgorund.lineStyle(4, Colors.BLACK);
-		this.speakerBackgorund.drawPolygon([
-				-300, -100,
-				-280, -130,
-				-270 + this.speakerText.width, -130,
-				-250 + this.speakerText.width, -100
-			]);
+			this.speakerBackgorund.beginFill(Colors.PURPLE);
+			this.speakerBackgorund.lineStyle(4, Colors.BLACK);
+			this.speakerBackgorund.drawPolygon([
+					-300, -100,
+					-280, -130,
+					-270 + this.speakerText.width, -130,
+					-250 + this.speakerText.width, -100
+				]);
+		}
 
 		if (speech.portrait !== undefined) {
 			this.addChild(this.portraitBackground);

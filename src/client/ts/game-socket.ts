@@ -31,8 +31,16 @@ export default class GameSocket {
 	 * Interacts with an overworld entity.
 	 * @param entity - The id of the entity to interact with.
 	 */
-	sendInteraction(id: string): void {
-		this.socket.emit("overworld-interact", id);
+	sendEntityInteraction(id: string): void {
+		this.socket.emit("overworld-interact-entity", id);
+	}
+
+	/**
+	 * Interacts with an overworld hotzone.
+	 * @param entity - The id of the hotzone to interact with.
+	 */
+	sendHotzoneInteraction(id: string): void {
+		this.socket.emit("overworld-interact-hotzone", id);
 	}
 
 	/**
