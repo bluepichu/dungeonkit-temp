@@ -1,0 +1,8 @@
+{
+	"frames": {
+		"bg-pond": { "frame": {"x": 0, "y": 0, "w": 460, "h": 530}, "sourceSize": {"x": 0, "y": 0, "w": 460, "h": 530} }
+	},
+	"meta": {
+		"image": "pond.png"
+	}
+}

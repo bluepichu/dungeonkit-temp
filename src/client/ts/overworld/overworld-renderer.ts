@@ -9,6 +9,7 @@ import {
 import Colors               from "../colors";
 import Constants            from "../constants";
 import OverworldEntityLayer from "./overworld-entity-layer";
+import * as Geometry        from "../geometry";
 import GraphicsObject       from "../graphics/graphics-object";
 import OverworldGroundLayer from "./overworld-ground-layer";
 import OverworldItemLayer   from "./overworld-item-layer";
@@ -22,6 +23,7 @@ export default class OverworldRenderer extends Container {
 	private itemLayer: OverworldItemLayer;
 	private entityLayer: OverworldEntityLayer;
 	private selfId: string;
+	private bounds: Rect;
 
 	constructor() {
 		super();
@@ -44,9 +46,9 @@ export default class OverworldRenderer extends Container {
 		this.selfId = cos.self.id;
 
 		this.groundLayer.display(cos.scene.background);
-		// TODO (bluepichu): someting with the item layer?
+		// TODO (bluepichu): something with the item layer?
 		this.entityLayer.display(cos.scene.entities.concat([cos.self]));
-
+		this.bounds = cos.scene.bounds;
 		this.updateViewport(cos.self.position);
 	}
 
@@ -69,14 +71,22 @@ export default class OverworldRenderer extends Container {
 		this.scale.x = 2;
 		this.scale.y = 2;
 
-		this.groundLayer.x = -position.x;
-		this.groundLayer.y = -position.y;
+		let vw = window.innerWidth;
+		let vh = window.innerHeight;
 
-		this.itemLayer.x = -position.x;
-		this.itemLayer.y = -position.y;
+		let pos = {
+			x: Math.max(this.bounds.x.min + vw / 4, Math.min(this.bounds.x.max - vw / 4, position.x)),
+			y: Math.max(this.bounds.y.min + vh / 4, Math.min(this.bounds.y.max - vh / 4, position.y))
+		}
 
-		this.entityLayer.x = -position.x;
-		this.entityLayer.y = -position.y;
+		this.groundLayer.x = -pos.x;
+		this.groundLayer.y = -pos.y;
+
+		this.itemLayer.x = -pos.x;
+		this.itemLayer.y = -pos.y;
+
+		this.entityLayer.x = -pos.x;
+		this.entityLayer.y = -pos.y;
 	}
 
 	public clear(): void {

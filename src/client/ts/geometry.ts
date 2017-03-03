@@ -42,6 +42,10 @@ export function pointInPolygon(point: Point, polygon: Polygon): boolean {
 	return winding !== 0;
 }
 
+export function pointInRect(point: Point, rect: Rect): boolean {
+	return rect.x.min <= point.x && point.x <= rect.x.max && rect.y.min <= point.y && point.y <= rect.y.max;
+}
+
 function quadrant(point: Point): number {
 	if (point.x >= 0 && point.y >= 0) {
 		return 0;
@@ -54,7 +58,7 @@ function quadrant(point: Point): number {
 	}
 }
 
-function subtract(a: Point, b: Point): Point {
+export function subtract(a: Point, b: Point): Point {
 	return { x: a.x - b.x, y: a.y - b.y };
 }
 

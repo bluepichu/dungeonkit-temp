@@ -15,7 +15,7 @@ interface PlayerOverworldEntity extends Entity {
 	controller: Controller;
 }
 
-type Interaction = SpeakingInteraction | CrawlInteraction;
+type Interaction = SpeakingInteraction | CrawlInteraction | TransitionInteraction;
 
 interface SpeakingInteraction {
 	type: "speak";
@@ -30,6 +30,15 @@ interface CrawlInteraction {
 	dungeon: Dungeon;
 }
 
+interface TransitionInteraction {
+	type: "transition",
+	scene: OverworldScene,
+	start: {
+		position: Point;
+		direction: number;
+	};
+}
+
 interface Hotzone {
 	id: string;
 	area: Polygon;
@@ -38,7 +47,7 @@ interface Hotzone {
 
 interface OverworldScene {
 	background: OverworldBackground;
-	bounds: Polygon;
+	bounds: Rect;
 	entities: OverworldEntity[];
 	obstacles: Polygon[];
 	hotzones: Hotzone[];

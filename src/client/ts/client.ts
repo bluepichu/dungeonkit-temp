@@ -93,13 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 function loadAssets(): void {
 	loader
-		.add("bg", "/assets/pkmn-square.json")
+		.add("bg-pkmn-square", "/assets/pkmn-square.json")
 		.add("dng-proto", "/assets/tiles.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
 		.add("ent-eevee", "/assets/eevee.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
 		.add("portraits", "/assets/portraits.json")
+		.add("bg-pond", "/assets/pond.json")
 		.once("complete", init);
 
 	loader.load();
@@ -770,9 +771,9 @@ function setGamePhase(phase: GamePhase): void {
 							return;
 						}
 
-						if (Geometry.pointInPolygon(nextPos, scene.scene.bounds)
+						if (Geometry.pointInRect(nextPos, scene.scene.bounds)
 								&& scene.scene.obstacles.every((obst) => !Geometry.pointInPolygon(nextPos, obst))
-								&& scene.scene.entities.every((ent) => Geometry.dist(nextPos, ent.position) >= 20)) {
+								&& scene.scene.entities.every((ent) => !Geometry.pointInRect(nextPos, { x: { min: ent.position.x - 16, max: ent.position.x + 16 }, y: { min: ent.position.y - 12, max: ent.position.y + 12}}))) {
 							overworldRenderer.moveTo(nextPos);
 							scene.self.position = nextPos;
 						}

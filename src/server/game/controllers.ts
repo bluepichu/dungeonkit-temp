@@ -335,6 +335,11 @@ export class SocketController implements Controller {
 						advances: true
 					}]);
 					break;
+
+				case "transition":
+					this.socket.emit("overworld-interact-end");
+					this.entity.position = value.start.position;
+					this.initOverworld(this.entity, value.scene);
 			}
 		};
 
