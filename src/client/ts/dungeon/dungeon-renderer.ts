@@ -109,6 +109,14 @@ export default class DungeonRenderer extends Container {
 			.then(() => this.entityLayer.remove(entity.id));
 	}
 
+	public showDirection(entityId: string, direction: number): void {
+		if (!this.entityLayer.has(entityId)) {
+			return;
+		}
+
+		this.entityLayer.setDirection(entityId, direction);
+	}
+
 	private updateViewport(nextView: Viewport) {
 		let center = {
 			r: (nextView.r[0] + nextView.r[1]) / 2,

@@ -64,6 +64,7 @@ let interacting: boolean = false;
 let speakingArea: SpeakingArea = undefined;
 let currentPhase: GamePhase = undefined;
 let currentMenu: Menu = undefined;
+let currentDirection: number = 0;
 
 ticker.shared.autoStart = false;
 
@@ -715,6 +716,8 @@ function setGamePhase(phase: GamePhase): void {
 							return;
 						}
 						if (awaitingMove) {
+							dungeonRenderer.showDirection(state.self.id, direction);
+							currentDirection = direction;
 							socket.sendCrawlAction({
 								type: "move",
 								direction
@@ -733,6 +736,39 @@ function setGamePhase(phase: GamePhase): void {
 							type: "wait"
 						});
 					}
+				},
+				{
+					keys: [Keys.SHIFT],
+					handle: ([pressed]) => {
+						attackOverlay.active = pressed;
+					},
+					always: true
+				},
+				{
+					keys: [Keys.ONE, Keys.TWO, Keys.THREE, Keys.FOUR],
+					handle: ([one, two, three, four]) => {
+						let attackIdx = -1;
+
+						if (one) {
+							attackIdx = 0;
+						} else if (two) {
+							attackIdx = 1;
+						} else if (three) {
+							attackIdx = 2;
+						} else if (four) {
+							attackIdx = 3;
+						}
+
+						if (awaitingMove) {
+							socket.sendCrawlAction({
+								type: "attack",
+								direction: currentDirection,
+								attack: state.self.attacks[attackIdx]
+							});
+							awaitingMove = false;
+						}
+					},
+					enabled: () => attackOverlay.active
 				}
 			]
 			break;
@@ -812,6 +848,10 @@ function setGamePhase(phase: GamePhase): void {
 					handle: () => {
 						console.log("interacting");
 						// TODO (bluepichu): take into account which direction we're facing
+
+						if (scene.scene.entities.length === 0) { // If there are no entities, we can't interact
+							return;
+						}
 
 						let nearest = scene.scene.entities.reduce((entA, entB) => Geometry.dist(scene.self.position, entA.position) < Geometry.dist(scene.self.position, entB.position) ? entA : entB);
 

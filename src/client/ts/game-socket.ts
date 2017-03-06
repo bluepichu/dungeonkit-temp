@@ -40,6 +40,7 @@ export default class GameSocket {
 	 * @param entity - The id of the hotzone to interact with.
 	 */
 	sendHotzoneInteraction(id: string): void {
+		console.count("hotzone-sent");
 		this.socket.emit("overworld-interact-hotzone", id);
 	}
 

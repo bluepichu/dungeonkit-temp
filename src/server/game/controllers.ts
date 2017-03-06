@@ -272,6 +272,9 @@ export class SocketController implements Controller {
 			scene
 		});
 
+		this.socket.removeAllListeners("overworld-interact-entity");
+		this.socket.removeAllListeners("overworld-interact-hotzone");
+
 		this.socket.on("overworld-interact-entity", (id: string) => {
 			log.logf("<magenta>I init %s</magenta>", this.socket.id);
 			let entities = scene.entities.filter((ent) => ent.id === id);
@@ -285,7 +288,7 @@ export class SocketController implements Controller {
 		});
 
 		this.socket.on("overworld-interact-hotzone", (id: string) => {
-			log.logf("<magenta>I init hz %s</magenta>", this.socket.id);
+			log.logf("<magenta>I init hz (%s) - %s</magenta>", id, this.socket.id);
 			let hotzones = scene.hotzones.filter((hz) => hz.id === id);
 
 			if (hotzones.length > 0 && hotzones[0].interact) {

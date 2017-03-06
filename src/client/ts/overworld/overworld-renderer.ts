@@ -40,7 +40,7 @@ export default class OverworldRenderer extends Container {
 	}
 
 	public displayScene(cos: ClientOverworldScene): void {
-		console.info("Displaying scene", cos);
+		// console.info("Displaying scene", cos);
 		this.clear();
 
 		this.selfId = cos.self.id;
