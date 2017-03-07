@@ -7,11 +7,13 @@ type OverworldBackground = PlacedGraphicsObject[];
 
 interface OverworldEntity extends Entity {
 	position: Point;
+	direction: number;
 	interact?(): IterableIterator<Interaction>;
 }
 
 interface PlayerOverworldEntity extends Entity {
 	position: Point;
+	direction: number;
 	controller: Controller;
 }
 

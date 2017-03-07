@@ -211,6 +211,18 @@ function init(): void {
  * @param dungeon - The dungeon in which the crawl will take place.
  */
 function startCrawl(dungeon: Dungeon): void {
+	if (overworldRenderer !== undefined) {
+		overworldRenderer.clear();
+	}
+
+	if (currentMenu !== undefined) {
+		gameContainer.removeChild(currentMenu);
+	}
+
+	speakingArea.hide();
+	interacting = false;
+	socket.clearInteractHandlers();
+
 	state = {
 		dungeon,
 		floor: {

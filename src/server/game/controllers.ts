@@ -264,7 +264,8 @@ export class SocketController implements Controller {
 			stats: entity.stats,
 			attacks: entity.attacks,
 			items: entity.items,
-			position: entity.position
+			position: entity.position,
+			direction: entity.direction
 		};
 
 		this.socket.emit("overworld-init", {
@@ -325,7 +326,6 @@ export class SocketController implements Controller {
 
 				case "crawl":
 					log.logf("<magenta>I end (dungeon) %s</magenta>", this.socket.id);
-					this.socket.emit("overworld-interact-end");
 					crawl.startCrawl(value.dungeon, [{
 						id: this.entity.id,
 						graphics: this.entity.graphics,

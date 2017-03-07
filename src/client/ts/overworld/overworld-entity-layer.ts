@@ -21,6 +21,7 @@ export default class DungeonEntityLayer extends Layer<EntitySprite> {
 	public display(entities: OverworldEntity[]) {
 		for (let entity of entities) {
 			this.add(entity.id, entity.graphics, entity.position);
+			this.get(entity.id).direction = entity.direction;
 		}
 	}
 
