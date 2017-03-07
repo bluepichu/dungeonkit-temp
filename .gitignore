@@ -1,7 +1,6 @@
 # Installable resources
 node_modules
 typings
-bower_components
 
 # Built resources
 build

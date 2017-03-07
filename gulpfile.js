@@ -8,7 +8,7 @@ let notifier      = require("node-notifier");
 let rollup        = require("rollup").rollup;
 let sorcery       = require("sorcery");
 
-let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*", "main-bower-files"] });
+let $             = require("gulp-load-plugins")({ pattern: ["gulp-*", "gulp.*"] });
 
 const SERVER_TS_CONFIG = {
 	"emitDecoratorMetadata": true,
@@ -36,6 +36,16 @@ const EXTERNAL_DEPENDENCY_LOOPUP = {
 	"pixi-multistyle-text": false,
 	"webfontloader": "window.WebFont"
 };
+
+const CLIENT_LIB_FILES = [
+	"node_modules/howler/dist/howler.js",
+	"node_modules/keymaster/keymaster.js",
+	"node_modules/pixi-multistyle-text/dist/pixi-multistyle-text.js",
+	"node_modules/pixi-tilemap/bin/pixi-tilemap.js",
+	"node_modules/pixi.js/dist/pixi.js",
+	"node_modules/stats.js/build/stats.min.js",
+	"node_modules/webfontloader/webfontloader.js"
+];
 
 let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
 let test    = (...dirs) => dirs.map((dir) => path.join("test", dir));
@@ -99,7 +109,7 @@ gulp.task("client-ts", () =>
 			.on("end", () => notify("The client is ready!"))));
 
 gulp.task("client-lib", () =>
-	gulp.src($.mainBowerFiles())
+	gulp.src(CLIENT_LIB_FILES)
 		.pipe($.sourcemaps.init({ loadMaps: true }))
 		.pipe($.sourcemaps.write(map))
 		.pipe(gulp.dest(build("client/lib"))));
