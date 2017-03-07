@@ -174,6 +174,18 @@ export default class DungeonRenderer extends Container {
 		}
 	}
 
+	public setZoomOut(zoom: boolean, map: FloorMap): void {
+		if (this._zoomOut != zoom) {
+			if (zoom) {
+				this._zoomOut = true;
+				this.updateViewport({ r: [0, map.height], c: [0, map.width] });
+			} else {
+				this._zoomOut = false;
+				this.updateViewport(this._viewport);
+			}
+		}
+	}
+
 	public displayDelta(location: CrawlLocation, color: number, amount: number): Thenable {
 		return this.deltaLayer.displayDelta(location, color, amount);
 	}

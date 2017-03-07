@@ -781,6 +781,13 @@ function setGamePhase(phase: GamePhase): void {
 						}
 					},
 					enabled: () => attackOverlay.active
+				},
+				{
+					keys: [Keys.M],
+					handle: ([pressed]) => {
+						dungeonRenderer.setZoomOut(pressed, state.floor.map);
+					},
+					always: true
 				}
 			]
 			break;
