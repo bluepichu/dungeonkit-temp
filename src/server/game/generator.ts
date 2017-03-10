@@ -1,11 +1,12 @@
 "use strict";
 
-import * as log         from "beautiful-log";
 import * as shortid     from "shortid";
 
 import * as controllers from "./controllers";
 import * as printer     from "./printer";
 import * as utils       from "../../common/utils";
+
+const log = require("beautiful-log")("dungeonkit:generator");
 
 /*
  * Generates a new crawl state on the given floor of the given dungeon with the given entities.
@@ -188,7 +189,6 @@ function placeEntityGroup(
 				if (utils.getTile(state.floor.map, loc).type === DungeonTileType.FLOOR
 					&& utils.inSameRoom(state.floor.map, location, loc)
 					&& utils.isCrawlLocationEmpty(state, loc)) {
-					log.log("Set location to", loc);
 					state.entities.push(Object.assign(wrap(entities.pop()), { location: { r: loc.r, c: loc.c }, map }));
 					if (entities.length === 0) {
 						return state;

@@ -1,6 +1,5 @@
 "use strict";
 
-import * as log                     from "beautiful-log";
 import * as shortid                 from "shortid";
 
 import * as ai                      from "./ai";
@@ -8,6 +7,8 @@ import * as crawl                   from "./crawl";
 import { graphics, entityGraphics } from "../data/graphics";
 import * as printer                 from "./printer";
 import * as utils                   from "../../common/utils";
+
+const log = require("beautiful-log")("dungeonkit:controller");
 
 export class AIController implements Controller {
 	await: boolean = false;
@@ -62,7 +63,7 @@ export class SocketController implements Controller {
 
 	getAction(state: CensoredEntityCrawlState,
 	          entity: CrawlEntity): Promise<Action> {
-		log.logf("<yellow>W %s</yellow>", this.socket.id);
+		log(`W ${this.socket.id}`);
 
 		let pattern = 0;
 
@@ -96,7 +97,7 @@ export class SocketController implements Controller {
 			this.flushLog(true);
 
 			let setListener = () => this.socket.once("crawl-action", (action: Action, options: ActionOptions) => {
-				log.logf("<magenta>M %s</magenta>", this.socket.id);
+				log(`M ${this.socket.id}`);
 
 				if (action.type === "attack" && "attack" in action) {
 					// Replace with the correct attack object
@@ -124,7 +125,7 @@ export class SocketController implements Controller {
 	checkGraphics(key: string): void {
 		if (!this.knownGraphics.has(key)) {
 			this.socket.emit("graphics", key, graphics.get(key));
-			log.ok("Added graphics", key);
+			log(`G gen/${key} ${this.socket.id}`);
 			this.knownGraphics.add(key);
 		}
 	}
@@ -132,7 +133,7 @@ export class SocketController implements Controller {
 	checkEntityGraphics(key: string): void {
 		if (!this.knownGraphics.has(key)) {
 			this.socket.emit("entity-graphics", key, entityGraphics.get(key));
-			log.ok("Added entity graphics", key);
+			log(`G ent/${key} ${this.socket.id}`);
 			this.knownGraphics.add(key);
 		}
 	}
@@ -277,25 +278,25 @@ export class SocketController implements Controller {
 		this.socket.removeAllListeners("overworld-interact-hotzone");
 
 		this.socket.on("overworld-interact-entity", (id: string) => {
-			log.logf("<magenta>I init %s</magenta>", this.socket.id);
+			log(`I ent ${this.socket.id}`);
 			let entities = scene.entities.filter((ent) => ent.id === id);
 
 			if (entities.length > 0 && entities[0].interact) {
 				this.handleInteraction(entities[0].interact());
 			} else {
-				log.logf("<magenta>I end %s</magenta>", this.socket.id);
+				log(`I end ${this.socket.id}`);
 				this.socket.emit("overworld-interact-end");
 			}
 		});
 
 		this.socket.on("overworld-interact-hotzone", (id: string) => {
-			log.logf("<magenta>I init hz (%s) - %s</magenta>", id, this.socket.id);
+			log(`I hz ${this.socket.id}`);
 			let hotzones = scene.hotzones.filter((hz) => hz.id === id);
 
 			if (hotzones.length > 0 && hotzones[0].interact) {
 				this.handleInteraction(hotzones[0].interact());
 			} else {
-				log.logf("<magenta>I end hz %s</magenta>", this.socket.id);
+				log(`I end ${this.socket.id}`);
 				this.socket.emit("overworld-interact-end");
 			}
 		});
@@ -310,13 +311,13 @@ export class SocketController implements Controller {
 
 			switch (value.type) {
 				case "speak":
-					log.logf("<magenta>I continue %s</magenta>", this.socket.id);
+					log(`I cont ${this.socket.id}`);
 					this.socket.emit("overworld-interact-continue", value);
 
 					this.socket.once("overworld-respond", (response: ClientInteractionResponse) => {
-						log.logf("<magenta>I respond %s</magenta>", this.socket.id);
+						log(`I res ${this.socket.id}`);
 						if (done) {
-							log.logf("<magenta>I end (no more speech) %s</magenta>", this.socket.id);
+							log(`I end ${this.socket.id}`);
 							this.socket.emit("overworld-interact-end");
 						} else {
 							advance(interaction.next(response));
@@ -325,7 +326,7 @@ export class SocketController implements Controller {
 					break;
 
 				case "crawl":
-					log.logf("<magenta>I end (dungeon) %s</magenta>", this.socket.id);
+					log(`I end ${this.socket.id}`);
 					crawl.startCrawl(value.dungeon, [{
 						id: this.entity.id,
 						graphics: this.entity.graphics,

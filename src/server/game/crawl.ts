@@ -1,13 +1,14 @@
 "use strict";
 
+import * as clone     from "clone";
+
 import * as generator from "./generator";
 import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
 
 import { SocketController } from "./controllers";
 
-import * as clone     from "clone";
-import * as log       from "beautiful-log";
+const log = require("beautiful-log")("dungeonkit:crawl")
 
 /**
  * Starts a new crawl in the given dungeon with the given entities.
@@ -54,8 +55,10 @@ function step(state: InProgressCrawlState): Promise<ConcludedCrawlState> {
 
 	return entity.controller.getAction(censoredState, entity)
 		.then((action: Action) => {
+			log("Executing move");
 			return execute(state, entity, action)
 				.then((newState) => {
+					log("Done executing move - filtering");
 					if (!state.entities.some((entity) => entity.advances)) {
 						return Promise.resolve({
 							dungeon: state.dungeon,
@@ -64,6 +67,7 @@ function step(state: InProgressCrawlState): Promise<ConcludedCrawlState> {
 						});
 					}
 
+					log("Checking for crawl completion");
 					if (utils.isCrawlOver(newState)) {
 						return Promise.resolve(newState);
 					} else {
@@ -72,7 +76,7 @@ function step(state: InProgressCrawlState): Promise<ConcludedCrawlState> {
 				});
 		})
 		.catch((err: Error) => {
-			log.error(err.stack);
+			log(err.stack);
 		});
 }
 

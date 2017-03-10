@@ -1,6 +1,5 @@
 "use strict";
 
-import * as log              from "beautiful-log";
 import * as express          from "express";
 import * as fs               from "fs";
 import * as http             from "http";
@@ -15,6 +14,8 @@ import * as controllers      from "./game/controllers";
 
 import { generatePlayer }    from "./data/player";
 import { scene }             from "./data/overworld";
+
+const log = require("beautiful-log")("dungeonkit:server", { showDelta: false });
 
 interface GameInfo {
 	room: string;
@@ -35,23 +36,22 @@ export function start() {
 	app.get("/mobile", (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
 
 	const server: http.Server = app.listen(PORT, function() {
-		log.info("Listening on *:" + PORT);
+		log("Listening on *:" + PORT);
 	});
 
 	const io: SocketIO.Server = socketio(server);
 
 	io.on("connection", (socket: SocketIO.Socket) => {
-		log.logf("<green>+ %s</green>", socket.id);
+		log(`<green>+ ${socket.id}</green>`);
 
 		socket.on("disconnect", () => {
-			log.logf("<red>- %s</red>", socket.id);
+			log(`<red>- ${socket.id}</red>`);
 		});
 
-		socket.on("error", (err: Error) => log.error(err.stack));
-
+		socket.on("error", (err: Error) => log(err));
 
 		socket.on("start", () => {
-			log.logf("<cyan>S %s</cyan>", socket.id);
+			log(`<magenta>S ${socket.id}</magenta>`);
 
 			let player = generatePlayer(socket);
 			(player.controller as controllers.SocketController).initOverworld(player, scene); // TODO (bluepichu): figure this out

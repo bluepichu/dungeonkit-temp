@@ -1,13 +1,14 @@
 "use strict";
 
-import * as log       from "beautiful-log";
 import {AIController} from "./controllers";
 import * as utils     from "../../common/utils";
+
+const log = require("beautiful-log")("dungeonkit:ai");
 
 export function getAction(state: CensoredEntityCrawlState,
                           entity: CrawlEntity,
                           controller: AIController): Action {
-	log.logf("<blue>AI %s is moving!</blue>", entity.id);
+	log(`Computing move for ${entity.id}`);
 
 	// Update our attack target if needed
 	let attackTarget: CensoredCrawlEntity = undefined;
@@ -39,6 +40,7 @@ export function getAction(state: CensoredEntityCrawlState,
 
 		// If you're next to the attack target, attack them
 		if (utils.distance(entity.location, controller.attackTarget.location) === 1) {
+			log("Done computing move - attacking");
 			return {
 				type: "attack",
 				attack: {
@@ -63,6 +65,7 @@ export function getAction(state: CensoredEntityCrawlState,
 
 	if (!utils.isVoid(controller.moveTarget)) {
 		// Move towards the move target
+		log("Done computing move - going towards target");
 		return {
 			type: "move",
 			direction: directionTo(entity.location, controller.moveTarget)
@@ -70,6 +73,7 @@ export function getAction(state: CensoredEntityCrawlState,
 	}
 
 	// not sure how to pick a new move target yet...
+	log("Done computing move - going in a random direction");
 	return { type: "move", direction: Math.floor(Math.random() * 8) };
 }
 

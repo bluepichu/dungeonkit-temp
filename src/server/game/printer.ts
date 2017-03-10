@@ -1,8 +1,8 @@
 "use strict";
 
-import * as log   from "beautiful-log";
-
 import * as utils from "../../common/utils";
+
+const log = require("beautiful-log")("dungeonkit:printer"); // hmm....
 
 /**
  * Pretty-prints a map to the console.
@@ -34,7 +34,7 @@ export function printFloorMap(map: FloorMap): void {
 			}
 		}
 
-		log.logf(line);
+		log(line);
 	}
 	log.line(4);
 }
@@ -73,7 +73,7 @@ export function printState(state: CensoredInProgressCrawlState): void {
 			}
 		}
 
-		log.logf(line);
+		log(line);
 	}
 	log.line(4);
 }
