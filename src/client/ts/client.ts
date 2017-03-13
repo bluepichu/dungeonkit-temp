@@ -171,6 +171,7 @@ function init(): void {
 
 	commandArea.addHandler("start", {
 		label: "start",
+		description: "Start the game.",
 		handler: () => {
 			socket.emitTempSignal("start");
 		}
@@ -178,6 +179,7 @@ function init(): void {
 
 	commandArea.addHandler("help", {
 		label: "help",
+		description: "Get an explanation of the controls.",
 		handler: () => {
 			messageLog.push(Messages.CONTROLS, 15000);
 		}
@@ -400,6 +402,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				if (state.floor.map.grid[state.self.location.r][state.self.location.c].stairs) {
 					commandArea.addHandler("stairs", {
 						label: "stairs",
+						description: "Advance to the next floor.",
 						handler: () => {
 							socket.sendCrawlAction({
 								type: "stairs"
@@ -410,6 +413,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				commandArea.addHandler("wait", {
 					label: "wait",
+					description: "Skip a single step.",
 					handler: () => {
 						socket.sendCrawlAction({
 							type: "wait"
@@ -421,8 +425,9 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 					for (let item of state.self.items.bag.items) {
 						for (let action in item.actions) {
 							for (let alias of item.actions[action]) {
-								commandArea.addHandler(`${alias} ${item.name}`, {
-									label: `${alias} <item>${item.name}</item>`,
+								commandArea.addHandler(`${alias} ${item.name} (bag)`, {
+									label: `${alias} <item>${item.name}</item> <minor>(bag)</minor>`,
+									description: item.description,
 									handler: () => {
 										socket.sendCrawlAction({
 											type: "item",
@@ -436,8 +441,9 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						}
 
 						if (state.self.items.held.items.length < state.self.items.held.capacity) {
-							commandArea.addHandler(`equip ${item.name}`, {
-								label: `equip <item>${item.name}</item>`,
+							commandArea.addHandler(`equip ${item.name} (bag)`, {
+								label: `equip <item>${item.name}</item> <minor>(bag)</minor>`,
+								description: item.description,
 								handler: () => {
 									socket.sendCrawlAction({
 										type: "item",
@@ -454,8 +460,9 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				for (let item of state.self.items.held.items) {
 					for (let action in item.actions) {
 						for (let alias of item.actions[action]) {
-							commandArea.addHandler(`${alias} ${item.name}`, {
-								label: `${alias} <item>${item.name}</item>`,
+							commandArea.addHandler(`${alias} ${item.name} (held)`, {
+								label: `${alias} <item>${item.name}</item> <minor>(held)</minor>`,
+								description: item.description,
 								handler: () => {
 									socket.sendCrawlAction({
 										type: "item",
@@ -470,8 +477,9 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 					if (state.self.items.bag !== undefined
 						&& state.self.items.bag.items.length < state.self.items.bag.capacity) {
-						commandArea.addHandler(`unequip ${item.name}`, {
-							label: `unequip <item>${item.name}</item>`,
+						commandArea.addHandler(`unequip ${item.name} (held)`, {
+							label: `unequip <item>${item.name}</item> <minor>(held)</minor>`,
+							description: item.description,
 							handler: () => {
 								socket.sendCrawlAction({
 									type: "item",

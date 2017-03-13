@@ -39,6 +39,23 @@ const COMMAND_AREA_SUGGESTION_STYLES: TextStyleSet = {
 	},
 	item: {
 		fill: Colors.BLUE
+	},
+	minor: {
+		fill: Colors.GRAY_5
+	}
+};
+
+const COMMAND_AREA_DESCRIPTION_STYLES: TextStyleSet = {
+	default: {
+		fontFamily: "Lato",
+		fontSize: "10px",
+		fontWeight: "400",
+		fill: Colors.WHITE,
+		wordWrap: true,
+		wordWrapWidth: 240
+	},
+	item: {
+		fill: Colors.BLUE
 	}
 };
 
@@ -46,6 +63,7 @@ const COMMAND_AREA_DEFAULT_TEXT = "Press space to input a command...";
 
 interface Handler {
 	label: string;
+	description: string;
 	handler(): any;
 }
 
@@ -104,6 +122,7 @@ export default class CommandArea extends Container {
 
 	keypress(event: KeyboardEvent): void {
 		event.preventDefault();
+		event.stopImmediatePropagation();
 
 		if (!this.active) {
 			if (event.key === " ") {
@@ -116,14 +135,20 @@ export default class CommandArea extends Container {
 
 		switch (event.key) {
 			case "ArrowDown":
+				this.suggestions[this.highlighted].highlighted = false;
 				this.highlighted++;
 				this.highlighted = Math.min(this.highlighted, this.suggestions.length - 1);
-				break;
+				this.suggestions[this.highlighted].highlighted = true;
+				this.repositionSuggestions();
+				return;
 
 			case "ArrowUp":
+				this.suggestions[this.highlighted].highlighted = false;
 				this.highlighted--;
 				this.highlighted = Math.max(this.highlighted, 0);
-				break;
+				this.suggestions[this.highlighted].highlighted = true;
+				this.repositionSuggestions();
+				return;
 
 			case "Enter":
 				this.enter();
@@ -150,7 +175,6 @@ export default class CommandArea extends Container {
 
 		this.resetSuggestions();
 		this.inputPromptFlashFrameCount = 0;
-		event.stopImmediatePropagation();
 	}
 
 	enter(): void {
@@ -170,7 +194,15 @@ export default class CommandArea extends Container {
 		this.inputPromptFlashFrameCount %= 60;
 
 		this.textInput.text = this.buffer + (this.active && this.inputPromptFlashFrameCount < 30 ? "|" : "");
-		this.suggestions.forEach((suggestion, index) => suggestion.highlighted = index === this.highlighted);
+	}
+
+	private repositionSuggestions() {
+		let y = 36;
+
+		this.suggestions.forEach((suggestion, index) => {
+			suggestion.y = y;
+			y += suggestion.height;
+		});
 	}
 
 	renderCanvas(renderer: CanvasRenderer): void {
@@ -199,17 +231,20 @@ export default class CommandArea extends Container {
 			.map((suggestion) => ({
 				score: scoreSuggestion(this.buffer.toLowerCase(), suggestion.toLowerCase()),
 				suggestion,
-				label: this.handlers[suggestion].label
+				label: this.handlers[suggestion].label,
+				description: this.handlers[suggestion].description
 			}))
 			.filter((suggestion) => suggestion.score > 0)
 			.sort((a, b) => b.score - a.score)
 			.forEach((obj, index) => {
-				let suggestion = new Suggestion(obj.label, obj.suggestion);
-				suggestion.x = 20;
-				suggestion.y = 36 + 24 * index;
+				let suggestion = new Suggestion(obj.label, obj.description, obj.suggestion);
+				suggestion.highlighted = index === 0;
 				this.addChild(suggestion);
+				suggestion.x = 20;
 				this.suggestions.push(suggestion);
 			});
+
+		this.repositionSuggestions();
 	}
 }
 
@@ -234,9 +269,10 @@ function scoreSuggestion(input: string, suggestion: string): number {
 class Suggestion extends Container {
 	private background: Graphics;
 	private text: MultiStyleText;
+	private desc: MultiStyleText;
 	private _value: string;
 
-	constructor(label: string, value: string) {
+	constructor(label: string, description: string, value: string) {
 		super();
 
 		this.background = new Graphics();
@@ -244,16 +280,24 @@ class Suggestion extends Container {
 
 		this.text = new MultiStyleText(label, COMMAND_AREA_SUGGESTION_STYLES);
 		this.text.x = 12;
-		this.text.y = 4;
+		this.text.y = 6;
 		this.addChild(this.text);
+
+		this.desc = new MultiStyleText(description, COMMAND_AREA_DESCRIPTION_STYLES);
+		this.desc.x = 18;
+		this.desc.y = 28;
+		this.addChild(this.desc);
 
 		this.highlighted = false;
 		this._value = value;
 	}
 
 	public set highlighted(highlighted: boolean) {
+		this.background.clear();
 		this.background.beginFill(highlighted ? Colors.GRAY_2 : Colors.GRAY_1);
-		this.background.drawRect(0, 0, 280, 24);
+		this.background.lineStyle(0);
+		this.background.drawRect(0, 0, 280, highlighted ? 36 + this.desc.height : 28);
+		this.desc.visible = highlighted;
 	}
 
 	public get value() {
