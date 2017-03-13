@@ -262,7 +262,8 @@ function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
 function getCensoredState(
 	state: InProgressCrawlState,
 	entity: CrawlEntity): CensoredEntityCrawlState {
-	return makeReadOnly({
+	// Normally this would be made readonly; however, this was removed in an attempt to speed up the code.
+	return {
 		self: censorSelf(entity),
 		dungeon: {
 			name: state.dungeon.name,
@@ -276,11 +277,11 @@ function getCensoredState(
 			map: entity.map
 		},
 		entities: state.entities.filter((ent: CrawlEntity) =>
-			utils.isVisible(state.floor.map, entity.location, ent.location)).map((ent) =>
+			utils.isObjectVisible(state.floor.map, entity.location, ent.location)).map((ent) =>
 				ent.alignment === entity.alignment ? censorSelf(ent) : censorEntity(ent)),
 		items: state.items.filter((item: CrawlItem) =>
-			utils.isVisible(state.floor.map, entity.location, item.location))
-	});
+			utils.isObjectVisible(state.floor.map, entity.location, item.location))
+	};
 }
 
 /**
@@ -933,7 +934,7 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent):
 				Locatable;
 
 			state.entities.forEach((entity) => {
-				if (utils.isVisible(state.floor.map, entity.location, evt.location)) {
+				if (utils.isObjectVisible(state.floor.map, entity.location, evt.location)) {
 					entity.controller.pushEvent(event);
 				}
 			});
@@ -945,8 +946,8 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent):
 			let moveEvent = event as MoveLogEvent;
 
 			state.entities.forEach((entity) => {
-				if (utils.isVisible(state.floor.map, entity.location, moveEvent.start)
-					|| utils.isVisible(state.floor.map, entity.location, moveEvent.end)) {
+				if (utils.isObjectVisible(state.floor.map, entity.location, moveEvent.start)
+					|| utils.isObjectVisible(state.floor.map, entity.location, moveEvent.end)) {
 					entity.controller.pushEvent(event);
 				}
 			});
@@ -984,7 +985,7 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void 
 	if (utils.isCrawlLocationInRoom(state.floor.map, entity.location) && changed) {
 		for (let i = 0; i < state.floor.map.height; i++) {
 			for (let j = 0; j < state.floor.map.width; j++) {
-				if (utils.isVisible(state.floor.map, entity.location, { r: i, c: j })) {
+				if (utils.isFloorVisible(state.floor.map, entity.location, { r: i, c: j })) {
 					entity.map.grid[i][j] = state.floor.map.grid[i][j];
 				}
 			}

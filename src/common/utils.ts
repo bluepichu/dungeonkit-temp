@@ -200,14 +200,15 @@ export function inRange(v: number, min: number, max: number): boolean {
 }
 
 /**
- * Checks whether or not the given location would be visible in the given map if standing at the given observation
- *     location.
+ * Checks whether or not the floor at the given location would be visible in the given map if standing at the given
+ *     observation location.  This differs from isObjectVisible in that this accounts for the offset required to render
+ *     wall tiles.
  * @param map - The map.
  * @param observer - The observation location.
  * @param location - The location to check.
  * @return Whether or not the given location is visible in the given map if standing at the given observation location.
  */
-export function isVisible(map: FloorMap,
+export function isFloorVisible(map: FloorMap,
 	observer: CrawlLocation,
 	location: CrawlLocation): boolean {
 	if (!isValidCrawlLocation(observer) || !isValidCrawlLocation(location)) {
@@ -227,6 +228,25 @@ export function isVisible(map: FloorMap,
 	}
 
 	return distance(observer, location) <= 2;
+}
+
+/**
+ * Checks whether or not an object at the given location would be visible in the given map if standing at the given
+ *     observation location.  This differs from isFloorVisible in that this does not account for extra tiles reqiured
+ *     to render walls.
+ * @param map - The map.
+ * @param observer - The observation location.
+ * @param location - The location to check.
+ * @return Whether or not the given location is visible in the given map if standing at the given observation location.
+ */
+export function isObjectVisible(map: FloorMap,
+	observer: CrawlLocation,
+	location: CrawlLocation): boolean {
+	if (!isValidCrawlLocation(observer) || !isValidCrawlLocation(location)) {
+		return false;
+	}
+
+	return inSameRoom(map, observer, location) || distance(observer, location) <= 2;
 }
 
 /**
@@ -270,7 +290,7 @@ export function getTile(map: FloorMap, location: CrawlLocation): DungeonTile {
  */
 export function locationToPoint(location: CrawlLocation, gridSize: number): Point {
 	return {
-		x: location.c * gridSize, 
+		x: location.c * gridSize,
 		y: location.r * gridSize
 	};
 }
