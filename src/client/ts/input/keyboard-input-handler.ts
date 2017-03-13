@@ -58,6 +58,11 @@ export default class KeyboardInputHandler {
 	}
 
 	public handleInput(): void {
+		if (this._commandArea.active) {
+			// Don't do other hooks when the command area is active
+			return;
+		}
+
 		for (let hook of this._hooks) {
 			if (hook.enabled !== undefined && !hook.enabled()) {
 				continue;

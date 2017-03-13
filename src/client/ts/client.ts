@@ -107,8 +107,6 @@ function loadAssets(): void {
 	loader.load();
 }
 
-key.filter = (event: KeyboardEvent) => commandArea ? commandArea.active : false;
-
 /**
  * Initializes the client.
  */
@@ -167,7 +165,9 @@ function init(): void {
 	main = document.getElementsByTagName("main")[0] as HTMLElement;
 	main.appendChild(renderer.view);
 
-	commandArea = new CommandArea();
+	// TODO (bluepichu): Handle mobile users
+	inputHandler = new KeyboardInputHandler();
+	commandArea = inputHandler.commandArea;
 
 	commandArea.addHandler("start", {
 		label: "start",
@@ -185,8 +185,6 @@ function init(): void {
 
 	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); }
 
-	// TODO (bluepichu): Handle mobile users
-	inputHandler = new KeyboardInputHandler();
 	gameContainer.addChild(commandArea);
 
 	messageLog = new MessageLog();
