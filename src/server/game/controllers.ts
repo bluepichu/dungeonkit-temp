@@ -196,12 +196,14 @@ export class SocketController implements Controller {
 							if (tile.type !== DungeonTileType.UNKNOWN) {
 								return { location: { r, c }, tile };
 							}
-						} else if (tile.type !== utils.getTile(this.lastMap, { r, c }).type
-							|| tile.roomId !== utils.getTile(this.lastMap, { r, c }).roomId
-							|| tile.stairs !== utils.getTile(this.lastMap, { r, c }).stairs) {
-							return { location: { r, c }, tile };
+						} else {
+							let t = utils.getTile(this.lastMap, {r, c});
+							if (tile.type !== t.type || tile.roomId !== t.roomId || tile.stairs !== t.stairs) {
+								return { location: { r, c }, tile };
+							} else {
+								return undefined;
+							}
 						}
-						return undefined;
 					}))
 				.reduce((acc, row) => acc.concat(row), [])
 				.filter((update) => update !== undefined);

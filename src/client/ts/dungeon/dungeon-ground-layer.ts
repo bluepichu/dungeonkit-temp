@@ -87,15 +87,10 @@ export default class DungeonGroundLayer extends Sprite {
 	}
 
 	private getTileType(map: FloorMap, loc: CrawlLocation): string {
-		let canPlace: boolean = true;
-
-		utils.withinNSteps(1, loc, (location) =>
-			canPlace = canPlace &&
-				(!utils.isCrawlLocationInFloorMap(map, location)
-				|| utils.getTile(map, location).type !== DungeonTileType.UNKNOWN));
-
-		if (!canPlace) {
-			return undefined;
+		for (let l of utils.withinNSteps(1, loc)) {
+			if (utils.isCrawlLocationInFloorMap(map, l) && utils.getTile(map, l).type === DungeonTileType.UNKNOWN) {
+				return undefined;
+			}
 		}
 
 		if (utils.getTile(map, loc).stairs) {

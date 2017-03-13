@@ -5,6 +5,7 @@ import * as clone     from "clone";
 import * as generator from "./generator";
 import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
+import Queue          from "../../common/queue";
 
 import { SocketController } from "./controllers";
 
@@ -965,28 +966,32 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent):
 }
 
 /**
- * Updates an entity's map.
+ * Updates an entity's map by doing a floodfill to discover new tiles.
  * @param state - The state.
  * @param entity - The entity.
  */
 function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void {
-	let changed = false;
+	// Do a floodfill to find all locations that need to be added
 
-	let {r, c} = entity.location;
+	let queue: Queue<CrawlLocation> = new Queue<CrawlLocation>();
 
-	utils.withinNSteps(2, entity.location, (loc) => {
-		if (utils.isCrawlLocationInFloorMap(state.floor.map, loc)
-			&& utils.getTile(state.floor.map, loc) !== utils.getTile(entity.map, loc)) {
+	for (let loc of utils.withinNSteps(2, entity.location)) {
+		if (utils.inRange(loc.r, 0, state.floor.map.height) && utils.inRange(loc.c, 0, state.floor.map.width)) {
 			entity.map.grid[loc.r][loc.c] = state.floor.map.grid[loc.r][loc.c];
-			changed = true;
+			queue.add(loc);
 		}
-	});
+	}
 
-	if (utils.isCrawlLocationInRoom(state.floor.map, entity.location) && changed) {
-		for (let i = 0; i < state.floor.map.height; i++) {
-			for (let j = 0; j < state.floor.map.width; j++) {
-				if (utils.isFloorVisible(state.floor.map, entity.location, { r: i, c: j })) {
-					entity.map.grid[i][j] = state.floor.map.grid[i][j];
+	while (queue.size > 0) {
+		let loc = queue.poll();
+
+		if (state.floor.map.grid[loc.r][loc.c].type !== DungeonTileType.WALL
+			&& utils.inSameRoom(state.floor.map, loc, entity.location)) {
+			// Keep on expanding
+			for (let l of utils.withinNSteps(2, loc)) {
+				if (utils.inRange(l.r, 0, state.floor.map.height) && utils.inRange(l.c, 0, state.floor.map.width) && entity.map.grid[l.r][l.c].type === DungeonTileType.UNKNOWN) {
+					entity.map.grid[l.r][l.c] = state.floor.map.grid[l.r][l.c];
+					queue.add(l);
 				}
 			}
 		}

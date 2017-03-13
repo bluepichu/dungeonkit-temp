@@ -143,7 +143,7 @@ export default class SpeakingArea extends Container {
 	private prerender(): void {
 		this.frameCounter++;
 
-		if (this.frameCounter % 2 === 0 && this.text.text.length < this.targetText.length) {
+		if (this.text.text.length < this.targetText.length) {
 			this.text.text = this.targetText.substring(0, this.text.text.length + 1);
 
 			if (this.finished && this.onFinished !== undefined) {

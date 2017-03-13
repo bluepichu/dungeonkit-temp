@@ -215,19 +215,19 @@ export function isFloorVisible(map: FloorMap,
 		return false;
 	}
 
+	if (distance(observer, location) <= 2) {
+		return true;
+	}
+
 	if (isCrawlLocationInRoom(map, observer)) {
-		let inRange = false;
-
-		withinNSteps(2, location, (loc) => {
-			inRange = inRange || inSameRoom(map, observer, loc);
-		});
-
-		if (inRange) {
-			return true;
+		for (let loc of withinNSteps(2, location)) {
+			if (inSameRoom(map, observer, loc)) {
+				return true;
+			}
 		}
 	}
 
-	return distance(observer, location) <= 2;
+	return false;
 }
 
 /**
@@ -296,18 +296,14 @@ export function locationToPoint(location: CrawlLocation, gridSize: number): Poin
 }
 
 /**
- * Calls the given function on every location within n steps of the given location.
+ * Returns an iterator over the locations within n steps of the given location.
  * @param n - The number of steps away to check.
  * @param location - The base location.
- * @param fn - The function to call on each location.
  */
-export function withinNSteps(
-	n: number,
-	location: CrawlLocation,
-	fn: (location: CrawlLocation) => any): void {
+export function *withinNSteps(n: number, location: CrawlLocation): IterableIterator<CrawlLocation> {
 	for (let r = location.r - n; r <= location.r + n; r++) {
 		for (let c = location.c - n; c <= location.c + n; c++) {
-			fn({ r, c });
+			yield { r, c };
 		}
 	}
 }

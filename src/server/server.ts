@@ -58,3 +58,7 @@ export function start() {
 		});
 	});
 }
+
+process.on('unhandledRejection', (reason: string) => {
+	log.error("Unhandled promise rejection:", reason);
+});
