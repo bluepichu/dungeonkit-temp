@@ -87,9 +87,11 @@ export default class DungeonGroundLayer extends Sprite {
 	}
 
 	private getTileType(map: FloorMap, loc: CrawlLocation): string {
-		for (let l of utils.withinNSteps(1, loc)) {
-			if (utils.isCrawlLocationInFloorMap(map, l) && utils.getTile(map, l).type === DungeonTileType.UNKNOWN) {
-				return undefined;
+		for (let r = loc.r - 1; r <= loc.r + 1; r++) {
+			for (let c = loc.c - 1; c <= loc.c + 1; c++) {
+				if (utils.isCrawlLocationInFloorMap(map, { r, c }) && utils.getTile(map, { r, c }).type === DungeonTileType.UNKNOWN) {
+					return undefined;
+				}
 			}
 		}
 

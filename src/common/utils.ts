@@ -200,37 +200,6 @@ export function inRange(v: number, min: number, max: number): boolean {
 }
 
 /**
- * Checks whether or not the floor at the given location would be visible in the given map if standing at the given
- *     observation location.  This differs from isObjectVisible in that this accounts for the offset required to render
- *     wall tiles.
- * @param map - The map.
- * @param observer - The observation location.
- * @param location - The location to check.
- * @return Whether or not the given location is visible in the given map if standing at the given observation location.
- */
-export function isFloorVisible(map: FloorMap,
-	observer: CrawlLocation,
-	location: CrawlLocation): boolean {
-	if (!isValidCrawlLocation(observer) || !isValidCrawlLocation(location)) {
-		return false;
-	}
-
-	if (distance(observer, location) <= 2) {
-		return true;
-	}
-
-	if (isCrawlLocationInRoom(map, observer)) {
-		for (let loc of withinNSteps(2, location)) {
-			if (inSameRoom(map, observer, loc)) {
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-/**
  * Checks whether or not an object at the given location would be visible in the given map if standing at the given
  *     observation location.  This differs from isFloorVisible in that this does not account for extra tiles reqiured
  *     to render walls.
@@ -293,19 +262,6 @@ export function locationToPoint(location: CrawlLocation, gridSize: number): Poin
 		x: location.c * gridSize,
 		y: location.r * gridSize
 	};
-}
-
-/**
- * Returns an iterator over the locations within n steps of the given location.
- * @param n - The number of steps away to check.
- * @param location - The base location.
- */
-export function *withinNSteps(n: number, location: CrawlLocation): IterableIterator<CrawlLocation> {
-	for (let r = location.r - n; r <= location.r + n; r++) {
-		for (let c = location.c - n; c <= location.c + n; c++) {
-			yield { r, c };
-		}
-	}
 }
 
 /**

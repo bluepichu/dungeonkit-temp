@@ -105,7 +105,7 @@ export class SocketController implements Controller {
 				}
 
 				if (crawl.isValidAction(state, entity, action)) {
-					if (action.type === "move" && options.dash) {
+					if (action.type === "move" && options && options.dash) {
 						this.dashPattern = pattern;
 						this.dashing = true;
 						this.dashDirection = (action as MoveAction).direction;

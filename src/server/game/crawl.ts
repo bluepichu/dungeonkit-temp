@@ -973,12 +973,17 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent):
 function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void {
 	// Do a floodfill to find all locations that need to be added
 
+	let entityGrid = entity.map.grid;
+	let location = entity.location;
+
 	let queue: Queue<CrawlLocation> = new Queue<CrawlLocation>();
 
-	for (let loc of utils.withinNSteps(2, entity.location)) {
-		if (utils.inRange(loc.r, 0, state.floor.map.height) && utils.inRange(loc.c, 0, state.floor.map.width)) {
-			entity.map.grid[loc.r][loc.c] = state.floor.map.grid[loc.r][loc.c];
-			queue.add(loc);
+	for (let r = location.r - 2; r <= location.r + 2; r++) {
+		for (let c = location.c - 2; c <= location.c + 2; c++) {
+			if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width)) {
+				entityGrid[r][c] = state.floor.map.grid[r][c];
+				queue.add({ r, c });
+			}
 		}
 	}
 
@@ -988,10 +993,12 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void 
 		if (state.floor.map.grid[loc.r][loc.c].type !== DungeonTileType.WALL
 			&& utils.inSameRoom(state.floor.map, loc, entity.location)) {
 			// Keep on expanding
-			for (let l of utils.withinNSteps(2, loc)) {
-				if (utils.inRange(l.r, 0, state.floor.map.height) && utils.inRange(l.c, 0, state.floor.map.width) && entity.map.grid[l.r][l.c].type === DungeonTileType.UNKNOWN) {
-					entity.map.grid[l.r][l.c] = state.floor.map.grid[l.r][l.c];
-					queue.add(l);
+			for (let r = loc.r - 2; r <= loc.r + 2; r++) {
+				for (let c = loc.c - 2; c <= loc.c + 2; c++) {
+					if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
+						entityGrid[r][c] = state.floor.map.grid[r][c];
+						queue.add({ r, c });
+					}
 				}
 			}
 		}

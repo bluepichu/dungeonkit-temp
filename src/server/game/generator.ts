@@ -31,104 +31,202 @@ export function generateFloor(
 		.then((state) => placeItems(state, blueprint));
 }
 
+type MacroTile = RoomMacroTile | JunctionMacroTile;
+
+interface RoomMacroTile {
+	type: "room";
+	connectors: {
+		up: CrawlLocation,
+		down: CrawlLocation,
+		left: CrawlLocation,
+		right: CrawlLocation
+	}
+}
+
+interface JunctionMacroTile {
+	type: "junction";
+	connectors: {
+		up: CrawlLocation,
+		down: CrawlLocation,
+		left: CrawlLocation,
+		right: CrawlLocation
+	}
+}
+
 /*
  * Generates a new map.
  * @param options - The generator parameters.
  * @return The generated map.
  */
 function generateFloorMap(options: GeneratorOptions): FloorMap {
-	let open = 0;
-	let width = evaluateDistribution(options.width);
-	let height = evaluateDistribution(options.height);
-	let roomId = 1;
+	let mw = evaluateDistribution(options.width);
+	let mh = evaluateDistribution(options.height);
+	let scale = options.scale;
 
-	let grid: number[][] = utils.tabulate((i) => utils.tabulate((j) => 0, width), height);
-	// in this grid
-	//    0 is unassigned
-	//    anything lower is a room (id = -value)
-	//    9 is open (corridor)
-	//    10 is wall
-	//    1 is a right connection on a room
-	//    2 ... top
-	//    3 ... left
-	//    4 ... bottom
-	//    5 is a right connection on a corridor
-	//    6 ... top
-	//    7 ... left
-	//    8 ... bottom
+	let macro: MacroTile[][] = Array.from(new Array(mh), () => Array.from(new Array(mw), () => undefined))
+	let grid: DungeonTile[][] = Array.from(new Array(mh * scale), () => Array.from(new Array(mw * scale), () => ({ type: DungeonTileType.WALL })));
 
-	let init = selectFeature(options.features.rooms);
+	let available: [number, number][] = [];
 
-	let r = utils.randint(0, height - init.height);
-	let c = utils.randint(0, width - init.width);
+	for (let i = 0; i < mh; i++) {
+		for (let j = 0; j < mw; j++) {
+			available.push([i, j]);
+		}
+	}
 
-	let choices = placeFeature(grid, {r, c}, init, roomId);
+	let rooms = evaluateDistribution(options.rooms);
+	let junctions = evaluateDistribution(options.junctions);
 
-	roomId++;
+	rooms = Math.max(rooms, 1);
+	junctions = Math.min(junctions, mw*mh - rooms);
 
-	for (let t = 0; t < options.limit; t++) {
-		let {r, c} = choices[utils.randint(0, choices.length - 1)];
+	for (let k = 0; k < rooms; k++) {
+		let locidx = utils.randint(0, available.length - 1);
+		let loc = available[locidx];
+		available.splice(locidx, 1);
 
-		if (0 < grid[r][c] && grid[r][c] < 9) {
-			let placed: boolean = false;
-			let feature: Feature = undefined;
-			let isRoom: boolean = false;
+		let roomidx = utils.randint(0, options.features.rooms.length - 1);
+		let roomFeature = options.features.rooms[roomidx];
 
-			if (grid[r][c] < 5 || Math.random() < .5) {
-				feature = selectFeature(options.features.corridors);
-			} else {
-				feature = selectFeature(options.features.rooms);
-				isRoom = true;
+		let dr = loc[0] * scale + utils.randint(2, scale - roomFeature.height - 2);
+		let dc = loc[1] * scale + utils.randint(2, scale - roomFeature.width - 2);
+
+		let possibleConnectors = {
+			up: [] as CrawlLocation[],
+			down: [] as CrawlLocation[],
+			left: [] as CrawlLocation[],
+			right: [] as CrawlLocation[]
+		};
+
+		for (let i = 0; i < roomFeature.height; i++) {
+			for (let j = 0; j < roomFeature.width; j++) {
+				switch (roomFeature.grid[i][j]) {
+					case " ":
+						grid[i + dr][j + dc] = { type: DungeonTileType.FLOOR, roomId: k + 1 };
+						break;
+
+					case "^":
+						possibleConnectors.up.push({ r: i + dr, c: j + dc });
+						break;
+
+					case "v":
+						possibleConnectors.down.push({ r: i + dr, c: j + dc });
+						break;
+
+					case "<":
+						possibleConnectors.left.push({ r: i + dr, c: j + dc });
+						break;
+
+					case ">":
+						possibleConnectors.right.push({ r: i + dr, c: j + dc });
+						break;
+				}
 			}
+		}
 
-			for (let i = 0; i < feature.height; i++) {
-				for (let j = 0; j < feature.width; j++) {
-					if (canPlaceFeature(grid, {r: r - i, c: c - j}, feature, isRoom)) {
-						choices =
-							choices.concat(placeFeature(grid, {r: r - i, c: c - j}, feature, isRoom ? roomId++ : 0));
-						placed = true;
+		macro[loc[0]][loc[1]] = {
+			type: "room",
+			connectors: {
+				up: possibleConnectors.up[utils.randint(0, possibleConnectors.up.length - 1)],
+				down: possibleConnectors.down[utils.randint(0, possibleConnectors.down.length - 1)],
+				left: possibleConnectors.left[utils.randint(0, possibleConnectors.left.length - 1)],
+				right: possibleConnectors.right[utils.randint(0, possibleConnectors.right.length - 1)]
+			}
+		};
+	}
+
+	for (let k = 0; k < junctions; k++) {
+		let locidx = utils.randint(0, available.length - 1);
+		let loc = available[locidx];
+		available.splice(locidx, 1);
+
+		let start = {
+			r: loc[0] * scale + utils.randint(Math.floor(scale / 5), Math.floor(4 * scale / 5)),
+			c: loc[1] * scale + utils.randint(Math.floor(scale / 5), Math.floor(2 * scale / 5))
+		};
+
+		let end = {
+			r: start.r,
+			c: start.c + 1
+		}
+
+		connect(grid, start, end);
+		let leftUp = Math.random() < .5;
+
+		macro[loc[0]][loc[1]] = {
+			type: "junction",
+			connectors: {
+				left: start,
+				right: end,
+				up: leftUp ? start : end,
+				down: leftUp ? end : start
+			}
+		};
+	}
+
+	for (let mi = 0; mi < mh; mi++) {
+		for (let mj = 0; mj < mw; mj++) {
+			if (macro[mi][mj]) {
+				for (let mi2 = mi + 1; mi2 < mh; mi2++) {
+					if (macro[mi2][mj]) {
+						let start = macro[mi][mj].connectors.down;
+						let end = macro[mi2][mj].connectors.up;
+						grid[start.r][start.c] = { type: DungeonTileType.FLOOR };
+						start.r++;
+						grid[end.r][end.c] = { type: DungeonTileType.FLOOR };
+						end.r--;
+						connect(grid, start, end);
 						break;
 					}
 				}
-
-				if (placed) {
-					break;
-				}
-			}
-		}
-	}
-
-	for (let i = 0; i < grid.length; i++) {
-		for (let j = 0; j < grid[i].length; j++) {
-			if (grid[i][j] === 9) {
-				let adjacent = 0;
-
-				for (let di = -1; di <= 1; di++) {
-					for (let dj = -1; dj <= 1; dj++) {
-						if (Math.abs(di) + Math.abs(dj) !== 1
-							|| i + di < 0
-							|| i + di > grid.length
-							|| j + dj < 0
-							|| j + dj > grid[i + di].length) {
-							continue;
-						}
-
-						if (grid[i + di][j + dj] === 9 || grid[i + di][j + dj] < 0) {
-							adjacent++;
-						}
+				for (let mj2 = mj + 1; mj2 < mh; mj2++) {
+					if (macro[mi][mj2]) {
+						let start = macro[mi][mj].connectors.right;
+						let end = macro[mi][mj2].connectors.left;
+						grid[start.r][start.c] = { type: DungeonTileType.FLOOR };
+						start.c++;
+						grid[end.r][end.c] = { type: DungeonTileType.FLOOR };
+						end.c--;
+						connect(grid, start, end);
+						break;
 					}
 				}
-
-				if (adjacent <= 1 && Math.random() < options.cleanliness) {
-					grid[i][j] = 10;
-					i--;
-					j--;
-				}
 			}
 		}
 	}
 
-	return gridToFloorMap(grid);
+	return {
+		width: mw * scale,
+		height: mh * scale,
+		grid
+	}
+}
+
+/**
+ * Makes a path to connect the two points.
+ */
+function connect(grid: DungeonTile[][], start: CrawlLocation, end: CrawlLocation) {
+	let loc = { r: start.r, c: start.c };
+
+	while (loc.r != end.r || loc.c != end.c) {
+		grid[loc.r][loc.c] = { type: DungeonTileType.FLOOR };
+
+		if (loc.c == end.c || (loc.r != end.r && Math.random() < .5)) {
+			if (loc.r > end.r) {
+				loc.r--;
+			} else {
+				loc.r++;
+			}
+		} else {
+			if (loc.c > end.c) {
+				loc.c--;
+			} else {
+				loc.c++;
+			}
+		}
+	}
+
+	grid[end.r][end.c] = { type: DungeonTileType.FLOOR };
 }
 
 /**
@@ -537,8 +635,11 @@ function evaluateDistribution(distribution: Distribution): number {
 
 			return v;
 
-		default:
-			throw new Error(`[Error X] Unknown probability distribution type "${distribution.type}".`);
+		case "uniform":
+			return utils.randint(distribution.a, distribution.b);
+
+		// default:
+		// 	throw new Error(`[Error X] Unknown probability distribution type "${distribution.type}".`);
 	}
 }
 

@@ -2,40 +2,41 @@
 
 import * as utils from "../../common/utils";
 
-const log = require("beautiful-log")("dungeonkit:printer"); // hmm....
+const log = require("beautiful-log")("dungeonkit:printer", { showDelta: false }); // hmm....
 
 /**
  * Pretty-prints a map to the console.
  * @param map - The map to print.
  */
 export function printFloorMap(map: FloorMap): void {
+	let out = "";
 	for (let i = 0; i < map.height; i++) {
-		let line = "";
-
 		for (let j = 0; j < map.width; j++) {
 			switch (map.grid[i][j].type) {
 				case DungeonTileType.WALL:
-					line += "<#262626>\u2591</>";
+					out += "<#262626>\u2591</>";
 					break;
 
 				case DungeonTileType.FLOOR:
 					if (map.grid[i][j].stairs) {
-						line += "<#00afd7>\u25a3</>";
+						out += "<#00afd7>\u25a3</>";
 					} else if (map.grid[i][j].roomId > 0) {
-						line += "<#87af00>" + String.fromCharCode(0x40 + map.grid[i][j].roomId) + "</>";
+						out += "<#87af00>" + String.fromCharCode(0x40 + map.grid[i][j].roomId) + "</>";
 					} else {
-						line += "<#0087ff>#</>";
+						out += "<#0087ff>#</>";
 					}
 					break;
 
 				default:
-					line += "<gray>?</>";
+					out += "<gray>?</>";
 					break;
 			}
 		}
 
-		log(line);
+		out += "\n";
 	}
+
+	log(out);
 	log.line(4);
 }
 
