@@ -19,7 +19,7 @@ interface CensoredSelfEntity {
 	attacks: Attack[];
 	stats: EntityStats;
 	alignment: number;
-	advances: boolean;
+	ai: boolean;
 	items: {
 		held: ItemSet;
 		bag?: ItemSet;

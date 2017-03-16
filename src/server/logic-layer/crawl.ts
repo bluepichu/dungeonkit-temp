@@ -2,12 +2,11 @@
 
 import * as clone     from "clone";
 
+import * as ai        from "./ai";
 import * as generator from "./generator";
 import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
 import Queue          from "../../common/queue";
-
-import { SocketController } from "./controllers";
 
 const log = require("beautiful-log")("dungeonkit:crawl")
 
@@ -17,68 +16,77 @@ const log = require("beautiful-log")("dungeonkit:crawl")
  * @param entities - The entities performing the crawl.
  * @return A promise for a concluded crawl.
  */
-export function startCrawl(
-	dungeon: Dungeon,
-	entities: UnplacedCrawlEntity[]): Promise<ConcludedCrawlState> {
-	for (let entity of entities) {
-		(entity.controller as SocketController).initCrawl(entity, dungeon);
-	}
+export function startCrawl(dungeon: Dungeon, entities: UnplacedCrawlEntity[], eventLog: LogEvent[]): CrawlState {
 	if (validateDungeonBlueprint(dungeon)) {
-		return advanceToFloor(dungeon, 1, entities)
-			.then((state) => {
-				if (utils.isCrawlOver(state)) {
-					return Promise.resolve(state);
-				} else {
-					return step(state as InProgressCrawlState);
-				}
-			});
+		return advanceToFloor(dungeon, 1, entities, eventLog);
 	} else {
 		throw new Error(`[Code 1] Dungeon blueprint for dungeon '${dungeon.name}' failed validation.`);
 	}
 }
 
 /**
- * Steps a crawl until it is completed.
+ * Steps a crawl until input from the player is needed.
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-function step(state: InProgressCrawlState): Promise<ConcludedCrawlState> {
+export function step(state: InProgressCrawlState, eventLog: LogEvent[]): CrawlState {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
-	if (entity.controller.await) {
-		state.entities.forEach((ent) => {
-			if (ent !== entity) {
-				ent.controller.wait();
-			}
-		});
+	if (entity.ai) {
+		let action = ai.getAction(censoredState, entity);
+		let newState = execute(state, entity, action, eventLog);
+		log("Done executing move - filtering");
+
+		if (state.entities.every((entity) => entity.ai)) {
+			return {
+				dungeon: state.dungeon,
+				success: false,
+				floor: state.floor.number
+			};
+		}
+
+		if (utils.isCrawlOver(newState)) {
+			return newState;
+		}
+
+		return step(newState, eventLog);
+	} else {
+		state.entities.unshift(state.entities.pop());
+		return state;
+	}
+}
+
+/**
+ * Steps a crawl until input from the player is needed.
+ * @param state - The game to run.
+ * @return A promise for a concluded crawl.
+ */
+export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[]): CrawlState {
+	let entity = nextEntity(state);
+	let censoredState = getCensoredState(state, entity);
+
+	if (entity.ai) {
+		// What?
+		return state;
 	}
 
-	return entity.controller.getAction(censoredState, entity)
-		.then((action: Action) => {
-			log("Executing move");
-			return execute(state, entity, action)
-				.then((newState) => {
-					log("Done executing move - filtering");
-					if (!state.entities.some((entity) => entity.advances)) {
-						return Promise.resolve({
-							dungeon: state.dungeon,
-							success: false,
-							floor: state.floor.number
-						});
-					}
+	let newState = execute(state, entity, action, eventLog);
+	log("Done executing move - filtering");
 
-					log("Checking for crawl completion");
-					if (utils.isCrawlOver(newState)) {
-						return Promise.resolve(newState);
-					} else {
-						return step(newState);
-					}
-				});
-		})
-		.catch((err: Error) => {
-			log(err.stack);
-		});
+	if (state.entities.every((entity) => entity.ai)) {
+		return {
+			dungeon: state.dungeon,
+			success: false,
+			floor: state.floor.number
+		};
+	}
+
+	if (utils.isCrawlOver(newState)) {
+		return newState;
+	}
+
+	return step(newState, eventLog);
 }
 
 /**
@@ -93,14 +101,15 @@ function checkItems(
 	hook: ItemHook,
 	entity: CrawlEntity,
 	state: InProgressCrawlState,
-	condition: () => boolean): void {
+	condition: () => boolean,
+	eventLog: LogEvent[]): void {
 	if (entity.items.bag !== undefined) {
 		for (let item of entity.items.bag.items) {
 			if (!condition()) {
 				return;
 			}
 			if (hook in item.handlers) {
-				item.handlers[hook](entity, state, item, false);
+				item.handlers[hook](entity, state, item, false, eventLog);
 			}
 		}
 	}
@@ -110,7 +119,7 @@ function checkItems(
 			return;
 		}
 		if (hook in item.handlers) {
-			item.handlers[hook](entity, state, item, true);
+			item.handlers[hook](entity, state, item, true, eventLog);
 		}
 	}
 }
@@ -166,40 +175,40 @@ function validateDungeonBlueprint(dungeon: Dungeon): boolean {
 function advanceToFloor(
 	dungeon: Dungeon,
 	floor: number,
-	entities: UnplacedCrawlEntity[]): Promise<CrawlState> {
+	entities: UnplacedCrawlEntity[],
+	eventLog: LogEvent[]): CrawlState {
 	if (floor > dungeon.blueprint[dungeon.blueprint.length - 1].range[1]) {
-		return Promise.resolve({
+		return {
 			dungeon: dungeon,
 			success: true,
 			floor: floor
-		});
+		};
 	} else {
 		let blueprint = getFloorBlueprint(dungeon, floor);
-		return generator.generateFloor(dungeon, floor, blueprint, entities)
-			.then((state) => {
-				state.entities.forEach((entity) => {
-					updateFloorMap(state, entity);
+		let state = generator.generateFloor(dungeon, floor, blueprint, entities)
 
-					entity.controller.pushEvent({
-						type: "start",
-						entity: {
-							name: entity.name,
-							graphics: entity.graphics,
-							id: entity.id
-						},
-						floorInformation: {
-							number: floor,
-							width: state.floor.map.width,
-							height: state.floor.map.height
-						},
-						self: censorSelf(entity)
-					});
+		state.entities.forEach((entity) => {
+			updateFloorMap(state, entity);
+		});
 
-					entity.controller.updateState(getCensoredState(state, entity));
-				});
+		let player = state.entities.filter((ent) => !ent.ai)[0];
 
-				return state;
-			});
+		eventLog.push({
+			type: "start",
+			entity: {
+				name: player.name,
+				graphics: player.graphics,
+				id: player.id
+			},
+			floorInformation: {
+				number: floor,
+				width: state.floor.map.width,
+				height: state.floor.map.height
+			},
+			self: censorSelf(player)
+		});
+
+		return state;
 	}
 }
 
@@ -297,7 +306,7 @@ function censorEntity(entity: CrawlEntity): CensoredCrawlEntity {
 		location: entity.location,
 		graphics: entity.graphics,
 		alignment: entity.alignment,
-		advances: entity.advances,
+		ai: entity.ai,
 		stats: {
 			attack: { modifier: entity.stats.attack.modifier },
 			defense: { modifier: entity.stats.defense.modifier }
@@ -320,7 +329,7 @@ function censorSelf(entity: CrawlEntity): CensoredSelfCrawlEntity {
 		location: entity.location,
 		graphics: entity.graphics,
 		alignment: entity.alignment,
-		advances: entity.advances,
+		ai: entity.ai,
 		map: entity.map,
 		items: entity.items
 	};
@@ -367,36 +376,37 @@ export function isValidAction(
 function execute(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
-	action: Action): Promise<CrawlState> {
-	let result: Promise<CrawlState> = undefined;
+	action: Action,
+	eventLog: LogEvent[]): CrawlState {
+	let result: CrawlState = undefined;
 
 	switch (action.type) {
 		case "move":
-			result = executeMove(state, entity, action as MoveAction);
+			result = executeMove(state, entity, action, eventLog);
 			break;
 
 		case "attack":
-			result = executeAttack(state, entity, action as AttackAction);
+			result = executeAttack(state, entity, action, eventLog);
 			break;
 
 		case "item":
-			result = executeItem(state, entity, action as ItemAction);
+			result = executeItem(state, entity, action, eventLog);
 			break;
 
 		case "stairs":
-			result = executeStairs(state, entity, action as StairsAction);
+			result = executeStairs(state, entity, action, eventLog);
 			break;
 
 		case "wait":
-			result = executeWait(state, entity, action as WaitAction);
+			result = executeWait(state, entity, action, eventLog);
 			break;
 
 		default:
-			result = Promise.resolve(state);
+			result = state;
 			break;
 	}
 
-	return result.then((newState) => postExecute(newState, entity));
+	return postExecute(result, entity, eventLog);
 }
 
 /**
@@ -405,8 +415,7 @@ function execute(
  * @param entity - The last entity to perform an action.
  * @return The state after these checks.
  */
-function postExecute(state: CrawlState,
-	entity: CrawlEntity): CrawlState {
+function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[]): CrawlState {
 	if (utils.isCrawlOver(state)) {
 		return state;
 	}
@@ -419,7 +428,7 @@ function postExecute(state: CrawlState,
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
 		.forEach((entity) =>
-			checkItems(ItemHook.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0));
+			checkItems(ItemHook.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0, eventLog));
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
 		.forEach((entity) => {
@@ -431,7 +440,7 @@ function postExecute(state: CrawlState,
 					graphics: entity.graphics
 				},
 				location: entity.location
-			});
+			}, eventLog);
 			entity.items.held.items.forEach((item) => {
 				executeItemDrop(newState, entity.location, item);
 			});
@@ -439,8 +448,6 @@ function postExecute(state: CrawlState,
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
 	newState.entities.forEach((entity) => updateFloorMap(newState, entity));
-
-	entity.controller.updateState(getCensoredState(newState, entity));
 
 	return newState;
 }
@@ -455,10 +462,11 @@ function postExecute(state: CrawlState,
 function executeWait(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
-	action: WaitAction): Promise<CrawlState> {
+	action: WaitAction,
+	eventLog: LogEvent[]): CrawlState {
 	drainBellyAndRecoverHp(entity, 1, 1);
 
-	return Promise.resolve(state);
+	return state;
 }
 
 /**
@@ -471,11 +479,12 @@ function executeWait(
 function executeMove(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
-	action: MoveAction): Promise<CrawlState> {
+	action: MoveAction,
+	eventLog: LogEvent[]): CrawlState {
 	let start = entity.location;
 
 	if (!isValidMove(state, entity, action.direction)) {
-		return Promise.resolve(state);
+		return state;
 	}
 
 	let offset: [number, number] = utils.decodeDirection(action.direction);
@@ -493,11 +502,11 @@ function executeMove(
 		start: start,
 		end: entity.location,
 		direction: action.direction
-	});
+	}, eventLog);
 
 	drainBellyAndRecoverHp(entity, 2, 0.25);
 
-	return executeItemPickup(state, entity);
+	return executeItemPickup(state, entity, eventLog);
 }
 
 /**
@@ -507,8 +516,7 @@ function executeMove(
  * @param action - The action.
  * @return A promise for the state after performing the action.
  */
-function executeItemPickup(state: InProgressCrawlState,
-	entity: CrawlEntity): Promise<CrawlState> {
+function executeItemPickup(state: InProgressCrawlState, entity: CrawlEntity, eventLog: LogEvent[]): CrawlState {
 	let item = utils.getItemAtCrawlLocation(state, entity.location);
 
 	if (item !== undefined) {
@@ -519,7 +527,7 @@ function executeItemPickup(state: InProgressCrawlState,
 			entity.items.held.items.push(item);
 			state.items = state.items.filter((it) => it !== item);
 		} else {
-			return Promise.resolve(state);
+			return state;
 		}
 
 		propagateLogEvent(state, {
@@ -530,10 +538,10 @@ function executeItemPickup(state: InProgressCrawlState,
 				graphics: entity.graphics
 			},
 			item: item
-		});
+		}, eventLog);
 	}
 
-	return Promise.resolve(state);
+	return state;
 }
 
 /**
@@ -546,7 +554,7 @@ function executeItemPickup(state: InProgressCrawlState,
 function executeItemDrop(
 	state: InProgressCrawlState,
 	location: CrawlLocation,
-	item: Item): Promise<CrawlState> {
+	item: Item): CrawlState {
 	let loc = { r: location.r, c: location.c };
 	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
 		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
@@ -610,7 +618,8 @@ function isValidMove(
 function executeAttack(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
-	action: AttackAction): Promise<CrawlState> {
+	action: AttackAction,
+	eventLog: LogEvent[]): CrawlState {
 	action.attack.uses.current--;
 
 	propagateLogEvent(state, {
@@ -623,15 +632,15 @@ function executeAttack(
 		location: entity.location,
 		direction: action.direction,
 		attack: action.attack
-	});
+	}, eventLog);
 
 	let targets = getTargets(state, entity, action.direction, action.attack.target);
 
-	targets.forEach((target) => applyAttack(state, action.attack, entity, target));
+	targets.forEach((target) => applyAttack(state, action.attack, entity, target, eventLog));
 
 	drainBellyAndRecoverHp(entity, 3, 1);
 
-	return Promise.resolve(state);
+	return state;
 }
 
 /**
@@ -697,7 +706,8 @@ function applyAttack(
 	state: InProgressCrawlState,
 	attack: Attack,
 	attacker: CrawlEntity,
-	defender: CrawlEntity): void {
+	defender: CrawlEntity,
+	eventLog: LogEvent[]): void {
 	if (attack.accuracy !== "always" && Math.random() * 100 > attack.accuracy) {
 		propagateLogEvent(state, {
 			type: "miss",
@@ -707,7 +717,7 @@ function applyAttack(
 				graphics: defender.graphics
 			},
 			location: defender.location,
-		});
+		}, eventLog);
 		return; // move missed
 	}
 
@@ -725,7 +735,7 @@ function applyAttack(
 			location: defender.location,
 			stat: "hp",
 			change: -damage
-		});
+		}, eventLog);
 	}
 
 	attack.onHit.forEach((effect: SecondaryStatEffect) => {
@@ -749,7 +759,7 @@ function applyAttack(
 			location: defender.location,
 			stat: effect.stat,
 			change: effect.amount
-		});
+		}, eventLog);
 	});
 }
 
@@ -802,7 +812,8 @@ function getModifiedStat(stat: BaseModifierStat): number {
 function executeItem(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
-	action: ItemAction): Promise<CrawlState> {
+	action: ItemAction,
+	eventLog: LogEvent[]): CrawlState {
 	let item: Item;
 	let held: boolean;
 
@@ -825,12 +836,12 @@ function executeItem(
 	}
 
 	if (item === undefined) {
-		return Promise.resolve(state);
+		return state;
 	}
 
 	switch (action.action) {
 		case "use":
-			item.handlers[ItemHook.ITEM_USE](entity, state, item, held);
+			item.handlers[ItemHook.ITEM_USE](entity, state, item, held, eventLog);
 			if (held) {
 				entity.items.held.items = entity.items.held.items.filter((it) => it.id !== item.id);
 			} else {
@@ -856,7 +867,7 @@ function executeItem(
 					graphics: entity.graphics
 				},
 				item
-			});
+			}, eventLog);
 			break;
 
 		case "equip":
@@ -876,7 +887,7 @@ function executeItem(
 
 	drainBellyAndRecoverHp(entity, 1, 0.5);
 
-	return Promise.resolve(state); // TODO
+	return state; // TODO
 }
 
 function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecoverProbability: number): void {
@@ -897,7 +908,8 @@ function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecov
  */
 function executeStairs(state: InProgressCrawlState,
 	entity: CrawlEntity,
-	action: StairsAction): Promise<CrawlState> {
+	action: StairsAction,
+	eventLog: LogEvent[]): CrawlState {
 	if (state.floor.map.grid[entity.location.r][entity.location.c].stairs) {
 		propagateLogEvent(state, {
 			type: "stairs",
@@ -906,17 +918,15 @@ function executeStairs(state: InProgressCrawlState,
 				id: entity.id,
 				graphics: entity.graphics
 			}
-		});
+		}, eventLog);
 
 		// state.entities.forEach((entity) => entity.controller.wait());
 
-		let advancers = state.entities.filter((entity) => entity.advances);
-		return advanceToFloor(state.dungeon, state.floor.number + 1, advancers).then((newState) => {
-			return newState;
-		});
+		let advancers = state.entities.filter((entity) => !entity.ai);
+		return advanceToFloor(state.dungeon, state.floor.number + 1, advancers, eventLog);
 	}
 
-	return Promise.resolve(state);
+	return state;
 }
 
 /**
@@ -924,35 +934,21 @@ function executeStairs(state: InProgressCrawlState,
  * @param state - The state.
  * @param event - The event.
  */
-export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent): void {
+export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent, eventLog: LogEvent[]): void {
 	switch (event.type) {
 		case "wait":
 		case "attack":
 		case "stat":
 		case "miss":
-			let evt: Locatable = event as
-				WaitLogEvent | AttackLogEvent | StatLogEvent | MissLogEvent as
-				Locatable;
-
-			state.entities.forEach((entity) => {
-				if (utils.isObjectVisible(state.floor.map, entity.location, evt.location)) {
-					entity.controller.pushEvent(event);
-				}
-			});
-
+			if (state.entities.some((entity) => !entity.ai && utils.isObjectVisible(state.floor.map, entity.location, event.location))) {
+				eventLog.push(event);
+			}
 			break;
 
-
 		case "move":
-			let moveEvent = event as MoveLogEvent;
-
-			state.entities.forEach((entity) => {
-				if (utils.isObjectVisible(state.floor.map, entity.location, moveEvent.start)
-					|| utils.isObjectVisible(state.floor.map, entity.location, moveEvent.end)) {
-					entity.controller.pushEvent(event);
-				}
-			});
-
+			if (state.entities.some((entity) => !entity.ai && (utils.isObjectVisible(state.floor.map, entity.location, event.start) || utils.isObjectVisible(state.floor.map, entity.location, event.end)))) {
+				eventLog.push(event);
+			}
 			break;
 
 		case "stairs":
@@ -960,7 +956,7 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent):
 		case "message":
 		case "item_pickup":
 		case "item_drop":
-			state.entities.forEach((entity) => entity.controller.pushEvent(event));
+			eventLog.push(event);
 			break;
 	}
 }

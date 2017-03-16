@@ -5,9 +5,6 @@ typings
 # Built resources
 build
 
-# MongoDB directory
-data
-
 # OSX
 .DS_Store
 

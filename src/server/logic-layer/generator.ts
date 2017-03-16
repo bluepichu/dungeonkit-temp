@@ -2,7 +2,6 @@
 
 import * as shortid     from "shortid";
 
-import * as controllers from "./controllers";
 import * as printer     from "./printer";
 import * as utils       from "../../common/utils";
 
@@ -21,14 +20,14 @@ export function generateFloor(
 	dungeon: Dungeon,
 	floor: number,
 	blueprint: FloorBlueprint,
-	entities: UnplacedCrawlEntity[]): Promise<InProgressCrawlState> {
-	return new Promise((resolve, _) => setTimeout(resolve, 0)) // don't block computation
-		.then(() => generateFloorMap(blueprint.generatorOptions))
-		.then((map) => placeStairs(map))
-		.then((map) => initializeState(dungeon, floor, map))
-		.then((state) => placeEntityGroup(state, ...entities))
-		.then((state) => placeEnemies(state, blueprint))
-		.then((state) => placeItems(state, blueprint));
+	entities: UnplacedCrawlEntity[]): InProgressCrawlState {
+	let map = generateFloorMap(blueprint.generatorOptions);
+	map = placeStairs(map);
+	let state = initializeState(dungeon, floor, map);
+	state = placeEntityGroup(state, entities);
+	state = placeEnemies(state, blueprint);
+	state = placeItems(state, blueprint);
+	return state;
 }
 
 type MacroTile = RoomMacroTile | JunctionMacroTile;
@@ -258,9 +257,7 @@ function initializeState(
  * @param entities - The entities to place.
  * @returns The state with the entities placed.
  */
-function placeEntityGroup(
-	state: InProgressCrawlState,
-	...entities: UnplacedCrawlEntity[]): InProgressCrawlState {
+function placeEntityGroup(state: InProgressCrawlState, entities: UnplacedCrawlEntity[]): InProgressCrawlState {
 	let map: FloorMap = {
 		width: state.floor.map.width,
 		height: state.floor.map.height,
@@ -299,7 +296,7 @@ function placeEntityGroup(
 	}
 
 	// We need to do something with the remaining entities... let's try again.
-	return placeEntityGroup(state, ...entities);
+	return placeEntityGroup(state, entities);
 }
 
 /**
@@ -315,7 +312,7 @@ function placeEnemies(
 		let count = evaluateDistribution(enemyBlueprint.density);
 
 		for (let i = 0; i < count; i++) {
-			placeEntityGroup(state, wrap({
+			placeEntityGroup(state, [wrap({
 				name: enemyBlueprint.name,
 				graphics: enemyBlueprint.graphics,
 				id: shortid.generate(),
@@ -331,12 +328,11 @@ function placeEnemies(
 					belly: { max: enemyBlueprint.stats.belly.max, current: enemyBlueprint.stats.belly.current }
 				},
 				alignment: 0,
-				advances: false,
+				ai: true,
 				items: {
 					held: { capacity: 1, items: [] }
 				},
-				controller: new controllers.AIController()
-			}));
+			})]);
 		}
 	});
 

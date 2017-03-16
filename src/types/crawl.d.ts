@@ -57,9 +57,8 @@ interface Locatable {
 }
 
 interface UnplacedCrawlEntity extends Entity {
-	controller: Controller;
 	alignment: number;
-	advances: boolean;
+	ai: boolean;
 }
 
 interface CrawlEntity extends UnplacedCrawlEntity, Locatable {
@@ -257,7 +256,7 @@ interface CensoredCrawlEntity extends Locatable {
 	graphics: string;
 	id: string;
 	alignment: number;
-	advances: boolean;
+	ai: boolean;
 	stats: CensoredEntityStats;
 }
 
@@ -273,7 +272,7 @@ interface CensoredSelfCrawlEntity extends Locatable {
 	attacks: Attack[];
 	stats: EntityStats;
 	alignment: number;
-	advances: boolean;
+	ai: boolean;
 	items: {
 		held: ItemSet;
 		bag?: ItemSet;

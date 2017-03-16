@@ -14,7 +14,6 @@ interface OverworldEntity extends Entity {
 interface PlayerOverworldEntity extends Entity {
 	position: Point;
 	direction: number;
-	controller: Controller;
 }
 
 type Interaction = SpeakingInteraction | CrawlInteraction | TransitionInteraction;

@@ -47,14 +47,3 @@ interface BaseModifierStat {
 	base: number;
 	modifier: number;
 }
-
-/**
- * An abstraction providing methods for the game to get upcoming moves.
- */
-interface Controller {
-	await: boolean;
-	getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Promise<Action>;
-	updateState(state: CensoredEntityCrawlState): void;
-	pushEvent(event: LogEvent): void;
-	wait(): void;
-}

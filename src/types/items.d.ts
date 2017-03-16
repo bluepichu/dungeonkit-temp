@@ -3,7 +3,7 @@ interface ItemBlueprint {
 	description: string;
 	equip?(entity: UnplacedCrawlEntity): UnplacedCrawlEntity; // via a proxy
 	handlers: {
-		[event: number]: (entity: CrawlEntity, state: InProgressCrawlState, Item: Item, held: boolean) => void
+		[event: number]: (entity: CrawlEntity, state: InProgressCrawlState, Item: Item, held: boolean, eventLog: LogEvent[]) => void
 			// In reality, index is ItemHook
 	};
 	actions?: {
