@@ -277,5 +277,5 @@ interface CensoredSelfCrawlEntity extends Locatable {
 		held: ItemSet;
 		bag?: ItemSet;
 	};
-	map: FloorMap;
+	// map: FloorMap;
 }

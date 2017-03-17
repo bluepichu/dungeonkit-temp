@@ -1,7 +1,5 @@
 "use strict";
 
-import * as clone     from "clone";
-
 import * as ai        from "./ai";
 import * as generator from "./generator";
 import * as printer   from "./printer";
@@ -16,9 +14,9 @@ const log = require("beautiful-log")("dungeonkit:crawl")
  * @param entities - The entities performing the crawl.
  * @return A promise for a concluded crawl.
  */
-export function startCrawl(dungeon: Dungeon, entities: UnplacedCrawlEntity[], eventLog: LogEvent[]): CrawlState {
+export function startCrawl(dungeon: Dungeon, entities: UnplacedCrawlEntity[], eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
 	if (validateDungeonBlueprint(dungeon)) {
-		return advanceToFloor(dungeon, 1, entities, eventLog);
+		return advanceToFloor(dungeon, 1, entities, eventLog, mapUpdates);
 	} else {
 		throw new Error(`[Code 1] Dungeon blueprint for dungeon '${dungeon.name}' failed validation.`);
 	}
@@ -29,13 +27,13 @@ export function startCrawl(dungeon: Dungeon, entities: UnplacedCrawlEntity[], ev
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-export function step(state: InProgressCrawlState, eventLog: LogEvent[]): CrawlState {
+export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
 	if (entity.ai) {
 		let action = ai.getAction(censoredState, entity);
-		let newState = execute(state, entity, action, eventLog);
+		let newState = execute(state, entity, action, eventLog, mapUpdates);
 		log("Done executing move - filtering");
 
 		if (state.entities.every((entity) => entity.ai)) {
@@ -50,7 +48,7 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[]): CrawlSt
 			return newState;
 		}
 
-		return step(newState, eventLog);
+		return step(newState, eventLog, mapUpdates);
 	} else {
 		state.entities.unshift(state.entities.pop());
 		return state;
@@ -62,7 +60,7 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[]): CrawlSt
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[]): CrawlState {
+export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
@@ -71,7 +69,7 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 		return state;
 	}
 
-	let newState = execute(state, entity, action, eventLog);
+	let newState = execute(state, entity, action, eventLog, mapUpdates);
 	log("Done executing move - filtering");
 
 	if (state.entities.every((entity) => entity.ai)) {
@@ -86,7 +84,7 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 		return newState;
 	}
 
-	return step(newState, eventLog);
+	return step(newState, eventLog, mapUpdates);
 }
 
 /**
@@ -176,7 +174,8 @@ function advanceToFloor(
 	dungeon: Dungeon,
 	floor: number,
 	entities: UnplacedCrawlEntity[],
-	eventLog: LogEvent[]): CrawlState {
+	eventLog: LogEvent[],
+	mapUpdates: MapUpdate[]): CrawlState {
 	if (floor > dungeon.blueprint[dungeon.blueprint.length - 1].range[1]) {
 		return {
 			dungeon: dungeon,
@@ -188,7 +187,7 @@ function advanceToFloor(
 		let state = generator.generateFloor(dungeon, floor, blueprint, entities)
 
 		state.entities.forEach((entity) => {
-			updateFloorMap(state, entity);
+			updateFloorMap(state, entity, mapUpdates);
 		});
 
 		let player = state.entities.filter((ent) => !ent.ai)[0];
@@ -269,7 +268,7 @@ function makeReadOnly<T>(obj: T, logstr: string = "[base]"): T {
  * @param entity - The entity for which the state should be censored.
  * @return The given state censored for the given entity.
  */
-function getCensoredState(
+export function getCensoredState(
 	state: InProgressCrawlState,
 	entity: CrawlEntity): CensoredEntityCrawlState {
 	// Normally this would be made readonly; however, this was removed in an attempt to speed up the code.
@@ -330,7 +329,6 @@ function censorSelf(entity: CrawlEntity): CensoredSelfCrawlEntity {
 		graphics: entity.graphics,
 		alignment: entity.alignment,
 		ai: entity.ai,
-		map: entity.map,
 		items: entity.items
 	};
 }
@@ -377,7 +375,8 @@ function execute(
 	state: InProgressCrawlState,
 	entity: CrawlEntity,
 	action: Action,
-	eventLog: LogEvent[]): CrawlState {
+	eventLog: LogEvent[],
+	mapUpdates: MapUpdate[]): CrawlState {
 	let result: CrawlState = undefined;
 
 	switch (action.type) {
@@ -394,7 +393,7 @@ function execute(
 			break;
 
 		case "stairs":
-			result = executeStairs(state, entity, action, eventLog);
+			result = executeStairs(state, entity, action, eventLog, mapUpdates);
 			break;
 
 		case "wait":
@@ -406,7 +405,7 @@ function execute(
 			break;
 	}
 
-	return postExecute(result, entity, eventLog);
+	return postExecute(result, entity, eventLog, mapUpdates);
 }
 
 /**
@@ -415,7 +414,7 @@ function execute(
  * @param entity - The last entity to perform an action.
  * @return The state after these checks.
  */
-function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[]): CrawlState {
+function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
 	if (utils.isCrawlOver(state)) {
 		return state;
 	}
@@ -447,7 +446,7 @@ function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[
 		});
 
 	newState.entities = newState.entities.filter((entity) => entity.stats.hp.current > 0);
-	newState.entities.forEach((entity) => updateFloorMap(newState, entity));
+	newState.entities.forEach((entity) => updateFloorMap(newState, entity, mapUpdates));
 
 	return newState;
 }
@@ -909,7 +908,8 @@ function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecov
 function executeStairs(state: InProgressCrawlState,
 	entity: CrawlEntity,
 	action: StairsAction,
-	eventLog: LogEvent[]): CrawlState {
+	eventLog: LogEvent[],
+	mapUpdates: MapUpdate[]): CrawlState {
 	if (state.floor.map.grid[entity.location.r][entity.location.c].stairs) {
 		propagateLogEvent(state, {
 			type: "stairs",
@@ -923,7 +923,7 @@ function executeStairs(state: InProgressCrawlState,
 		// state.entities.forEach((entity) => entity.controller.wait());
 
 		let advancers = state.entities.filter((entity) => !entity.ai);
-		return advanceToFloor(state.dungeon, state.floor.number + 1, advancers, eventLog);
+		return advanceToFloor(state.dungeon, state.floor.number + 1, advancers, eventLog, mapUpdates);
 	}
 
 	return state;
@@ -966,17 +966,21 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent, 
  * @param state - The state.
  * @param entity - The entity.
  */
-function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void {
+function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpdates: MapUpdate[]): void {
 	// Do a floodfill to find all locations that need to be added
 
 	let entityGrid = entity.map.grid;
+	let isAi = entity.ai;
 	let location = entity.location;
 
 	let queue: Queue<CrawlLocation> = new Queue<CrawlLocation>();
 
 	for (let r = location.r - 2; r <= location.r + 2; r++) {
 		for (let c = location.c - 2; c <= location.c + 2; c++) {
-			if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width)) {
+			if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
+				if (!isAi) {
+					mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
+				}
 				entityGrid[r][c] = state.floor.map.grid[r][c];
 				queue.add({ r, c });
 			}
@@ -992,6 +996,9 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity): void 
 			for (let r = loc.r - 2; r <= loc.r + 2; r++) {
 				for (let c = loc.c - 2; c <= loc.c + 2; c++) {
 					if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
+						if (!isAi) {
+							mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
+						}
 						entityGrid[r][c] = state.floor.map.grid[r][c];
 						queue.add({ r, c });
 					}

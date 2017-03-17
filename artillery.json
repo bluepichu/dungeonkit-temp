@@ -1,14 +1,19 @@
 {
 	"config": {
 		"target": "http://localhost:6918",
+		"defaults": {
+			"think": {
+				"jitter": "80%"
+			}
+		},
 		"phases": [
-			{ "duration": 10, "arrivalRate": 8 }
+			{ "duration": 20, "arrivalRate": 8 }
 		]
 	},
 
 	"scenarios": [
 		{
-			"name": "Player 1",
+			"name": "Player",
 			"weight": 1,
 			"engine": "socketio",
 			"flow": [
@@ -46,93 +51,7 @@
 						},
 						{ "think": 0.5 }
 					],
-					"count": 100
-				}
-			]
-		},
-		{
-			"name": "Player 2",
-			"weight": 1,
-			"engine": "socketio",
-			"flow": [
-				{ "get": { "url": "/" } },
-				{ "think": 2 },
-				{ "emit": { "channel": "start", "data": "" } },
-				{ "think": 3 },
-				{ "emit": { "channel": "overworld-interact-hotzone", "data": "to-proto-forest" } },
-				{ "emit": { "channel": "overworld-respond", "data": 0 } },
-				{ "think": 5 },
-				{ "emit": { "channel": "crawl-action", "data": { "type": "move", "direction": 0 } } },
-				{ "think": 0.5 },
-				{ "emit": { "channel": "crawl-action", "data": { "type": "move", "direction": 4 } } },
-				{ "think": 0.5 },
-				{
-					"loop": [
-						{
-							"emit": {
-								"channel": "crawl-action",
-								"data": { "type": "move", "direction": 0 },
-								"response": {
-									"channel": "crawl-update"
-								}
-							}
-						},
-						{ "think": 0.26 },
-						{
-							"emit": {
-								"channel": "crawl-action",
-								"data": { "type": "move", "direction": 4 },
-								"response": {
-									"channel": "crawl-update"
-								}
-							}
-						},
-						{ "think": 0.26 }
-					],
-					"count": 100
-				}
-			]
-		},
-		{
-			"name": "Player 3",
-			"weight": 1,
-			"engine": "socketio",
-			"flow": [
-				{ "get": { "url": "/" } },
-				{ "think": 2 },
-				{ "emit": { "channel": "start", "data": "" } },
-				{ "think": 3 },
-				{ "emit": { "channel": "overworld-interact-hotzone", "data": "to-proto-forest" } },
-				{ "emit": { "channel": "overworld-respond", "data": 0 } },
-				{ "think": 5 },
-				{ "emit": { "channel": "crawl-action", "data": { "type": "move", "direction": 0 } } },
-				{ "think": 0.5 },
-				{ "emit": { "channel": "crawl-action", "data": { "type": "move", "direction": 4 } } },
-				{ "think": 0.5 },
-				{
-					"loop": [
-						{
-							"emit": {
-								"channel": "crawl-action",
-								"data": { "type": "move", "direction": 0 },
-								"response": {
-									"channel": "crawl-update"
-								}
-							}
-						},
-						{ "think": 0.19 },
-						{
-							"emit": {
-								"channel": "crawl-action",
-								"data": { "type": "move", "direction": 4 },
-								"response": {
-									"channel": "crawl-update"
-								}
-							}
-						},
-						{ "think": 0.19 }
-					],
-					"count": 100
+					"count": 40
 				}
 			]
 		}

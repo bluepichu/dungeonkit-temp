@@ -1,21 +1,22 @@
 "use strict";
 
-import * as RedisSMQ from "rsmq";
+import * as kue from "kue";
 
 import { graphics, entityGraphics } from "../data/graphics";
 
 const log  = require("beautiful-log")("dungeonkit:comm-controller");
-const rsmq = new RedisSMQ({ host: "127.0.0.1", port: 6379, ns: "rsmq" });
 
 export default class CommController {
 	private entity: PlayerOverworldEntity;
 	private socket: SocketIO.Socket;
 	private knownGraphics: Set<String>;
+	private queue: kue.Queue;
 
-	public constructor(socket: SocketIO.Socket, entity: PlayerOverworldEntity) {
+	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity) {
 		this.entity = entity;
 		this.socket = socket;
 		this.knownGraphics = new Set<String>();
+		this.queue = queue;
 	}
 
 	public initOverworld(scene: OverworldScene): void {
@@ -186,11 +187,12 @@ export default class CommController {
 
 		log("--------> in");
 
-		rsmq.sendMessage({ qname: "in", message: JSON.stringify(msg) }, (err, resp) => {
+		let balancer = this.socket.id.charCodeAt(this.socket.id.length - 1) % 2 + 1;
+		this.queue.create("in_" + balancer, msg).save((err: Error) => {
 			if (err) {
 				log.error(err);
 			}
-		});
+		})
 	}
 
 	public receive(message: OutMessage): void {

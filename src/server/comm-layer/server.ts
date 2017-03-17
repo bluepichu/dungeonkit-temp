@@ -3,10 +3,10 @@
 import * as express          from "express";
 import * as fs               from "fs";
 import * as http             from "http";
+import * as kue              from "kue";
 import * as net              from "net";
 import * as path             from "path";
 import {generate as shortid} from "shortid";
-import * as RSMQWorker       from "rsmq-worker";
 import * as socketio         from "socket.io";
 import * as socketioRedis    from "socket.io-redis";
 
@@ -24,7 +24,7 @@ interface GameInfo {
 
 const controllerMap: Map<String, CommController> = new Map<String, CommController>();
 
-export function start() {
+export function start(queue: kue.Queue) {
 	// Error.stackTraceLimit = Infinity;
 
 	const app: express.Express = express();
@@ -55,7 +55,7 @@ export function start() {
 			log(`<magenta>S ${socket.id}</magenta>`);
 
 			let player = generatePlayer();
-			controllerMap.set(socket.id, new CommController(socket, player));
+			controllerMap.set(socket.id, new CommController(socket, queue, player));
 			controllerMap.get(socket.id).initOverworld(scene);
 		});
 	});
@@ -73,18 +73,14 @@ export function start() {
 		log.error("Unhandled promise rejection:", reason);
 	});
 
-	const worker = new RSMQWorker("out", { interval: 0 });
-
-	worker.on("message", (msg: string, next: () => void, id: number) => {
-		let { socketId, message }: WrappedOutMessage = JSON.parse(msg);
+	queue.process("out", 2, (job: kue.Job, done: () => void) => {
+		let { socketId, message } = job.data;
 		let controller = controllerMap.get(socketId);
 		if (controller === undefined) {
 			log("No controller for socketId", socketId);
 		} else {
 			controller.receive(message);
 		}
-		next();
+		done();
 	});
-
-	worker.start();
 }
