@@ -53,6 +53,8 @@ export function start(queue: kue.Queue) {
 		let player = generatePlayer();
 		controllerMap.set(socket.id, new CommController(socket, queue, player));
 
+		io.emit("feed", { type: "connect", user: socket.id });
+
 		socket.on("disconnect", () => {
 			log(`<red>- ${socket.id}</red>`);
 			redisClient.hincrby(`comm_${process.env["worker_index"]}_stats`, "connections", -1);
