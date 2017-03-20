@@ -1,8 +1,9 @@
 "use strict";
 
-import * as crawl   from "./crawl";
-import * as printer from "./printer";
-import * as utils   from "../../common/utils";
+import * as crawl   from  "./crawl";
+import dungeons     from "../data/dungeons";
+import * as printer from  "./printer";
+import * as utils   from  "../../common/utils";
 
 import * as kue     from "kue";
 
@@ -80,10 +81,10 @@ function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpda
 	}
 }
 
-function handleCrawlStart(socketId: string, dungeon: Dungeon, entity: UnplacedCrawlEntity, callback: () => void): void {
+function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCrawlEntity, callback: () => void): void {
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
-	let state = crawl.startCrawl(dungeon, [entity], eventLog, mapUpdates);
+	let state = crawl.startCrawl(dungeons.get(dungeon), [entity], eventLog, mapUpdates);
 
 	if (utils.isCrawlOver(state)) {
 		// What?

@@ -7,7 +7,7 @@ type InMessage = StartCrawlInMessage | CrawlActionInMessage;
 
 interface StartCrawlInMessage {
 	type: "crawl-start";
-	dungeon: Dungeon;
+	dungeon: string;
 	entity: UnplacedCrawlEntity;
 }
 

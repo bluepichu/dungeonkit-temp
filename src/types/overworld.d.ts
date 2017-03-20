@@ -28,7 +28,7 @@ interface SpeakingInteraction {
 
 interface CrawlInteraction {
 	type: "crawl";
-	dungeon: Dungeon;
+	dungeon: string;
 }
 
 interface TransitionInteraction {

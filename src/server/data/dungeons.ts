@@ -1,10 +1,5 @@
 "use strict";
 
-import * as clone       from "clone";
-import * as shortid     from "shortid";
-
-import * as crawl       from "../logic-layer/crawl";
-
 import { mudkipStats }  from "./stats";
 
 import {
@@ -154,7 +149,7 @@ let corridorFeatures = [
 	}
 ];
 
-export let dungeon: Dungeon = {
+let dungeon: Dungeon = {
 	name: "Prototypical Forest",
 	floors: 4,
 	direction: "up",
@@ -198,3 +193,8 @@ export let dungeon: Dungeon = {
 		}
 	]
 };
+
+let dungeons: Map<string, Dungeon> = new Map<string, Dungeon>();
+dungeons.set("proto-forest", dungeon);
+
+export default dungeons;

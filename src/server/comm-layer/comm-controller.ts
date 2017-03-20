@@ -2,6 +2,7 @@
 
 import * as kue from "kue";
 
+import dungeons                     from "../data/dungeons";
 import { graphics, entityGraphics } from "../data/graphics";
 
 const log  = require("beautiful-log")("dungeonkit:comm-controller");
@@ -129,12 +130,13 @@ export default class CommController {
 		}
 	}
 
-	private initCrawl(dungeon: Dungeon): void {
+	private initCrawl(dungeonName: string): void {
+		let dungeon = dungeons.get(dungeonName);
 		this.checkGraphics(dungeon.graphics);
 		this.socket.emit("crawl-init", dungeon);
 		this.send({
 			type: "crawl-start",
-			dungeon,
+			dungeon: dungeonName,
 			entity: {
 				id: this.entity.id,
 				name: this.entity.name,

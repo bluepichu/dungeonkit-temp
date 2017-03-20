@@ -1,6 +1,5 @@
 import { generate as shortid } from "shortid";
 
-import { dungeon }             from "./dungeon";
 import { mudkipStats }         from "./stats";
 
 let lonelyKip: OverworldEntity = {
@@ -47,7 +46,7 @@ let lonelyKip: OverworldEntity = {
 
 			return {
 				type: "crawl",
-				dungeon
+				dungeon: "proto-forest"
 			};
 		} else {
 			return {
@@ -135,7 +134,7 @@ export let scene: OverworldScene = {
 				if (selection === 0) {
 					return {
 						type: "crawl",
-						dungeon
+						dungeon: "proto-forest"
 					};
 				}
 			}

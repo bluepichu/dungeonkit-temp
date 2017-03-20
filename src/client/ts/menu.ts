@@ -85,18 +85,18 @@ export default class Menu extends Container {
 
 class Option extends Container {
 	private text: MultiStyleText;
-	private cursor: Graphics;
+	private pointer: Graphics;
 	private bg: Graphics;
 
 	public constructor(text: string) {
 		super();
 
-		this.cursor = new Graphics();
-		this.cursor.x = 4;
-		this.cursor.y = 4;
-		this.cursor.beginFill(Colors.BLACK);
-		this.cursor.drawPolygon([-4, 0, 2, 5, -4, 10]);
-		this.addChild(this.cursor);
+		this.pointer = new Graphics();
+		this.pointer.x = 4;
+		this.pointer.y = 4;
+		this.pointer.beginFill(Colors.BLACK);
+		this.pointer.drawPolygon([-4, 0, 2, 5, -4, 10]);
+		this.addChild(this.pointer);
 
 		this.text = new MultiStyleText(text, OPTION_STYLES);
 		this.text.x = 12;
@@ -106,6 +106,6 @@ class Option extends Container {
 	}
 
 	public set selected(sel: boolean) {
-		this.cursor.visible = sel;
+		this.pointer.visible = sel;
 	}
 }
