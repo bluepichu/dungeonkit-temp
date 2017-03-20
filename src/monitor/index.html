@@ -1,0 +1,130 @@
+<html>
+	<head>
+		<title>DungeonKit Monitor</title>
+
+		<style>
+		*, *::before, *::after {
+			box-sizing: inherit;
+			font-family: inherit;
+		}
+
+		body {
+			margin: 0px;
+			overflow: hidden;
+			font-family: "Lato";
+			display: flex;
+			flex-direction: column;
+		}
+
+		header {
+			background: #00897B;
+			color: #ffffff;
+			font-size: 2em;
+			padding: .4em 1.2em;
+			flex-grow: 0;
+			margin-bottom: .4em;
+		}
+
+		main {
+			flex-basis: 0;
+			flex-grow: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+		#comm-container,
+		#logic-container,
+		#queues-container {
+			position: relative;
+			display: flex;
+			flex-direction: row;
+			padding: 1.6em 2.4em .2em;
+			margin-bottom: 1em;
+			min-height: 7.6em;
+		}
+
+		#comm-container {
+			background: #ffcdd2;
+		}
+
+		#logic-container {
+			background: #BBDEFB;
+		}
+
+		#queues-container {
+			background: #FFE0B2;
+		}
+
+		#comm-container::before,
+		#logic-container::before,
+		#queues-container::before {
+			font-size: .8em;
+			font-weight: 900;
+			text-transform: uppercase;
+			position: absolute;
+			left: 1.2em;
+			top: .4em;
+		}
+
+		#comm-container::before {
+			content: "Comm Nodes";
+			color: #e53935;
+		}
+
+		#logic-container::before {
+			content: "Logic Nodes";
+			color: #1E88E5;
+		}
+
+		#queues-container::before {
+			content: "Queues";
+			color: #FB8C00;
+		}
+
+		.node {
+			width: 8em;
+			height: 6em;
+			background: #ffffff;
+			margin: .4em;
+			padding: .8em;
+		}
+
+		.node h2 {
+			margin: 0;
+			padding: 0;
+			font-size: 1.4em;
+			font-weight: 400;
+			color: #212121;
+		}
+
+		.logic-node .throughput,
+		.logic-node .games,
+		.queue .length {
+			color: #616161;
+			font-size: 1em;
+		}
+
+		.material-icons {
+			font-size: 1em !important;
+			vertical-align: -2px;
+		}
+
+		footer {
+			flex-grow: 0;
+		}
+		</style>
+
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="http://localhost:6918/lib/webfontloader.js"></script>
+		<script src="/js/monitor.js"></script>
+	</head>
+	<body>
+		<header>DungeonKit Status Monitor</header>
+		<main>
+			<div id="comm-container"></div>
+			<div id="logic-container"></div>
+			<div id="queues-container"></div>
+		</main>
+		<footer></footer>
+	</body>
+</html>

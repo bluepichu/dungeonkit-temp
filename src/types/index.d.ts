@@ -6,6 +6,7 @@
 /// <reference path="graphics.d.ts"/>
 /// <reference path="items.d.ts"/>
 /// <reference path="messaging.d.ts"/>
+/// <reference path="monitor.d.ts"/>
 /// <reference path="overworld.d.ts"/>
 /// <reference path="probability.d.ts"/>
 /// <reference path="story.d.ts"/>

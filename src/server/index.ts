@@ -1,9 +1,14 @@
 "use strict";
 
 import * as cluster     from "cluster";
+import * as express     from "express";
+import * as http        from "http";
 import * as kue         from "kue";
 import * as nconf       from "nconf";
 import * as net         from "net";
+import * as path        from "path";
+import * as redis       from "redis";
+import * as socketio    from "socket.io";
 import * as sourcemap   from "source-map-support";
 
 nconf.argv().env();
@@ -18,8 +23,8 @@ let queue = kue.createQueue();
 sourcemap.install();
 
 if (cluster.isMaster) {
-	// kue.app.listen(3000);
 	const log  = require("beautiful-log")("dungeonkit:base", { color: "red", showDelta: false });
+	const redisClient = redis.createClient();
 
 	log("Starting master");
 	const PORT: number = nconf.get("port") || 6918;
@@ -29,6 +34,7 @@ if (cluster.isMaster) {
 	}
 
 	for (let i = 0; i < numLogicNodes; i++) {
+		redisClient.hmset(`logic_${i + numCommNodes}_stats`, ["throughput", 0, "games", 0]);
 		spawnLogicNode(log, i + numCommNodes);
 	}
 
@@ -36,6 +42,31 @@ if (cluster.isMaster) {
 		let worker = workers[0]; // TODO
 		worker.send("sticky-session:connection", connection);
 	}).listen(PORT);
+
+	// Create monitor app
+	const app: express.Express = express();
+	app.use("/", express.static(path.join(__dirname, "../monitor")));
+
+	const server: http.Server = app.listen(3000, "localhost", () => {
+		log("Monitor server is up");
+	});
+
+	const io: SocketIO.Server = socketio(server);
+
+	setInterval(() => {
+		log("Sending monitor update");
+
+		let commStatsPrm = Promise.all(Array.from(new Array(numCommNodes), (_, i) => getCommStats(i, redisClient)));
+		let logicStatsPrm = Promise.all(Array.from(new Array(numLogicNodes), (_, i) => getLogicStats(i + numCommNodes, redisClient)));
+		let queueStatsPrm = getQueueStats();
+
+		Promise.all([commStatsPrm, logicStatsPrm, queueStatsPrm])
+			.then(([commNodes, logicNodes, queues]) => {
+				let stats: MonitorStats = { commNodes, logicNodes, queues };
+				log(stats);
+				io.emit("update", stats);
+			});
+	}, 5000);
 } else {
 	let workerIndex = parseInt(nconf.get("worker_index"));
 
@@ -64,4 +95,26 @@ function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 	workers[idx].on("exit", (code, signal) => {
 		spawnLogicNode(log, idx);
 	})
+}
+
+function getCommStats(id: number, redisClient: redis.RedisClient): Promise<CommNodeStats> {
+	return Promise.resolve({ id });
+}
+
+function getLogicStats(id: number, redisClient: redis.RedisClient): Promise<LogicNodeStats> {
+	return new Promise((resolve, reject) => {
+		redisClient.hgetall(`logic_${id}_stats`, (err: Error, stats: Object) => {
+			redisClient.hset(`logic_${id}_stats`, ["throughput", 0]);
+			resolve(Object.assign(stats, { id }));
+		});
+	});
+}
+
+function getQueueStats(): Promise<QueueStats[]> {
+	return new Promise((resolve, reject) => {
+		queue.types((err: Error, types: string[]) => {
+			resolve(Promise.all(types.map((type) =>
+				new Promise((res, rej) => queue.activeCount(type, (err: Error, count: number) => res({ name: type, length: count }))))));
+		});
+	});
 }

@@ -1,14 +1,15 @@
 "use strict";
 
-import * as crawl   from  "./crawl";
+import * as crawl   from "./crawl";
 import dungeons     from "../data/dungeons";
-import * as printer from  "./printer";
-import * as utils   from  "../../common/utils";
+import * as printer from "./printer";
+import * as utils   from "../../common/utils";
 
 import * as kue     from "kue";
+import * as redis   from "redis";
 
 const log = require("beautiful-log")("dungeonkit:logic-server", { showDelta: false });
-// const client = redis.createClient();
+const redisClient = redis.createClient();
 
 const games: Map<string, CrawlState> = new Map<string, CrawlState>();
 let queue: kue.Queue;
@@ -20,7 +21,10 @@ export function start(q: kue.Queue): void {
 	queue.process("in_" + process.env["worker_index"], 2, (job: kue.Job, done: () => void) => {
 		log("<-------- in");
 		let { socketId, message } = job.data;
-		receive(socketId, message, done);
+		receive(socketId, message, () => {
+			redisClient.hincrby(`logic_${process.env["worker_index"]}_stats`, ["throughput", 1]);
+			done();
+		});
 	});
 }
 
@@ -82,6 +86,7 @@ function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpda
 }
 
 function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCrawlEntity, callback: () => void): void {
+	redisClient.hincrby(`logic_${process.env["worker_index"]}_stats`, ["games", 1]);
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
 	let state = crawl.startCrawl(dungeons.get(dungeon), [entity], eventLog, mapUpdates);

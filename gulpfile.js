@@ -31,6 +31,16 @@ const CLIENT_TS_CONFIG = {
 	"noImplicitAny": true
 };
 
+const MONITOR_TS_CONFIG = {
+	"emitDecoratorMetadata": true,
+	"experimentalDecorators": true,
+	"target": "es6",
+	"moduleResolution": "node",
+	"removeComments": true,
+	"sourceMap": false,
+	"noImplicitAny": true
+};
+
 const EXTERNAL_DEPENDENCY_LOOPUP = {
 	"pixi.js": "PIXI",
 	"pixi-multistyle-text": false,
@@ -47,6 +57,10 @@ const CLIENT_LIB_FILES = [
 	"node_modules/webfontloader/webfontloader.js"
 ];
 
+const MONITOR_LIB_FILES = [
+	"node_modules/webfontloader/webfontloader.js"
+];
+
 let src     = (...dirs) => dirs.map((dir) => path.join("src", dir));
 let test    = (...dirs) => dirs.map((dir) => path.join("test", dir));
 let build   = (dir) => path.join("build", dir);
@@ -57,9 +71,9 @@ let notify  = (message) => notifier.notify({
 			icon: path.join(__dirname, "icon.png")
 		});
 
-gulp.task("default", ["client", "server", "test"]);
+gulp.task("default", ["client", "server", "monitor", "test"]);
 
-gulp.task("watch", ["default", "watch-server", "watch-client", "watch-test"]);
+gulp.task("watch", ["default", "watch-server", "watch-client", "watch-monitor", "watch-test"]);
 
 gulp.task("watch-client", () => {
 	gulp.watch(src("client/**/*.ts", "types/**/*.*", "common/**/*.*"), ["client-ts"]);
@@ -72,18 +86,18 @@ gulp.task("client", ["client-html", "client-assets", "client-ts", "client-lib"])
 
 gulp.task("client-assets", () =>
 	gulp.src(src("client/assets/**/*.*"))
-	    .pipe(gulp.dest(build("client/assets"))));
+		.pipe(gulp.dest(build("client/assets"))));
 
 gulp.task("client-html", () =>
 	gulp.src(src("client/index.html"))
-	    .pipe(gulp.dest(build("client"))));
+		.pipe(gulp.dest(build("client"))));
 
 gulp.task("client-ts", () =>
 	gulp.src(src("{client/ts/**/*.ts,common/**/*.ts}"))
-	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(CLIENT_TS_CONFIG))
-	    .pipe($.sourcemaps.write(map))
-	    .pipe($.intermediate({ output: "out" }, (dir, cb) => {
+		.pipe($.sourcemaps.init())
+		.pipe($.typescript(CLIENT_TS_CONFIG))
+		.pipe($.sourcemaps.write(map))
+		.pipe($.intermediate({ output: "out" }, (dir, cb) => {
 			rollup({
 				entry: path.join(dir, "client/ts/client.js"),
 				format: "umd",
@@ -114,16 +128,41 @@ gulp.task("client-lib", () =>
 		.pipe($.sourcemaps.write(map))
 		.pipe(gulp.dest(build("client/lib"))));
 
+gulp.task("watch-monitor", () => {
+	gulp.watch(src("monitor/ts/**/*.ts", "types/**/*.*"), ["monitor-ts"]);
+	gulp.watch(src("monitor/index.html"), ["monitor-html"]);
+});
+
+gulp.task("monitor", ["monitor-ts", "monitor-html", "monitor-lib"]);
+
+gulp.task("monitor-ts", () =>
+	gulp.src(src("monitor/ts/**/*.ts"))
+		.pipe($.sourcemaps.init())
+		.pipe($.typescript(MONITOR_TS_CONFIG))
+		.pipe($.sourcemaps.write(map))
+		.pipe(gulp.dest(build("monitor/js"))
+			.on("end", () => notify("The monitor is ready!"))));
+
+gulp.task("monitor-html", () =>
+	gulp.src(src("monitor/index.html"))
+	    .pipe(gulp.dest(build("monitor"))));
+
+gulp.task("monitor-lib", () =>
+	gulp.src(MONITOR_LIB_FILES)
+		.pipe($.sourcemaps.init({ loadMaps: true }))
+		.pipe($.sourcemaps.write(map))
+		.pipe(gulp.dest(build("monitor/lib"))));
+
 gulp.task("watch-server", () => {
 	gulp.watch(src("server/**/*.ts", "index.ts", "types/**/*.*", "common/**/*.*"), ["server"])
 });
 
 gulp.task("server", () =>
 	gulp.src(src("{server/**/*.ts,index.ts,common/**/*.ts}"))
-	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(SERVER_TS_CONFIG))
-	    .pipe($.sourcemaps.write(map))
-	    .pipe(gulp.dest(build("")).on("end", () => notify("The server is ready!"))));
+		.pipe($.sourcemaps.init())
+		.pipe($.typescript(SERVER_TS_CONFIG))
+		.pipe($.sourcemaps.write(map))
+		.pipe(gulp.dest(build("")).on("end", () => notify("The server is ready!"))));
 
 gulp.task("watch-test", () => {
 	gulp.watch(test("**/*.ts"), ["test"]);
@@ -131,8 +170,8 @@ gulp.task("watch-test", () => {
 
 gulp.task("test", () =>
 	gulp.src(test("**/*.ts"))
-	    .pipe($.sourcemaps.init())
-	    .pipe($.typescript(SERVER_TS_CONFIG))
-	    .pipe($.replace("../../src/", "../../"))
-	    .pipe($.sourcemaps.write(map))
-	    .pipe(gulp.dest(build("test"))));
+		.pipe($.sourcemaps.init())
+		.pipe($.typescript(SERVER_TS_CONFIG))
+		.pipe($.replace("../../src/", "../../"))
+		.pipe($.sourcemaps.write(map))
+		.pipe(gulp.dest(build("test"))));
