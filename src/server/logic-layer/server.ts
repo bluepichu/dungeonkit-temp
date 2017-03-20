@@ -37,6 +37,12 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
 		case "crawl-action":
 			handleCrawlAction(socketId, message.action, message.options, callback);
 			break;
+
+		case "disconnect":
+			games.delete(socketId);
+			redisClient.hincrby(`logic_${process.env["worker_index"]}_stats`, ["games", -1]);
+			callback();
+			break;
 	}
 }
 

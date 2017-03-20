@@ -79,7 +79,7 @@ if (cluster.isMaster) {
 
 function spawnCommNode(log: (...args: any[]) => void, idx: number): void {
 	log("Spawning comm worker", idx);
-	let env = Object.assign({}, process.env, { worker_index: idx });
+	let env = Object.assign({}, process.env, { worker_index: idx, comm: numCommNodes, logic: numLogicNodes });
 	workers[idx] = cluster.fork(env);
 
 	workers[idx].on("exit", (code, signal) => {
@@ -89,7 +89,7 @@ function spawnCommNode(log: (...args: any[]) => void, idx: number): void {
 
 function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 	log("Spawning logic worker", idx);
-	let env = Object.assign({}, process.env, { worker_index: idx });
+	let env = Object.assign({}, process.env, { worker_index: idx, comm: numCommNodes, logic: numLogicNodes });
 	workers[idx] = cluster.fork(env);
 
 	workers[idx].on("exit", (code, signal) => {

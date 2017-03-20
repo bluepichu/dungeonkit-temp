@@ -3,7 +3,7 @@ interface WrappedInMessage {
 	message: InMessage;
 }
 
-type InMessage = StartCrawlInMessage | CrawlActionInMessage;
+type InMessage = StartCrawlInMessage | CrawlActionInMessage | DisconnectInMessage;
 
 interface StartCrawlInMessage {
 	type: "crawl-start";
@@ -17,6 +17,9 @@ interface CrawlActionInMessage {
 	options: ActionOptions;
 }
 
+interface DisconnectInMessage {
+	type: "disconnect";
+}
 
 
 

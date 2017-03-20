@@ -18,6 +18,10 @@ export default class CommController {
 		this.socket = socket;
 		this.knownGraphics = new Set<String>();
 		this.queue = queue;
+
+		this.socket.on("disconnect", () => {
+			this.send({ type: "disconnect" });
+		});
 	}
 
 	public initOverworld(scene: OverworldScene): void {
@@ -189,7 +193,7 @@ export default class CommController {
 
 		log("--------> in");
 
-		let balancer = this.socket.id.charCodeAt(this.socket.id.length - 1) % 2 + 1;
+		let balancer = this.socket.id.charCodeAt(this.socket.id.length - 1) % process.env["logic"] + 1;
 		this.queue.create("in_" + balancer, msg).save((err: Error) => {
 			if (err) {
 				log.error(err);
