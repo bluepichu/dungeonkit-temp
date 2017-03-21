@@ -5,7 +5,7 @@ import * as test   from "../../test-utils";
 
 import * as rewire from "rewire";
 
-let crawl = rewire("../../../src/server/game/crawl");
+let crawl = rewire("../../../src/server/logic-layer/crawl");
 
 export function testCrawl() {
 	describe("crawl", () => {

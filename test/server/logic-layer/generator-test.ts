@@ -5,7 +5,7 @@ import * as test   from "../../test-utils";
 
 import * as rewire from "rewire";
 
-let generator = rewire("../../../src/server/game/generator");
+let generator = rewire("../../../src/server/logic-layer/generator");
 
 export function testGenerator() {
 	describe("generator", () => {

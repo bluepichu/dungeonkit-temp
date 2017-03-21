@@ -1,9 +1,9 @@
 "use strict";
 
-import { testGame } from "./game";
+import { testLogicLayer } from "./logic-layer";
 
 export function testServer() {
 	describe("server", () => {
-		testGame();
+		testLogicLayer();
 	});
 }

@@ -236,15 +236,15 @@ export function testUtils(): void {
 				test.eq(utils.inRange(64, -32, 16), false));
 		});
 
-		describe("isVisible()", () => {
+		describe("isObjectVisible()", () => {
 			it("should accept locations that are in the same room", () =>
-				test.eq(utils.isVisible(data.map, { r: 2, c: 6 }, { r: 3, c: 9 }), true));
+				test.eq(utils.isObjectVisible(data.map, { r: 2, c: 6 }, { r: 3, c: 9 }), true));
 			it("should accept locations that are within a 2-tile distance", () =>
-				test.eq(utils.isVisible(data.map, { r: 8, c: 8 }, { r: 10, c: 8 }), true));
+				test.eq(utils.isObjectVisible(data.map, { r: 8, c: 8 }, { r: 10, c: 8 }), true));
 			it("should reject locations that aren't within a 2-tile distance or in the same room", () =>
-				test.eq(utils.isVisible(data.map, { r: 14, c: 18 }, { r: 2, c: 2 }), false));
+				test.eq(utils.isObjectVisible(data.map, { r: 14, c: 18 }, { r: 2, c: 2 }), false));
 			it("should reject invalid locations", () =>
-				test.eq(utils.isVisible(data.map, { r: 0, c: 0 }, { r: -1, c: 0 }), false));
+				test.eq(utils.isObjectVisible(data.map, { r: 0, c: 0 }, { r: -1, c: 0 }), false));
 		});
 
 		describe("isValidCrawlLocation()", () => {
@@ -287,112 +287,6 @@ export function testUtils(): void {
 				test.eq(utils.locationToPoint({ r: 10, c: 32 }, 10), { x: 320, y: 100 }));
 			it("should work on invalid locations", () =>
 				test.eq(utils.locationToPoint({ r: -1, c: 0.5 }, 10), { x: 5, y: -10 }));
-		});
-
-		describe("withinNSteps()", () => {
-			it("should work for n = 0", () => {
-				let locations: { [index: number]: number[] } = {
-					2: [5]
-				};
-
-				utils.withinNSteps(0, { r: 2, c: 5 }, (loc) => {
-					if (loc.r in locations) {
-						let index = locations[loc.r].indexOf(loc.c);
-						if (index >= 0) {
-							locations[loc.r].splice(index, 1);
-							if (locations[loc.r].length === 0) {
-								delete locations[loc.r];
-							}
-							return;
-						}
-					}
-					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
-				});
-
-				if (Object.keys(locations).length > 0) {
-					throw new Error(`Not all locations were checked`);
-				}
-			});
-
-			it("should work for n = 1", () => {
-				let locations: { [index: number]: number[] } = {
-					2: [2, 3, 4],
-					3: [2, 3, 4],
-					4: [2, 3, 4]
-				};
-
-				utils.withinNSteps(1, { r: 3, c: 3 }, (loc) => {
-					if (loc.r in locations) {
-						let index = locations[loc.r].indexOf(loc.c);
-						if (index >= 0) {
-							locations[loc.r].splice(index, 1);
-							if (locations[loc.r].length === 0) {
-								delete locations[loc.r];
-							}
-							return;
-						}
-					}
-					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
-				});
-
-				if (Object.keys(locations).length > 0) {
-					throw new Error(`Not all locations were checked`);
-				}
-			});
-
-			it("should work for n = 2", () => {
-				let locations: { [index: number]: number[] } = {
-					2: [3, 4, 5, 6, 7],
-					3: [3, 4, 5, 6, 7],
-					4: [3, 4, 5, 6, 7],
-					5: [3, 4, 5, 6, 7],
-					6: [3, 4, 5, 6, 7]
-				};
-
-				utils.withinNSteps(2, { r: 4, c: 5 }, (loc) => {
-					if (loc.r in locations) {
-						let index = locations[loc.r].indexOf(loc.c);
-						if (index >= 0) {
-							locations[loc.r].splice(index, 1);
-							if (locations[loc.r].length === 0) {
-								delete locations[loc.r];
-							}
-							return;
-						}
-					}
-					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
-				});
-
-				if (Object.keys(locations).length > 0) {
-					throw new Error(`Not all locations were checked`);
-				}
-			});
-
-			it("should work with an invalid base location", () => {
-				let locations: { [index: number]: number[] } = {
-					[-3]: [-1, 0, 1],
-					[-2]: [-1, 0, 1],
-					[-1]: [-1, 0, 1]
-				};
-
-				utils.withinNSteps(1, { r: -2, c: 0 }, (loc) => {
-					if (loc.r in locations) {
-						let index = locations[loc.r].indexOf(loc.c);
-						if (index >= 0) {
-							locations[loc.r].splice(index, 1);
-							if (locations[loc.r].length === 0) {
-								delete locations[loc.r];
-							}
-							return;
-						}
-					}
-					throw new Error(`CrawlLocation (${loc.r}, ${loc.c}) should not get checked`);
-				});
-
-				if (Object.keys(locations).length > 0) {
-					throw new Error(`Not all locations were checked`);
-				}
-			});
 		});
 
 		describe("isVoid()", () => {

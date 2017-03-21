@@ -3,7 +3,7 @@
 import { testCrawl }     from "./crawl-test";
 import { testGenerator } from "./generator-test";
 
-export function testGame() {
+export function testLogicLayer() {
 	describe("game", () => {
 		testCrawl();
 		testGenerator();

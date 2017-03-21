@@ -4,12 +4,12 @@ export let floorBlueprint: FloorBlueprint = {
 	generatorOptions: {
 		width: { type: "binomial", n: 10, p: 1 },
 		height: { type: "binomial", n: 10, p: 1 },
+		scale: 5,
+		rooms: { type: "uniform", a: 1, b: 3 },
+		junctions: { type: "uniform", a: 2, b: 3 },
 		features: {
-			rooms: [],
-			corridors: []
-		},
-		limit: 10,
-		cleanliness: 1
+			rooms: []
+		}
 	},
 	enemies: [],
 	items: []
@@ -115,19 +115,6 @@ export let bag: ItemSet = {
 	items: [item2]
 };
 
-let mockController = {
-	await: false,
-	getAction(state: CensoredEntityCrawlState, entity: CrawlEntity) {
-		return Promise.resolve({
-			type: "wait"
-		});
-	},
-	updateState(state: CensoredEntityCrawlState) {},
-	pushEvent(event: LogEvent) {},
-	wait() {},
-	init(entity: UnplacedCrawlEntity, dungeon: CensoredDungeon) {}
-};
-
 let mockStats: EntityStats = {
 	level: 1,
 	hp: { max: 1, current: 1 },
@@ -147,10 +134,9 @@ export let entity1: CrawlEntity = {
 		held: { capacity: 1, items: [item1] },
 		bag: bag
 	},
-	controller: mockController,
 	location: { r: 3, c: 7 },
 	alignment: 1,
-	advances: true
+	ai: false
 };
 
 export let entity2: CrawlEntity = {
@@ -164,10 +150,9 @@ export let entity2: CrawlEntity = {
 		held: { capacity: 1, items: [] },
 		bag: bag
 	},
-	controller: mockController,
 	location: { r: 15, c: 3 },
 	alignment: 1,
-	advances: true
+	ai: false
 };
 
 export let entity3: CrawlEntity = {
@@ -180,10 +165,9 @@ export let entity3: CrawlEntity = {
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: mockController,
 	location: { r: 13, c: 15 },
 	alignment: 0,
-	advances: false
+	ai: true
 };
 
 export let entity4: CrawlEntity = {
@@ -196,10 +180,9 @@ export let entity4: CrawlEntity = {
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: mockController,
 	location: { r: 14, c: 18 },
 	alignment: 0,
-	advances: false
+	ai: true
 };
 
 export let entity5: CrawlEntity = {
@@ -212,10 +195,9 @@ export let entity5: CrawlEntity = {
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: mockController,
 	location: { r: 10, c: 2 },
 	alignment: 0,
-	advances: false
+	ai: true
 };
 
 export let entity6: CrawlEntity = {
@@ -228,10 +210,9 @@ export let entity6: CrawlEntity = {
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: mockController,
 	location: { r: 14, c: 3 },
 	alignment: 0,
-	advances: true
+	ai: false
 };
 
 export let entity7: CrawlEntity = {
@@ -244,10 +225,9 @@ export let entity7: CrawlEntity = {
 	items: {
 		held: { capacity: 1, items: [] }
 	},
-	controller: mockController,
 	location: { r: 6, c: 0 },
 	alignment: 0,
-	advances: true
+	ai: false
 };
 
 export let inProgressState: InProgressCrawlState = {
