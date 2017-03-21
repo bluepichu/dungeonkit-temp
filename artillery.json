@@ -39,7 +39,7 @@
 								}
 							}
 						},
-						{ "think": 0.5 },
+						{ "think": 0.2 },
 						{
 							"emit": {
 								"channel": "crawl-action",
@@ -49,7 +49,7 @@
 								}
 							}
 						},
-						{ "think": 0.5 }
+						{ "think": 0.2 }
 					],
 					"count": 40
 				}

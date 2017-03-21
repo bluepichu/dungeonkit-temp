@@ -30,6 +30,7 @@ if (cluster.isMaster) {
 	const PORT: number = nconf.get("port") || 6918;
 
 	for (let i = 0; i < numCommNodes; i++) {
+		redisClient.hmset(`comm_${i}_stats`, ["connections", 0]);
 		spawnCommNode(log, i);
 	}
 
@@ -47,7 +48,8 @@ if (cluster.isMaster) {
 	const app: express.Express = express();
 	app.use("/", express.static(path.join(__dirname, "../monitor")));
 
-	const server: http.Server = app.listen(3000, "localhost", () => {
+	const MONITOR_PORT = nconf.get("monitor-port") || 3000;
+	const server: http.Server = app.listen(MONITOR_PORT, "localhost", () => {
 		log("Monitor server is up");
 	});
 
@@ -98,7 +100,11 @@ function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 }
 
 function getCommStats(id: number, redisClient: redis.RedisClient): Promise<CommNodeStats> {
-	return Promise.resolve({ id });
+	return new Promise((resolve, reject) => {
+		redisClient.hgetall(`comm_${id}_stats`, (err: Error, stats: Object) => {
+			resolve(Object.assign(stats, { id }));
+		});
+	});
 }
 
 function getLogicStats(id: number, redisClient: redis.RedisClient): Promise<LogicNodeStats> {

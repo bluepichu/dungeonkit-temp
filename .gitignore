@@ -1,6 +1,5 @@
 # Installable resources
 node_modules
-typings
 
 # Built resources
 build
@@ -10,3 +9,6 @@ build
 
 # Sublime
 *.sublime-workspace
+
+# Redis
+dump.rdb

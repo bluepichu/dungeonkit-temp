@@ -6,6 +6,7 @@ interface MonitorStats {
 
 interface CommNodeStats {
 	id: number;
+	connections: number;
 }
 
 interface LogicNodeStats {

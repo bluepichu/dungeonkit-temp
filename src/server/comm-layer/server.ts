@@ -7,6 +7,7 @@ import * as kue              from "kue";
 import * as net              from "net";
 import * as path             from "path";
 import {generate as shortid} from "shortid";
+import * as redis            from "redis";
 import * as socketio         from "socket.io";
 import * as socketioRedis    from "socket.io-redis";
 
@@ -16,6 +17,7 @@ import { scene }             from "../data/overworld";
 import CommController        from "./comm-controller";
 
 const log = require("beautiful-log")("dungeonkit:comm-server", { showDelta: false });
+const redisClient = redis.createClient();
 
 interface GameInfo {
 	room: string;
@@ -43,9 +45,11 @@ export function start(queue: kue.Queue) {
 
 	io.on("connection", (socket: SocketIO.Socket) => {
 		log(`<green>+ ${socket.id}</green>`);
+		redisClient.hincrby(`comm_${process.env["worker_index"]}_stats`, "connections", 1);
 
 		socket.on("disconnect", () => {
 			log(`<red>- ${socket.id}</red>`);
+			redisClient.hincrby(`comm_${process.env["worker_index"]}_stats`, "connections", -1);
 			controllerMap.delete(socket.id);
 		});
 

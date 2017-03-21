@@ -35,6 +35,9 @@ function start() {
 		commContainer.innerHTML = stats.commNodes.map((stats) =>
 			`<div class="node comm-node">
 				<h2>Node ${stats.id}</h2>
+				<div class="connections">
+					<span class="material-icons">label</span> ${stats.connections}
+				</div>
 			</div>`).join("");
 
 		logicContainer.innerHTML = stats.logicNodes.map((stats) =>
