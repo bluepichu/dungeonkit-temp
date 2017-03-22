@@ -26,16 +26,16 @@ if (cluster.isMaster) {
 	const log  = require("beautiful-log")("dungeonkit:base", { color: "red", showDelta: false });
 	const redisClient = redis.createClient();
 
+	redisClient.del("dk:logic");
+
 	log("Starting master");
 	const PORT: number = nconf.get("port") || 6918;
 
 	for (let i = 0; i < numCommNodes; i++) {
-		redisClient.hmset(`comm_${i}_stats`, ["connections", 0]);
 		spawnCommNode(log, i);
 	}
 
 	for (let i = 0; i < numLogicNodes; i++) {
-		redisClient.hmset(`logic_${i + numCommNodes}_stats`, ["throughput", 0, "games", 0]);
 		spawnLogicNode(log, i + numCommNodes);
 	}
 
@@ -58,8 +58,8 @@ if (cluster.isMaster) {
 	setInterval(() => {
 		log("Sending monitor update");
 
-		let commStatsPrm = Promise.all(Array.from(new Array(numCommNodes), (_, i) => getCommStats(i, redisClient)));
-		let logicStatsPrm = Promise.all(Array.from(new Array(numLogicNodes), (_, i) => getLogicStats(i + numCommNodes, redisClient)));
+		let commStatsPrm = getCommStats(redisClient);
+		let logicStatsPrm = getLogicStats(redisClient);
 		let queueStatsPrm = getQueueStats();
 
 		Promise.all([commStatsPrm, logicStatsPrm, queueStatsPrm])
@@ -70,9 +70,7 @@ if (cluster.isMaster) {
 			});
 	}, 5000);
 } else {
-	let workerIndex = parseInt(nconf.get("worker_index"));
-
-	if (workerIndex < numCommNodes) {
+	if (process.env["designation"] === "comm") {
 		require("./comm-layer/server").start(queue);
 	} else {
 		require("./logic-layer/server").start(queue);
@@ -81,7 +79,7 @@ if (cluster.isMaster) {
 
 function spawnCommNode(log: (...args: any[]) => void, idx: number): void {
 	log("Spawning comm worker", idx);
-	let env = Object.assign({}, process.env, { worker_index: idx, comm: numCommNodes, logic: numLogicNodes });
+	let env = Object.assign({}, process.env, { designation: "comm" });
 	workers[idx] = cluster.fork(env);
 
 	workers[idx].on("exit", (code, signal) => {
@@ -91,7 +89,7 @@ function spawnCommNode(log: (...args: any[]) => void, idx: number): void {
 
 function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 	log("Spawning logic worker", idx);
-	let env = Object.assign({}, process.env, { worker_index: idx, comm: numCommNodes, logic: numLogicNodes });
+	let env = Object.assign({}, process.env, { designation: "logic" });
 	workers[idx] = cluster.fork(env);
 
 	workers[idx].on("exit", (code, signal) => {
@@ -99,19 +97,22 @@ function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 	})
 }
 
-function getCommStats(id: number, redisClient: redis.RedisClient): Promise<CommNodeStats> {
+function getCommStats(redisClient: redis.RedisClient): Promise<CommNodeStats[]> {
 	return new Promise((resolve, reject) => {
-		redisClient.hgetall(`comm_${id}_stats`, (err: Error, stats: Object) => {
-			resolve(Object.assign(stats, { id }));
-		});
+		resolve([{ name: "Blinker" }])
 	});
 }
 
-function getLogicStats(id: number, redisClient: redis.RedisClient): Promise<LogicNodeStats> {
+function getLogicStats(redisClient: redis.RedisClient): Promise<LogicNodeStats[]> {
 	return new Promise((resolve, reject) => {
-		redisClient.hgetall(`logic_${id}_stats`, (err: Error, stats: Object) => {
-			redisClient.hset(`logic_${id}_stats`, ["throughput", 0]);
-			resolve(Object.assign(stats, { id }));
+		redisClient.zrange(`dk:logic`, 0, -1, "withscores", (err: Error, stats: string[]) => {
+			let ret: LogicNodeStats[] = [];
+
+			for (let i = 0; i < stats.length; i += 2) {
+				ret.push({ name: stats[i], games: parseInt(stats[i+1]) });
+			}
+
+			resolve(ret);
 		});
 	});
 }

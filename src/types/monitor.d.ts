@@ -5,13 +5,11 @@ interface MonitorStats {
 }
 
 interface CommNodeStats {
-	id: number;
-	connections: number;
+	name: string;
 }
 
 interface LogicNodeStats {
-	id: number;
-	throughput: number;
+	name: string;
 	games: number;
 }
 

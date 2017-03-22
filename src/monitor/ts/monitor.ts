@@ -34,17 +34,17 @@ function start() {
 
 		commContainer.innerHTML = stats.commNodes.map((stats) =>
 			`<div class="node comm-node">
-				<h2>Node ${stats.id}</h2>
+				<h2>${stats.name}</h2>
 				<div class="connections">
-					<span class="material-icons">label</span> ${stats.connections}
+					<span class="material-icons">label</span> ${0/*stats.connections*/}
 				</div>
 			</div>`).join("");
 
 		logicContainer.innerHTML = stats.logicNodes.map((stats) =>
 			`<div class="node logic-node">
-				<h2>Node ${stats.id}</h2>
+				<h2>${stats.name}</h2>
 				<div class="throughput">
-					<span class="material-icons">arrow_forward</span> ${stats.throughput / 5}
+					<span class="material-icons">arrow_forward</span> ${0/*stats.throughput / 5*/}
 				</div>
 				<div class="games">
 					<span class="material-icons">videogame_asset</span> ${stats.games}

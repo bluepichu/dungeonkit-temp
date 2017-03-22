@@ -1,17 +1,20 @@
 "use strict";
 
-import * as kue from "kue";
+import * as kue   from "kue";
+import * as redis from "redis";
 
 import dungeons                     from "../data/dungeons";
 import { graphics, entityGraphics } from "../data/graphics";
 
 const log  = require("beautiful-log")("dungeonkit:comm-controller");
+const redisClient = redis.createClient();
 
 export default class CommController {
 	private entity: PlayerOverworldEntity;
 	private socket: SocketIO.Socket;
 	private knownGraphics: Set<String>;
 	private queue: kue.Queue;
+	private logicNode: string;
 
 	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity) {
 		this.entity = entity;
@@ -135,22 +138,42 @@ export default class CommController {
 	}
 
 	private initCrawl(dungeonName: string): void {
-		let dungeon = dungeons.get(dungeonName);
-		this.checkGraphics(dungeon.graphics);
-		this.socket.emit("crawl-init", dungeon);
-		this.send({
-			type: "crawl-start",
-			dungeon: dungeonName,
-			entity: {
-				id: this.entity.id,
-				name: this.entity.name,
-				graphics: this.entity.graphics,
-				stats: this.entity.stats,
-				attacks: this.entity.attacks,
-				items: this.entity.items,
-				alignment: 1,
-				ai: false
-			}
+		this.getLogicNodeAssignment()
+			.then(() => {
+				let dungeon = dungeons.get(dungeonName);
+				this.checkGraphics(dungeon.graphics);
+				this.socket.emit("crawl-init", dungeon);
+				this.send({
+					type: "crawl-start",
+					dungeon: dungeonName,
+					entity: {
+						id: this.entity.id,
+						name: this.entity.name,
+						graphics: this.entity.graphics,
+						stats: this.entity.stats,
+						attacks: this.entity.attacks,
+						items: this.entity.items,
+						alignment: 1,
+						ai: false
+					}
+				})
+			});
+	}
+
+	private getLogicNodeAssignment(): Promise<{}> {
+		return new Promise((resolve, reject) => {
+			redisClient.zrange("dk:logic", 0, 0, (err: Error, data: string[]) => {
+				log(data);
+				if (data.length === 0) {
+					// No logic nodes...?
+					reject("No logic nodes");
+				} else {
+					this.logicNode = data[0];
+					redisClient.zincrby("dk:logic", [this.logicNode, 1], (err: Error, data: string[]) => {
+						resolve();
+					});
+				}
+			});
 		});
 	}
 
@@ -193,8 +216,7 @@ export default class CommController {
 
 		log("--------> in");
 
-		let balancer = this.socket.id.charCodeAt(this.socket.id.length - 1) % process.env["logic"] + 1;
-		this.queue.create("in_" + balancer, msg).save((err: Error) => {
+		this.queue.create(`in:${this.logicNode}`, msg).save((err: Error) => {
 			if (err) {
 				log.error(err);
 			}

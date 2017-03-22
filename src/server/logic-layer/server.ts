@@ -6,25 +6,52 @@ import * as printer from "./printer";
 import * as utils   from "../../common/utils";
 
 import * as kue     from "kue";
+import * as nconf   from "nconf";
 import * as redis   from "redis";
+import * as shortid from "shortid";
 
 const log = require("beautiful-log")("dungeonkit:logic-server", { showDelta: false });
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({ host: nconf.get("redis-host") || "127.0.0.1", port: nconf.get("redis-port") || 6379 });
 
 const games: Map<string, CrawlState> = new Map<string, CrawlState>();
 let queue: kue.Queue;
 
-export function start(q: kue.Queue): void {
-	log("Logic server is up");
-	queue = q;
+const names = ["Oran", "Pecha", "Rawst", "Cheri", "Chesto", "Sitrus"];
+let self: string;
 
-	queue.process("in_" + process.env["worker_index"], 2, (job: kue.Job, done: () => void) => {
-		log("<-------- in");
-		let { socketId, message } = job.data;
-		receive(socketId, message, () => {
-			redisClient.hincrby(`logic_${process.env["worker_index"]}_stats`, ["throughput", 1]);
-			done();
+export function start(q: kue.Queue): void {
+	register(() => {
+		log(`Logic server "${self}" is up`);
+		queue = q;
+
+		queue.process(`in:${self}`, 2, (job: kue.Job, done: () => void) => {
+			log("<-------- in");
+			let { socketId, message } = job.data;
+			receive(socketId, message, () => {
+				// log throughput
+				done();
+			});
 		});
+	});
+}
+
+function register(callback: () => void): void {
+	redisClient.zrange("dk:logic", 0, -1, (err: Error, keys: string[]) => {
+		let candidates = names.filter((name) => keys.indexOf(name) < 0);
+
+		if (candidates.length > 0) {
+			self = candidates[0];
+		} else {
+			self = shortid.generate();
+		}
+
+		redisClient.zadd("dk:logic", 0, self, (err: Error, added: number) => {
+			if (added > 0) {
+				callback();
+			} else {
+				register(callback); // Name was taken, try again
+			}
+		});;
 	});
 }
 
@@ -39,9 +66,7 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
 			break;
 
 		case "disconnect":
-			games.delete(socketId);
-			redisClient.hincrby(`logic_${process.env["worker_index"]}_stats`, ["games", -1]);
-			callback();
+			handleDisconnect(socketId, callback);
 			break;
 	}
 }
@@ -92,7 +117,7 @@ function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpda
 }
 
 function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCrawlEntity, callback: () => void): void {
-	redisClient.hincrby(`logic_${process.env["worker_index"]}_stats`, ["games", 1]);
+	redisClient.zincrby("dk:logic", [1, self]);
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
 	let state = crawl.startCrawl(dungeons.get(dungeon), [entity], eventLog, mapUpdates);
@@ -144,4 +169,10 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 
 	let newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
 	send(socketId, newState, eventLog, mapUpdates, callback);
+}
+
+function handleDisconnect(socketId: string, callback: () => void): void {
+	games.delete(socketId);
+	redisClient.zincrby("dk:logic", [-1, self]);
+	callback();
 }
