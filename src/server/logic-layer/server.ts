@@ -10,6 +10,8 @@ import * as nconf   from "nconf";
 import * as redis   from "redis";
 import * as shortid from "shortid";
 
+nconf.argv().env();
+
 const log = require("beautiful-log")("dungeonkit:logic-server", { showDelta: false });
 const redisClient = redis.createClient({ host: nconf.get("redis-host") || "127.0.0.1", port: nconf.get("redis-port") || 6379 });
 
