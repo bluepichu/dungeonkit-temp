@@ -8,12 +8,13 @@
 			font-family: inherit;
 		}
 
+		html {
+			box-sizing: border-box;
+		}
+
 		body {
 			margin: 0px;
-			overflow: hidden;
 			font-family: "Lato";
-			display: flex;
-			flex-direction: column;
 		}
 
 		header {
@@ -38,9 +39,10 @@
 			position: relative;
 			display: flex;
 			flex-direction: row;
+			flex-wrap: wrap;
 			padding: 1.6em 2.4em .2em;
 			margin-bottom: 1em;
-			min-height: 7.6em;
+			min-height: 8.6em;
 		}
 
 		#comm-container {
@@ -63,7 +65,7 @@
 			text-transform: uppercase;
 			position: absolute;
 			left: 1.2em;
-			top: .4em;
+			top: .6em;
 		}
 
 		#comm-container::before {
