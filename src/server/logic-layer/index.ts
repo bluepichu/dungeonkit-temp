@@ -1,6 +1,9 @@
-// Entrypoint for spawning a standalone logic node.
-
 "use strict";
+
+/**
+ * Entrypoint for creating a logic node without an associated communications frontend.
+ * This can be useful for scaling the logic backend.
+ */
 
 import * as nconf       from "nconf";
 import * as kue         from "kue";

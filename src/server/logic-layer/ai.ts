@@ -4,6 +4,12 @@ import * as utils     from "../../common/utils";
 
 const log = require("beautiful-log")("dungeonkit:ai");
 
+/**
+ * Selects which action should be taken in the given state by the given AI entity.
+ * @param state - The current state.
+ * @param entity - The entity for which to select a action.
+ * @return The selected action.
+ */
 export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Action {
 	log(`Computing move for ${entity.id}`);
 

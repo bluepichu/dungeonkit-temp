@@ -9,6 +9,9 @@ import { graphics, entityGraphics } from "../data/graphics";
 const log  = require("beautiful-log")("dungeonkit:comm-controller");
 const redisClient = redis.createClient();
 
+/**
+ * Represents a single client.
+ */
 export default class CommController {
 	private entity: PlayerOverworldEntity;
 	private socket: SocketIO.Socket;
@@ -16,6 +19,12 @@ export default class CommController {
 	private queue: kue.Queue;
 	private logicNode: string;
 
+	/**
+	 * Creates a new CommController using the given socket, queue, and entity.
+	 * @param socket - The socket to use for client communication.
+	 * @param queue - The job queue.
+	 * @param entity - The entity representing the player.
+	 */
 	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity) {
 		this.entity = entity;
 		this.socket = socket;
@@ -27,6 +36,10 @@ export default class CommController {
 		});
 	}
 
+	/**
+	 * Initializes an overworld scene.
+	 * @param scene - The overworld scene to initialize.
+	 */
 	public initOverworld(scene: OverworldScene): void {
 		for (let obj of scene.background) {
 			this.checkGraphics(obj.graphics);
@@ -82,6 +95,10 @@ export default class CommController {
 		});
 	}
 
+	/**
+	 * Handles an interaction with an entity in the overworld.
+	 * @param interaction - The iterator describing the interaction.
+	 */
 	private handleInteraction(interaction: IterableIterator<Interaction>): void {
 		let advance = ({ value, done }: IteratorResult<Interaction>) => {
 			if (!value) {
@@ -121,6 +138,10 @@ export default class CommController {
 		advance(interaction.next());
 	}
 
+	/**
+	 * Checks if the client needs the graphics descriptor for the given key, and sends it if necessary.
+	 * @param key - The graphics descriptor key.
+	 */
 	private checkGraphics(key: string): void {
 		if (!this.knownGraphics.has(key)) {
 			this.socket.emit("graphics", key, graphics.get(key));
@@ -129,6 +150,10 @@ export default class CommController {
 		}
 	}
 
+	/**
+	 * Checks if the client needs the entity graphics descriptor for the given key, and sends it if necessary.
+	 * @param key - The entity graphics descriptor key.
+	 */
 	private checkEntityGraphics(key: string): void {
 		if (!this.knownGraphics.has(key)) {
 			this.socket.emit("entity-graphics", key, entityGraphics.get(key));
@@ -137,6 +162,10 @@ export default class CommController {
 		}
 	}
 
+	/**
+	 * Initializes a crawl.
+	 * @param dungeonName - The key of the dungeon in which to start the crawl.
+	 */
 	private initCrawl(dungeonName: string): void {
 		this.getLogicNodeAssignment()
 			.then(() => {
@@ -160,6 +189,10 @@ export default class CommController {
 			});
 	}
 
+	/**
+	 * Selects a logic node to use for a crawl by selecting the one with the least load.
+	 * @return A promise that resolves once a logic node has been selected, or rjeects if there are no logic nodes.
+	 */
 	private getLogicNodeAssignment(): Promise<{}> {
 		return new Promise((resolve, reject) => {
 			redisClient.zrange("dk:logic", 0, 0, (err: Error, data: string[]) => {
@@ -177,6 +210,10 @@ export default class CommController {
 		});
 	}
 
+	/**
+	 * Handles a "get action" message from a logic node.
+	 * @param update - The state update to send to the client.
+	 */
 	private handleGetAction(update: UpdateMessage): void {
 		log(`W ${this.socket.id}`);
 
@@ -190,12 +227,18 @@ export default class CommController {
 		this.waitOnAction();
 	}
 
+	/**
+	 * Handles an "invalid" message from a logic node.
+	 */
 	private handleInvalid(): void {
 		this.socket.emit("crawl-invalid");
 
 		this.waitOnAction();
 	}
 
+	/**
+	 * Waits on an action from the client, and then forwards it to the logic node once it is received.
+	 */
 	private waitOnAction(): void {
 		this.socket.once("crawl-action", (action: Action, options: ActionOptions) => {
 			log(`M ${this.socket.id}`);
@@ -208,6 +251,10 @@ export default class CommController {
 		});
 	}
 
+	/**
+	 * Adds a message to the queue for the selected logic node.
+	 * @param message - The message to put in the queue.
+	 */
 	private send(message: InMessage): void {
 		let msg: WrappedInMessage = {
 			socketId: this.socket.id,
@@ -223,6 +270,10 @@ export default class CommController {
 		})
 	}
 
+	/**
+	 * Processes an incoming message from a logic node.
+	 * @param message - The message to process.
+	 */
 	public receive(message: OutMessage): void {
 		switch (message.type) {
 			case "crawl-get-action":

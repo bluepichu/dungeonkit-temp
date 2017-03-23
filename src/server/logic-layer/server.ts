@@ -5,6 +5,7 @@ import dungeons     from "../data/dungeons";
 import * as printer from "./printer";
 import * as utils   from "../../common/utils";
 
+import * as bl      from "beautiful-log";
 import * as kue     from "kue";
 import * as nconf   from "nconf";
 import * as redis   from "redis";
@@ -12,21 +13,28 @@ import * as shortid from "shortid";
 
 nconf.argv().env();
 
-const log = require("beautiful-log")("dungeonkit:logic-server", { showDelta: false });
+let log: bl.CallableLogger;
+let name: string;
+
 const redisClient = redis.createClient({ host: nconf.get("redis-host") || "127.0.0.1", port: nconf.get("redis-port") || 6379 });
 
 const games: Map<string, CrawlState> = new Map<string, CrawlState>();
 let queue: kue.Queue;
 
 const names = ["Oran", "Pecha", "Rawst", "Cheri", "Chesto", "Sitrus"];
-let self: string;
 
+/**
+ * Starts this logic node.
+ * @param q - The job queue.
+ */
 export function start(q: kue.Queue): void {
-	register(() => {
-		log(`Logic server "${self}" is up`);
+	register().then((self) => {
+		name = self;
+		log = require("beautiful-log")(`dungeonkit:logic:${name}`, { showDelta: false });
+		log(`Logic server "${name}" is up`);
 		queue = q;
 
-		queue.process(`in:${self}`, 2, (job: kue.Job, done: () => void) => {
+		queue.process(`in:${name}`, 2, (job: kue.Job, done: () => void) => {
 			log("<-------- in");
 			let { socketId, message } = job.data;
 			receive(socketId, message, () => {
@@ -37,26 +45,39 @@ export function start(q: kue.Queue): void {
 	});
 }
 
-function register(callback: () => void): void {
-	redisClient.zrange("dk:logic", 0, -1, (err: Error, keys: string[]) => {
-		let candidates = names.filter((name) => keys.indexOf(name) < 0);
+/**
+ * Attempts to register this node by selecting a name that isn't in use and adding it to the shared list of logic nodes.
+ * @return A promise that will resolve with the name this node is assigned.
+ */
+function register(): Promise<string> {
+	return new Promise((resolve, reject) => {
+		redisClient.zrange("dk:logic", 0, -1, (err: Error, keys: string[]) => {
+			let candidates = names.filter((name) => keys.indexOf(name) < 0);
+			let selectedName: string;
 
-		if (candidates.length > 0) {
-			self = candidates[0];
-		} else {
-			self = shortid.generate();
-		}
-
-		redisClient.zadd("dk:logic", 0, self, (err: Error, added: number) => {
-			if (added > 0) {
-				callback();
+			if (candidates.length > 0) {
+				selectedName = candidates[0];
 			} else {
-				register(callback); // Name was taken, try again
+				selectedName = shortid.generate();
 			}
-		});;
+
+			redisClient.zadd("dk:logic", 0, selectedName, (err: Error, added: number) => {
+				if (added > 0) {
+					return Promise.resolve(selectedName);
+				} else {
+					return register(); // Name was taken, try again
+				}
+			});;
+		});
 	});
 }
 
+/**
+ * Processes a received message.
+ * @param socketId - The socket id of the client that sent this message.
+ * @param message - The message sent by the client.
+ * @param callback - A function to call when processing is complete.
+ */
 function receive(socketId: string, message: InMessage, callback: () => void): void {
 	switch (message.type) {
 		case "crawl-start":
@@ -73,6 +94,14 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
 	}
 }
 
+/**
+ * Sends a state update message to the given client.
+ * @param socketId - The socket id of the client to which to send the message.
+ * @param state - The crawl state to send.
+ * @param eventLog - The event log to send.
+ * @param mapUpdates - The map updates to send.
+ * @param callback - The function to call when the message has been queued.
+ */
 function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpdates: MapUpdate[], callback: () => void): void {
 	if (utils.isCrawlOver(state)) {
 		// Iunno
@@ -118,6 +147,13 @@ function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpda
 	}
 }
 
+/**
+ * Handles a crawl start message.
+ * @param socketId - The socket id of the client for which to start a crawl.
+ * @param dungeon - The key of the dungeon in which to do the crawl.
+ * @param entity - The entity to put in the crawl.
+ * @param callback - A function to call when processing is complete.
+ */
 function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCrawlEntity, callback: () => void): void {
 	redisClient.zincrby("dk:logic", [1, self]);
 	let eventLog: LogEvent[] = [];
@@ -139,6 +175,13 @@ function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCra
 	}
 }
 
+/**
+ * Handles a crawl start message.
+ * @param socketId - The socket id of the client for which to start a crawl.
+ * @param action - The action to take.
+ * @param options - The options for the action.  (Currently unused.)
+ * @param callback - A function to call when processing is complete.
+ */
 function handleCrawlAction(socketId: string, action: Action, options: ActionOptions, callback: () => void): void {
 	let state: InProgressCrawlState = games.get(socketId) as InProgressCrawlState;
 
@@ -173,8 +216,13 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 	send(socketId, newState, eventLog, mapUpdates, callback);
 }
 
+/**
+ * Handles a disconnecting client by deleting their game.
+ * @param socketId - The socket id of the client for which to start a crawl.
+ * @param callback - A function to call when processing is complete.
+ */
 function handleDisconnect(socketId: string, callback: () => void): void {
 	games.delete(socketId);
-	redisClient.zincrby("dk:logic", [-1, self]);
+	redisClient.zincrby("dk:logic", [-1, name]);
 	callback();
 }

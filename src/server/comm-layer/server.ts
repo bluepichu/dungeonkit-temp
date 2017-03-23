@@ -26,9 +26,11 @@ interface GameInfo {
 
 const controllerMap: Map<String, CommController> = new Map<String, CommController>();
 
+/**
+ * Starts this comm node.
+ * @param queue - The job queue.
+ */
 export function start(queue: kue.Queue) {
-	// Error.stackTraceLimit = Infinity;
-
 	const app: express.Express = express();
 
 	app.use("/", express.static(path.join(__dirname, "../../client")));
