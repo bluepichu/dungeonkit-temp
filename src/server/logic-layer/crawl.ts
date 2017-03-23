@@ -4,7 +4,7 @@ import * as ai        from "./ai";
 import * as generator from "./generator";
 import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
-import Queue          from "../../common/queue";
+import { Queue }      from "../../common/queue";
 
 const log = require("beautiful-log")("dungeonkit:crawl")
 

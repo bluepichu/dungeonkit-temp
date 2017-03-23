@@ -1,12 +1,18 @@
 "use strict";
 
-export default class Queue<T> {
+export class Queue<T> {
 	private in: T[];
 	private out: T[];
 
 	public constructor() {
 		this.in = [];
 		this.out = [];
+	}
+
+	public static from<T>(iterable: Iterable<T>): Queue<T> {
+		let ret = new Queue<T>();
+		ret.in = Array.from(iterable);
+		return ret;
 	}
 
 	public add(item: T): void {
