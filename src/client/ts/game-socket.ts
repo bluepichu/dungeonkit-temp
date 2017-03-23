@@ -4,7 +4,7 @@ export default class GameSocket {
 	private listeners: Map<string, ((...args: any[]) => void)[]>;
 	private socket: SocketIOClient.Socket;
 
-	constructor() {
+	public constructor() {
 		this.socket = io();
 	}
 
@@ -14,7 +14,7 @@ export default class GameSocket {
 	 * @param hook - The socket.io event hook to send this to.
 	 * @param args - Arguments to pass to the event hook.
 	 */
-	emitTempSignal(hook: string, ...args: any[]): void {
+	public emitTempSignal(hook: string, ...args: any[]): void {
 		this.socket.emit(hook, ...args);
 	}
 
@@ -23,7 +23,7 @@ export default class GameSocket {
 	 * @param action - The action to send.
 	 * @param options - Action options to send.
 	 */
-	sendCrawlAction(action: Action, options?: ActionOptions): void {
+	public sendCrawlAction(action: Action, options?: ActionOptions): void {
 		this.socket.emit("crawl-action", action, options);
 	}
 
@@ -31,7 +31,7 @@ export default class GameSocket {
 	 * Interacts with an overworld entity.
 	 * @param entity - The id of the entity to interact with.
 	 */
-	sendEntityInteraction(id: string): void {
+	public sendEntityInteraction(id: string): void {
 		this.socket.emit("overworld-interact-entity", id);
 	}
 
@@ -39,7 +39,7 @@ export default class GameSocket {
 	 * Interacts with an overworld hotzone.
 	 * @param entity - The id of the hotzone to interact with.
 	 */
-	sendHotzoneInteraction(id: string): void {
+	public sendHotzoneInteraction(id: string): void {
 		console.count("hotzone-sent");
 		this.socket.emit("overworld-interact-hotzone", id);
 	}
@@ -48,45 +48,80 @@ export default class GameSocket {
 	 * Sends a response to an already-initiated interaction.
 	 * @param respose - The response.
 	 */
-	sendInteractionResponse(response: ClientInteractionResponse): void {
+	public sendInteractionResponse(response: ClientInteractionResponse): void {
 		this.socket.emit("overworld-respond", response);
 	}
 
-	// These functions are used instead of the generic on() method to allow for better typechecking.
+	// The following functions are used instead of the generic on() method to allow for better typechecking.
 
-	onCrawlInit(fn: (dungeon: CensoredDungeon) => void): void {
+	/**
+	 * Adds a hook for the "crawl-init" event.
+	 * @param fn - The function to call.
+	 */
+	public onCrawlInit(fn: (dungeon: CensoredDungeon) => void): void {
 		this.socket.on("crawl-init", fn);
 	}
 
-	onCrawlInvalid(fn: () => void): void {
+	/**
+	 * Adds a hook for the "crawl-invalid" event.
+	 * @param fn - The function to call.
+	 */
+	public onCrawlInvalid(fn: () => void): void {
 		this.socket.on("crawl-invalid", fn);
 	}
 
-	onGraphics(fn: (key: string, graphics: GraphicsObjectDescriptor) => void): void {
+	/**
+	 * Adds a hook for the "grahpics" event.
+	 * @param fn - The function to call.
+	 */
+	public onGraphics(fn: (key: string, graphics: GraphicsObjectDescriptor) => void): void {
 		this.socket.on("graphics", fn);
 	}
 
-	onEntityGraphics(fn: (key: string, graphics: EntityGraphicsDescriptor) => void): void {
+	/**
+	 * Adds a hook for the "entity-graphics" event.
+	 * @param fn - The function to call.
+	 */
+	public onEntityGraphics(fn: (key: string, graphics: EntityGraphicsDescriptor) => void): void {
 		this.socket.on("entity-graphics", fn);
 	}
 
-	onUpdate(fn: (message: UpdateMessage) => void): void {
+	/**
+	 * Adds a hook for the "crawl-update" event.
+	 * @param fn - The function to call.
+	 */
+	public onUpdate(fn: (message: UpdateMessage) => void): void {
 		this.socket.on("crawl-update", fn);
 	}
 
-	onOverworldInit(fn: (scene: ClientOverworldScene) => void): void {
+	/**
+	 * Adds a hook for the "overworld-init" event.
+	 * @param fn - The function to call.
+	 */
+	public onOverworldInit(fn: (scene: ClientOverworldScene) => void): void {
 		this.socket.on("overworld-init", fn);
 	}
 
-	onInteractContinue(fn: (interaction: Interaction) => void): void {
+	/**
+	 * Adds a hook for the "overworld-interact-continue" event.
+	 * @param fn - The function to call.
+	 */
+	public onInteractContinue(fn: (interaction: Interaction) => void): void {
 		this.socket.on("overworld-interact-continue", fn);
 	}
 
-	onInteractEnd(fn: () => void): void {
+	/**
+	 * Adds a hook for the "overworld-interact-end" event.
+	 * @param fn - The function to call.
+	 */
+	public onInteractEnd(fn: () => void): void {
 		this.socket.on("overworld-interact-end", fn);
 	}
 
-	clearInteractHandlers(): void {
+	/**
+	 * Clears the "overworld-interact-continue" and "overworld-interact-end" handlers.
+	 */
+	public clearInteractHandlers(): void {
 		this.socket.off("overworld-interact-continue");
 		this.socket.off("overworld-interact-end");
 	}

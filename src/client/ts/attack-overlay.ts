@@ -8,14 +8,24 @@ import {
 }                   from "pixi.js";
 import * as Tweener from "./graphics/tweener";
 
+/**
+ * An overlay that shows a list of available attacks and various stats about them.
+ */
 export default class AttackOverlay extends Container {
 	public children: AttackListing[];
 	private _active: boolean;
 
-	constructor() {
+	/**
+	 * Constructs a new AttackOverlay.
+	 */
+	public constructor() {
 		super();
 	}
 
+	/**
+	 * Whether or not this overlay is active.  When active, the overlay is onscreen; when inactive, it is hidden
+	 *     offscreen.
+	 */
 	public set active(active: boolean) {
 		if (this._active !== active) {
 			if (active) {
@@ -32,6 +42,10 @@ export default class AttackOverlay extends Container {
 		return this._active;
 	}
 
+	/**
+	 * Updates the information in this overlay.
+	 * @param attacks - The attacks to show in the overlay.
+	 */
 	public update(attacks: Attack[]): void {
 		this.removeChildren();
 
@@ -49,17 +63,26 @@ export default class AttackOverlay extends Container {
 		});
 	}
 
+	/**
+	 * Animates-in this overlay.
+	 */
 	private showMoves(): void {
 		this.children.forEach((child, i) =>
 			setTimeout(() => Tweener.tween(child, { x: 0 }, 1.1, "smooth"), i * 100));
 	}
 
+	/**
+	 * Animates-out this overlay.
+	 */
 	private hideMoves(): void {
 		this.children.forEach((child, i) =>
 			setTimeout(() => Tweener.tween(child, { x: -600 }, 1.1, "smooth"), i * 100));
 	}
 }
 
+/**
+ * The listing for a single attack inside an AttackOverlay.
+ */
 class AttackListing extends Container {
 	private bg: Graphics;
 	private indexText: Text;
@@ -68,6 +91,11 @@ class AttackListing extends Container {
 	private accuracyText: Text;
 	private usesText: Text;
 
+	/**
+	 * Constructs a new AttackListing with the given index and attack info.
+	 * @param indexText - What index to show for this attack.
+	 * @param attack - The attack whose information should be in this listing.
+	 */
 	constructor(indexText: number, attack: Attack) {
 		super();
 
@@ -142,7 +170,11 @@ class AttackListing extends Container {
 		this.update(attack);
 	}
 
-	update(attack: Attack) {
+	/**
+	 * Replaces the info in this listing with that of the given attack.
+	 * @param attack - The attack.
+	 */
+	public update(attack: Attack) {
 		this.nameText.text = attack.name;
 		this.powerText.text = attack.power !== undefined ? attack.power + " POW" : "";
 		this.accuracyText.text = attack.accuracy === "always" ? "Always hits" : attack.accuracy + " ACC";

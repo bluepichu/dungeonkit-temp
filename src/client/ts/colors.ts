@@ -1,5 +1,10 @@
 "use strict";
 
+/**
+ * A selection of colors used for UI.
+ * Most of them are lifted from Google's Material Design color sheet.
+ */
+
 export default {
 	RED:    0xF1453D,
 	ORANGE: 0xFF9800,

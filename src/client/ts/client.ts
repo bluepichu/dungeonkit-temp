@@ -664,7 +664,7 @@ function highlightEntity(entity: CondensedEntity): string {
 
 /**
  * Shows an overworld scene.
- * @param scene - The overworld scene to show.
+ * @param cos - The overworld scene to show.
  */
 function showScene(cos: ClientOverworldScene) {
 	scene = cos;
@@ -678,6 +678,9 @@ function showScene(cos: ClientOverworldScene) {
 	handleWindowResize();
 }
 
+/**
+ * Handles the start of an interaction.
+ */
 function startInteraction(): void {
 	overworldRenderer.idle();
 	interacting = true;

@@ -16,6 +16,9 @@ import GameSocket from "./game-socket";
 import Messages   from "./messages";
 import MessageLog from "./message-log";
 
+/**
+ * The styling used for the command area when it is inactive.
+ */
 const COMMAND_AREA_INACTIVE_STYLE: TextStyleOptions = {
 	fontFamily: "Lato",
 	fontSize: "16px",
@@ -23,6 +26,9 @@ const COMMAND_AREA_INACTIVE_STYLE: TextStyleOptions = {
 	fill: Colors.GRAY_5
 };
 
+/**
+ * The styling used for the command area when it is active.
+ */
 const COMMAND_AREA_ACTIVE_STYLE: TextStyleOptions = {
 	fontFamily: "Lato",
 	fontSize: "16px",
@@ -30,6 +36,9 @@ const COMMAND_AREA_ACTIVE_STYLE: TextStyleOptions = {
 	fill: Colors.WHITE
 };
 
+/**
+ * The stylings used for the suggestion headlines.
+ */
 const COMMAND_AREA_SUGGESTION_STYLES: TextStyleSet = {
 	default: {
 		fontFamily: "Lato",
@@ -45,6 +54,9 @@ const COMMAND_AREA_SUGGESTION_STYLES: TextStyleSet = {
 	}
 };
 
+/**
+ * The stylings used for the suggestion descriptions.
+ */
 const COMMAND_AREA_DESCRIPTION_STYLES: TextStyleSet = {
 	default: {
 		fontFamily: "Lato",
@@ -59,6 +71,9 @@ const COMMAND_AREA_DESCRIPTION_STYLES: TextStyleSet = {
 	}
 };
 
+/**
+ * The text displayed in the command area when it is not active.
+ */
 const COMMAND_AREA_DEFAULT_TEXT = "Press space to input a command...";
 
 interface Handler {
@@ -67,6 +82,9 @@ interface Handler {
 	handler(): any;
 }
 
+/**
+ * An input area that allows a user to select one of a list of commands, with autocompletion.
+ */
 export default class CommandArea extends Container {
 	public onInvalid: (cmd: string) => any;
 
@@ -79,7 +97,10 @@ export default class CommandArea extends Container {
 	private handlers: { [key: string]: Handler };
 	private highlighted: number;
 
-	constructor() {
+	/**
+	 * Constructs a new CommandArea with no suggestions.
+	 */
+	public constructor() {
 		super();
 
 		this.background = new Graphics();
@@ -102,11 +123,15 @@ export default class CommandArea extends Container {
 		document.addEventListener("keydown", (event) => this.keypress(event));
 	}
 
-	get active(): boolean {
+	/**
+	 * Whether or not the command area is active.  When active, a blinking cursor is displayed, different styles are,
+	 *     used, and keyboard events are captured and taken as typing into the command area.
+	 */
+	public get active(): boolean {
 		return this._active;
 	}
 
-	set active(active: boolean) {
+	public set active(active: boolean) {
 		this._active = active;
 
 		if (active) {
@@ -120,7 +145,11 @@ export default class CommandArea extends Container {
 		}
 	}
 
-	keypress(event: KeyboardEvent): void {
+	/**
+	 * Handles a keypress event.
+	 * @param event - The KeyboardEvent to handle.
+	 */
+	private keypress(event: KeyboardEvent): void {
 		event.preventDefault();
 		event.stopImmediatePropagation();
 
@@ -177,7 +206,11 @@ export default class CommandArea extends Container {
 		this.inputPromptFlashFrameCount = 0;
 	}
 
-	enter(): void {
+	/**
+	 * Calls the handler associated with the currently-selected suggestion, if one exists, or logs that the given
+	 *     command is invalid.
+	 */
+	private enter(): void {
 		let command = this.suggestions.length > 0
 			? this.suggestions[this.highlighted].value
 			: this.buffer.toLowerCase();
@@ -189,13 +222,19 @@ export default class CommandArea extends Container {
 		}
 	}
 
-	prerender(): void {
+	/**
+	 * Called before rendering.  Shows the blinking cursor and updates the text in the command area.
+	 */
+	private prerender(): void {
 		this.inputPromptFlashFrameCount++;
 		this.inputPromptFlashFrameCount %= 60;
 
 		this.textInput.text = this.buffer + (this.active && this.inputPromptFlashFrameCount < 30 ? "|" : "");
 	}
 
+	/**
+	 * Repositions the suggestions shown below the CommandArea.
+	 */
 	private repositionSuggestions() {
 		let y = 36;
 
@@ -205,25 +244,46 @@ export default class CommandArea extends Container {
 		});
 	}
 
-	renderCanvas(renderer: CanvasRenderer): void {
+	/**
+	 * Renders the CommandArea using the given CanvasRenderer.
+	 * @param renderer - The CanvasRenderer to use.
+	 * @override
+	 */
+	public renderCanvas(renderer: CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);
 	}
 
-	renderWebGL(renderer: WebGLRenderer): void {
+	/**
+	 * Renders the CommandArea using the given WebGLRenderer.
+	 * @param renderer - The WebGLRenderer to use.
+	 * @override
+	 */
+	public renderWebGL(renderer: WebGLRenderer): void {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}
 
+	/**
+	 * Clears all handlers.
+	 */
 	public clearHandlers(): void {
 		this.handlers = {};
 	}
 
+	/**
+	 * Adds a handler triggered by the given command.
+	 * @param command - The command for which to trigger the handler.
+	 * @param handler - The handler to trigger when the command is entered.
+	 */
 	public addHandler(command: string, handler: Handler): void {
 		this.handlers[command.toLowerCase()] = handler;
 	}
 
-	public resetSuggestions(): void {
+	/**
+	 * Resets the displayed suggestions by refiltering and sorting them, then adding those that remain.
+	 */
+	private resetSuggestions(): void {
 		this.suggestions.forEach((suggestion) => this.removeChild(suggestion));
 		this.suggestions = [];
 
@@ -248,6 +308,12 @@ export default class CommandArea extends Container {
 	}
 }
 
+/**
+ * The method used for scoring suggestions.  Suggestions with higher scores are shown first.
+ * @param input - The user's input.
+ * @param suggestion - The suggestion to score.
+ * @return The score for the given suggestion on the given input.
+ */
 function scoreSuggestion(input: string, suggestion: string): number {
 	let index = 0;
 	let difference = 0;
@@ -266,13 +332,22 @@ function scoreSuggestion(input: string, suggestion: string): number {
 	return score;
 }
 
+/**
+ * A single suggestion display inside of a CommandArea.
+ */
 class Suggestion extends Container {
 	private background: Graphics;
 	private text: MultiStyleText;
 	private desc: MultiStyleText;
 	private _value: string;
 
-	constructor(label: string, description: string, value: string) {
+	/**
+	 * Constructs a new Suggestion.
+	 * @param label - The headline to show for this suggestion.
+	 * @param description - The discription to show for this suggestion when it is highlighted.
+	 * @param value - The internal value given back to the CommandArea if this Suggestion is selected.
+	 */
+	public constructor(label: string, description: string, value: string) {
 		super();
 
 		this.background = new Graphics();
@@ -292,6 +367,9 @@ class Suggestion extends Container {
 		this._value = value;
 	}
 
+	/**
+	 * Whether or not this suggestion is highlighted.
+	 */
 	public set highlighted(highlighted: boolean) {
 		this.background.clear();
 		this.background.beginFill(highlighted ? Colors.GRAY_2 : Colors.GRAY_1);
@@ -300,6 +378,9 @@ class Suggestion extends Container {
 		this.desc.visible = highlighted;
 	}
 
+	/**
+	 * This suggestion's internal value.
+	 */
 	public get value() {
 		return this._value;
 	}
