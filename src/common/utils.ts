@@ -201,16 +201,13 @@ export function inRange(v: number, min: number, max: number): boolean {
 
 /**
  * Checks whether or not an object at the given location would be visible in the given map if standing at the given
- *     observation location.  This differs from isFloorVisible in that this does not account for extra tiles reqiured
- *     to render walls.
+ *     observation location.
  * @param map - The map.
  * @param observer - The observation location.
  * @param location - The location to check.
  * @return Whether or not the given location is visible in the given map if standing at the given observation location.
  */
-export function isObjectVisible(map: FloorMap,
-	observer: CrawlLocation,
-	location: CrawlLocation): boolean {
+export function isObjectVisible(map: FloorMap, observer: CrawlLocation, location: CrawlLocation): boolean {
 	if (!isValidCrawlLocation(observer) || !isValidCrawlLocation(location)) {
 		return false;
 	}
