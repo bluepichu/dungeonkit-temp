@@ -11,6 +11,9 @@ import MultiStyleText, { TextStyleSet } from "pixi-multistyle-text";
 import Colors         from "./colors";
 import * as Tweener   from "./graphics/tweener";
 
+/**
+ * Text styles used in the message log.
+ */
 const MESSAGE_LOG_STYLES: TextStyleSet = {
 	default: {
 		fontFamily: "Lato",
@@ -39,24 +42,33 @@ const MESSAGE_LOG_STYLES: TextStyleSet = {
 	}
 };
 
+/**
+ * A log of messages.
+ */
 export default class MessageLog extends Container {
 	private messages: Container[];
-	private timeouts: number[];
-	private keepTime: number;
+	private timeouts: NodeJS.Timer[];
 	private spacing: number;
 	private maximumHeight: number;
 
+	/**
+	 * Constructs a new empty MessageLog.
+	 */
 	constructor() {
 		super();
 		this.messages = [];
 		this.timeouts = [];
 
 		this.spacing = 40;
-		this.keepTime = 5000;
 		this.maximumHeight = 400;
 	}
 
-	push(message: string, timeout?: number): void {
+	/**
+	 * Displays the given message at the end of the message log.
+	 * @param message - The message to show.
+	 * @param timeout - The length of time the message is shown.
+	 */
+	public push(message: string, timeout: number = 4000): void {
 		let msg = this.createMessage(message);
 		this.addChild(msg);
 		msg.x = -12;
@@ -65,10 +77,12 @@ export default class MessageLog extends Container {
 		this.messages.unshift(msg);
 
 		this.repositionMessages();
-		this.timeouts.unshift(setTimeout((() => this.pop(msg)) as any,
-			timeout !== undefined ? timeout : this.keepTime));
+		this.timeouts.unshift(setTimeout(() => this.pop(msg), timeout));
 	}
 
+	/**
+	 * Repositions the messages in the log.
+	 */
 	private repositionMessages() {
 		let height = 0;
 		let i = 0;
@@ -91,7 +105,11 @@ export default class MessageLog extends Container {
 		}
 	}
 
-	pop(messageToRemove: Container): void {
+	/**
+	 * Removes the given message from the log.
+	 * @param messageToRemove - The message to remove.
+	 */
+	private pop(messageToRemove: Container): void {
 		if (this.messages.length === 0) {
 			return;
 		}
@@ -113,7 +131,11 @@ export default class MessageLog extends Container {
 			});
 	}
 
-	createMessage(message: string): Container {
+	/**
+	 * Creates the Pixi display object representing the given message.
+	 * @param message - The message to display.
+	 */
+	private createMessage(message: string): Container {
 		let ret = new Container();
 
 		let text = new MultiStyleText(message, MESSAGE_LOG_STYLES);
@@ -132,7 +154,10 @@ export default class MessageLog extends Container {
 		return ret;
 	}
 
-	clear() {
+	/**
+	 * Removes all messages from the log.
+	 */
+	public clear() {
 		this.timeouts.forEach((timeout) => clearTimeout(timeout));
 		this.timeouts = [];
 		this.messages = [];

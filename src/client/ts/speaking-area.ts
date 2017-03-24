@@ -15,6 +15,9 @@ import MultiStyleText, { TextStyleSet } from "pixi-multistyle-text";
 import Colors         from "./colors";
 import * as Tweener   from "./graphics/tweener";
 
+/**
+ * The styles used in dialog messages.
+ */
 const SPEAKING_STYLES: TextStyleSet = {
 	default: {
 		fontFamily: "Lato",
@@ -44,6 +47,9 @@ const SPEAKING_STYLES: TextStyleSet = {
 	}
 };
 
+/**
+ * Displays dialog and other messages.
+ */
 export default class SpeakingArea extends Container {
 	private background: Graphics;
 	private text: MultiStyleText;
@@ -59,6 +65,10 @@ export default class SpeakingArea extends Container {
 
 	public onFinished: () => void;
 
+	/**
+	 * Constructs a new SpeakingArea.  A single SpeakingArea is used multiple times, rather than constructing a new one
+	 *     for each line of dialog.
+	 */
 	public constructor() {
 		super();
 
@@ -86,7 +96,11 @@ export default class SpeakingArea extends Container {
 		this.frameCounter = 0;
 	}
 
-	public showSpeech(speech: SpeakingInteraction) : void {
+	/**
+	 * Displays the given speech.
+	 * @param speech - The speech.
+	 */
+	public showSpeech(speech: SpeakingInteraction): void {
 		this.removeChildren();
 
 		this.addChild(this.background);
@@ -121,10 +135,16 @@ export default class SpeakingArea extends Container {
 		}
 	}
 
+	/**
+	 * Hides the SpeakingArea.
+	 */
 	public hide(): void {
 		this.removeChildren();
 	}
 
+	/**
+	 * Advances the current speech to the end.
+	 */
 	public skip(): void {
 		if (this.text.text.length < this.targetText.length) {
 			this.text.text = this.targetText;
@@ -136,10 +156,16 @@ export default class SpeakingArea extends Container {
 		}
 	}
 
+	/**
+	 * Returns whether or not the currently-displayed speech is at the end.
+	 */
 	public get finished(): boolean {
 		return this.text.text.length === this.targetText.length;
 	}
 
+	/**
+	 * Called before rendering.  Advances the text by one character each frame.
+	 */
 	private prerender(): void {
 		this.frameCounter++;
 
@@ -153,11 +179,21 @@ export default class SpeakingArea extends Container {
 		}
 	}
 
+	/**
+	 * Renders the CommandArea using the given CanvasRenderer.
+	 * @param renderer - The CanvasRenderer to use.
+	 * @override
+	 */
 	public renderWebGL(renderer: WebGLRenderer): void {
 		this.prerender();
 		super.renderWebGL(renderer);
 	}
 
+	/**
+	 * Renders the CommandArea using the given WebGLRenderer.
+	 * @param renderer - The WebGLRenderer to use.
+	 * @override
+	 */
 	public renderCanvas(renderer: CanvasRenderer): void {
 		this.prerender();
 		super.renderCanvas(renderer);

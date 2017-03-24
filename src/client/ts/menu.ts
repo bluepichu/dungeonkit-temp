@@ -9,6 +9,9 @@ import MultiStyleText, { TextStyleSet } from "pixi-multistyle-text";
 
 import Colors from "./colors";
 
+/**
+ * The stylings used for menu options.
+ */
 const OPTION_STYLES: TextStyleSet = {
 	default: {
 		fontFamily: "Lato",
@@ -38,10 +41,17 @@ const OPTION_STYLES: TextStyleSet = {
 	}
 };
 
+/**
+ * An onscreen menu.
+ */
 export default class Menu extends Container {
 	private _selection: number;
 	private options: Option[];
 
+	/**
+	 * Constructs a new Menu with the given options.
+	 * @param options - The options to show in the menu.
+	 */
 	public constructor(options: string[]) {
 		super();
 
@@ -63,6 +73,9 @@ export default class Menu extends Container {
 		this.options[0].selected = true;
 	}
 
+	/**
+	 * Moves the selection to the previous option.
+	 */
 	public prev(): void {
 		this.options[this._selection].selected = false;
 		this._selection++;
@@ -70,6 +83,9 @@ export default class Menu extends Container {
 		this.options[this._selection].selected = true;
 	}
 
+	/**
+	 * Moves the selection to the next option.
+	 */
 	public next(): void {
 		this.options[this._selection].selected = false;
 		this._selection--;
@@ -78,16 +94,26 @@ export default class Menu extends Container {
 		this.options[this._selection].selected = true;
 	}
 
+	/**
+	 * The current selection.
+	 */
 	public get selection(): number {
 		return this._selection;
 	}
 }
 
+/**
+ * A single option in a menu.
+ */
 class Option extends Container {
 	private text: MultiStyleText;
 	private pointer: Graphics;
 	private bg: Graphics;
 
+	/**
+	 * Constructs a new menu option.
+	 * @param text - The text of this menu option.
+	 */
 	public constructor(text: string) {
 		super();
 
@@ -105,6 +131,9 @@ class Option extends Container {
 		this.selected = false;
 	}
 
+	/**
+	 * Whether or not this option is currently selected.
+	 */
 	public set selected(sel: boolean) {
 		this.pointer.visible = sel;
 	}

@@ -16,6 +16,9 @@ import * as GraphicsDescriptorCache          from "./graphics/graphics-descripto
 import GraphicsObject                        from "./graphics/graphics-object";
 import * as Tweener                          from "./graphics/tweener";
 
+/**
+ * The text styles used in the team overlay.
+ */
 const STYLES: TextStyleSet = {
 	default: {
 		fontFamily: "Lato",
@@ -53,16 +56,26 @@ const STYLES: TextStyleSet = {
 	}
 };
 
+/**
+ * Displays the members of the player's team.
+ */
 export default class TeamOverlay extends Container {
 	public children: TeamListing[];
 	private map: Map<string, TeamListing>;
 
-	constructor() {
+	/**
+	 * Creates an empty TeamOverlay.
+	 */
+	public constructor() {
 		super();
 
 		this.map = new Map();
 	}
 
+	/**
+	 * Updates the team overlay to match the given state.
+	 * @param state - The state to match.
+	 */
 	public update(state: CensoredClientCrawlState) {
 		let current = new Set(this.map.keys());
 		let visible = new Set(
@@ -105,6 +118,9 @@ export default class TeamOverlay extends Container {
 	}
 }
 
+/**
+ * A single team member listing.
+ */
 class TeamListing extends Container {
 	private bg: Graphics;
 	private entitySprite: EntitySprite;
@@ -116,7 +132,11 @@ class TeamListing extends Container {
 	private hungerText: Text;
 	private items: ItemListing[];
 
-	constructor(entity: CensoredSelfCrawlEntity) {
+	/**
+	 * Constructs a listing for the given entity.
+	 * @param entity - The entity whose information to display.
+	 */
+	public constructor(entity: CensoredSelfCrawlEntity) {
 		super();
 
 		this.bg = new Graphics();
@@ -185,6 +205,10 @@ class TeamListing extends Container {
 		this.update(entity);
 	}
 
+	/**
+	 * Updates the listing for the given entity.
+	 * @param entity - The entity whose information to display.
+	 */
 	public update(entity: CensoredSelfCrawlEntity): void {
 		this.nameText.text = entity.name;
 		this.strategyText.text = "LEADER";
@@ -236,6 +260,10 @@ class TeamListing extends Container {
 		});
 	}
 
+	/**
+	 * Returns the color in which to show the entity's HP meter.
+	 * @param pct - The percentage of HP.
+	 */
 	private getHpColor(pct: number): number {
 		if (pct < 0.1) {
 			return Colors.RED;
@@ -250,6 +278,10 @@ class TeamListing extends Container {
 		}
 	}
 
+	/**
+	 * Returns the color in which to show the entity's hunger meter.
+	 * @param pct - The percentage of hunger.
+	 */
 	private getHungerColor(pct: number): number {
 		if (pct < 0.1) {
 			return Colors.RED;
@@ -261,12 +293,18 @@ class TeamListing extends Container {
 	}
 }
 
+/**
+ * Displays a single equipped item.
+ */
 class ItemListing extends Container {
 	private bg: Graphics;
 	private _item: Item;
 	private sprite: GraphicsObject;
 
-	constructor() {
+	/**
+	 * Constructs a new slot for an equipped item.
+	 */
+	public constructor() {
 		super();
 
 		this.bg = new Graphics();
@@ -275,7 +313,10 @@ class ItemListing extends Container {
 		this.addChild(this.bg);
 	}
 
-	public set item(item) {
+	/**
+	 * The item displayed in this ItemListing.
+	 */
+	public set item(item: Item) {
 		if (item === undefined) {
 			if (this._item !== undefined) {
 				this.removeChild(this.sprite);
