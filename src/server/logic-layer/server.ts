@@ -63,9 +63,9 @@ function register(): Promise<string> {
 
 			redisClient.zadd("dk:logic", 0, selectedName, (err: Error, added: number) => {
 				if (added > 0) {
-					return Promise.resolve(selectedName);
+					return resolve(selectedName);
 				} else {
-					return register(); // Name was taken, try again
+					return register().then(resolve); // Name was taken, try again
 				}
 			});;
 		});
@@ -155,7 +155,7 @@ function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpda
  * @param callback - A function to call when processing is complete.
  */
 function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCrawlEntity, callback: () => void): void {
-	redisClient.zincrby("dk:logic", [1, self]);
+	redisClient.zincrby("dk:logic", [1, name]);
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
 	let state = crawl.startCrawl(dungeons.get(dungeon), [entity], eventLog, mapUpdates);
