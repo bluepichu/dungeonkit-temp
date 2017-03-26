@@ -63,9 +63,9 @@ function register(): Promise<string> {
 
 			redisClient.zadd("dk:logic", 0, selectedName, (err: Error, added: number) => {
 				if (added > 0) {
-					return resolve(selectedName);
+					resolve(selectedName);
 				} else {
-					return register().then(resolve); // Name was taken, try again
+					register().then(resolve); // Name was taken, try again
 				}
 			});;
 		});

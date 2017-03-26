@@ -28,7 +28,6 @@ import KeyboardInputHandler         from "./input/keyboard-input-handler";
 import Keys                         from "./input/keys";
 import Menu                         from "./menu";
 import MessageLog                   from "./message-log";
-import Minimap                      from "./minimap";
 import OverworldRenderer            from "./overworld/overworld-renderer";
 import SpeakingArea                 from "./speaking-area";
 import TeamOverlay                  from "./team-overlay";
@@ -45,7 +44,6 @@ const enum GamePhase {
 let renderer: WebGLRenderer | CanvasRenderer = undefined;
 let gameContainer: Container = undefined;
 let socket: GameSocket = undefined;
-let minimap: Minimap = undefined;
 let commandArea: CommandArea = undefined;
 let dungeonRenderer: DungeonRenderer = undefined;
 let messageLog: MessageLog = undefined;

@@ -149,7 +149,7 @@ export default class CommandArea extends Container {
 	 * Handles a keypress event.
 	 * @param event - The KeyboardEvent to handle.
 	 */
-	private keypress(event: KeyboardEvent): void {
+	public keypress(event: KeyboardEvent): void {
 		event.preventDefault();
 		event.stopImmediatePropagation();
 
