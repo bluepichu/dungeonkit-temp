@@ -56,7 +56,7 @@ export let reviverSeed: ItemBlueprint = {
 		throw: ["throw"]
 	},
 	handlers: {
-		[ItemHook.ENTITY_DEFEAT](entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
+		entityDefeat(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
 			entity.stats.hp.current = entity.stats.hp.max;
 			crawl.propagateLogEvent(state, {
 				type: "message",
@@ -78,9 +78,9 @@ export let reviverSeed: ItemBlueprint = {
 			}, eventLog);
 			item.name = "Plain Seed";
 			item.description = "Does nothing in particular.  Fills the belly slightly when eaten.";
-			item.handlers = { [ItemHook.ITEM_USE]: item.handlers[ItemHook.ITEM_USE] };
+			item.handlers = { use: item.handlers.use };
 		},
-		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
 			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
 
 			crawl.propagateLogEvent(state, {

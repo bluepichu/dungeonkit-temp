@@ -88,41 +88,6 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 }
 
 /**
- * Checks all of an entity's items to see if any of them pertain to a particular item hook, as long as the given
- *     condition holds.
- * @param hook - The hook to check.
- * @param entity - The entity to check.
- * @param state - The game state.
- * @param condition - The condition that must hold for more items to be checked.
- */
-function checkItems(
-	hook: ItemHook,
-	entity: CrawlEntity,
-	state: InProgressCrawlState,
-	condition: () => boolean,
-	eventLog: LogEvent[]): void {
-	if (entity.items.bag !== undefined) {
-		for (let item of entity.items.bag.items) {
-			if (!condition()) {
-				return;
-			}
-			if (hook in item.handlers) {
-				item.handlers[hook](entity, state, item, false, eventLog);
-			}
-		}
-	}
-
-	for (let item of entity.items.held.items) {
-		if (!condition()) {
-			return;
-		}
-		if (hook in item.handlers) {
-			item.handlers[hook](entity, state, item, true, eventLog);
-		}
-	}
-}
-
-/**
  * Retrieves the next entity to move in the given state.
  * @param state - The state.
  * @return The next entity to move.
@@ -426,8 +391,33 @@ function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[
 	let newState = state as InProgressCrawlState;
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
-		.forEach((entity) =>
-			checkItems(ItemHook.ENTITY_DEFEAT, entity, newState, () => entity.stats.hp.current <= 0, eventLog));
+		.forEach((entity) => {
+			let items = entity.items.held.items;
+
+			if (entity.items.bag !== undefined) {
+				items = items.concat(entity.items.bag.items);
+			}
+
+			for (let item of entity.items.held.items) {
+				if (item.handlers.entityDefeat !== undefined) {
+					item.handlers.entityDefeat(entity, state, item, true, eventLog);
+					if (entity.stats.hp.current > 0) {
+						return;
+					}
+				}
+			}
+
+			if (entity.items.bag !== undefined) {
+				for (let item of entity.items.bag.items) {
+					if (item.handlers.entityDefeat !== undefined) {
+						item.handlers.entityDefeat(entity, state, item, false, eventLog);
+						if (entity.stats.hp.current > 0) {
+							return;
+						}
+					}
+				}
+			}
+		});
 
 	newState.entities.filter((entity) => entity.stats.hp.current <= 0)
 		.forEach((entity) => {
@@ -840,7 +830,7 @@ function executeItem(
 
 	switch (action.action) {
 		case "use":
-			item.handlers[ItemHook.ITEM_USE](entity, state, item, held, eventLog);
+			item.handlers.use(entity, state, item, held, eventLog);
 			if (held) {
 				entity.items.held.items = entity.items.held.items.filter((it) => it.id !== item.id);
 			} else {
