@@ -1,6 +1,7 @@
 "use strict";
 
 import * as crawl from "../logic-layer/crawl";
+import * as utils from "../../common/utils";
 
 type DeepProxyHandler = {
 	get?(target: any, field: string | number | symbol): any,
@@ -202,6 +203,42 @@ export let stick: ItemBlueprint = {
 				},
 				location: entity.location,
 				change: -20
+			}, eventLog);
+		}
+	},
+	actions: {
+		throw: ["throw", "use", "hurl"]
+	}
+}
+
+export let rock: ItemBlueprint = {
+	name: "Heavy Rock",
+	description: "Can be thrown at most one space forward, but deals 100 damage if it hits.",
+	graphics: "item-rock",
+	handlers: {
+		throwTarget(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: number): CrawlLocation {
+			let dirArr = utils.decodeDirection(direction);
+			let loc = { r: entity.location.r + dirArr[0], c: entity.location.c + dirArr[1] };
+
+			if (utils.getTile(state.floor.map, loc).type !== DungeonTileType.WALL) {
+				return loc;
+			}
+
+			return entity.location;
+		},
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
+			entity.stats.hp.current -= 100;
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				stat: "hp",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				change: -100
 			}, eventLog);
 		}
 	},

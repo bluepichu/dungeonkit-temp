@@ -371,6 +371,20 @@ let stickGraphics: GraphicsObjectDescriptor = {
 	}
 };
 
+let rockGraphics: GraphicsObjectDescriptor = {
+	base: "item",
+	animations: {
+		"default": [
+			{
+				duration: 0,
+				sprites: [
+					{ texture: "gravelrock", anchor: { x: 16, y: 16 }}
+				]
+			}
+		]
+	}
+};
+
 let scarfGraphics: GraphicsObjectDescriptor = {
 	base: "item",
 	animations: {
@@ -420,7 +434,8 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["item-seed", seedGraphics],
 	["item-berry", berryGraphics],
 	["item-scarf", scarfGraphics],
-	["item-stick", stickGraphics]
+	["item-stick", stickGraphics],
+	["item-rock", rockGraphics]
 ]);
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([
