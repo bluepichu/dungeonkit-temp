@@ -9,20 +9,25 @@ import Constants      from "../constants";
 import GraphicsObject from "./graphics-object";
 import * as utils     from "../../../common/utils";
 
+/**
+ * Displays a single entity, allowing switches between animations and directions.
+ */
 export default class EntitySprite extends GraphicsObject {
 	private _direction: number;
-	private statusMarkers: GraphicsObject[];
-	private statusIndex: number;
 	private entityGraphicsDescriptor: ExpandedEntityGraphicsDescriptor;
 
+	/**
+	 * Constructs a new EntitySprite using the given graphics descriptor.
+	 */
 	constructor(descriptor: ExpandedEntityGraphicsDescriptor) {
 		super(descriptor[0]);
 		this.entityGraphicsDescriptor = descriptor;
 		this.direction = 6;
-		this.statusMarkers = [];
-		this.statusIndex = 0;
 	}
 
+	/**
+	 * The direction the entity sprite is facing.
+	 */
 	public get direction(): number {
 		return this._direction;
 	}
@@ -37,12 +42,6 @@ export default class EntitySprite extends GraphicsObject {
 			this.changed = true;
 			this.descriptor = this.entityGraphicsDescriptor[direction];
 		}
-	}
-
-	public clearStatusMarkers(): void {
-		this.removeChild(this.statusMarkers[this.statusIndex]);
-		this.statusMarkers = [];
-		this.statusIndex = 0;
 	}
 }
 
