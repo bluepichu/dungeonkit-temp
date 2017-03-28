@@ -72,7 +72,8 @@ interface CondensedEntity {
 }
 
 type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
-	| StartLogEvent | MissLogEvent | MessageLogEvent | ItemPickupLogEvent | ItemDropLogEvent;
+	| StartLogEvent | MissLogEvent | MessageLogEvent | ItemPickupLogEvent | ItemDropLogEvent | ItemThrowLogEvent
+	| ItemFallLogEvent;
 
 interface WaitLogEvent {
 	type: "wait";
@@ -146,6 +147,20 @@ interface ItemPickupLogEvent {
 interface ItemDropLogEvent {
 	type: "item_drop";
 	entity: CondensedEntity;
+	item: Item;
+}
+
+interface ItemThrowLogEvent {
+	type: "item_throw";
+	entity: CondensedEntity;
+	item: Item;
+	from: CrawlLocation;
+	to: CrawlLocation;
+	direction: number;
+}
+
+interface ItemFallLogEvent {
+	type: "item_fall";
 	item: Item;
 }
 

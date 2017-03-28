@@ -71,6 +71,39 @@ function makeWalkAnimation(dir: number, pivot: Point, shadowPivot: Point): Anima
 	];
 }
 
+function makeThrowAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `walk-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 8
+		},
+		{
+			sprites: [
+				{ texture: `walk-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 8
+		},
+		{
+			sprites: [
+				{ texture: `walk-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 8
+		},
+		{
+			sprites: [
+				{ texture: `walk-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 8
+		}
+	];
+}
+
 function makeHurtAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
 	return [
 		{
@@ -225,7 +258,8 @@ function entityAnimations(
 			"swift": makeTackleAnimation(dir, pivot, shadowPivot),
 			"growl": makeTackleAnimation(dir, pivot, shadowPivot),
 			"tail-whip": makeTackleAnimation(dir, pivot, shadowPivot),
-			"defeat": makeHurtAnimation(dir, pivot, shadowPivot)
+			"defeat": makeHurtAnimation(dir, pivot, shadowPivot),
+			"throw": makeThrowAnimation(dir, pivot, shadowPivot)
 		}
 	};
 }
@@ -323,6 +357,20 @@ let berryGraphics: GraphicsObjectDescriptor = {
 	}
 };
 
+let stickGraphics: GraphicsObjectDescriptor = {
+	base: "item",
+	animations: {
+		"default": [
+			{
+				duration: 0,
+				sprites: [
+					{ texture: "stick", anchor: { x: 16, y: 16 }}
+				]
+			}
+		]
+	}
+};
+
 let scarfGraphics: GraphicsObjectDescriptor = {
 	base: "item",
 	animations: {
@@ -371,7 +419,8 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["pond", pondGraphics],
 	["item-seed", seedGraphics],
 	["item-berry", berryGraphics],
-	["item-scarf", scarfGraphics]
+	["item-scarf", scarfGraphics],
+	["item-stick", stickGraphics]
 ]);
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([

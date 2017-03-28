@@ -61,6 +61,6 @@ type SecondaryEffect = SecondaryStatEffect;
  */
 interface SecondaryStatEffect {
 	type: "stat";
-	stat: string;
+	stat: "attack" | "defense";
 	amount: number;
 }

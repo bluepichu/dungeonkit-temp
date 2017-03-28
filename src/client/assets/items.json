@@ -2,7 +2,9 @@
 	"frames": {
 		"item-seed": { "frame": { "x": 0, "y": 0, "w": 32, "h": 32 }, "sourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 } },
 		"item-berry": { "frame": { "x": 32, "y": 0, "w": 32, "h": 32 }, "sourceSize": { "x": 32, "y": 0, "w": 32, "h": 32 } },
-		"item-scarf": { "frame": { "x": 64, "y": 0, "w": 32, "h": 32 }, "sourceSize": { "x": 64, "y": 0, "w": 32, "h": 32 } }
+		"item-scarf": { "frame": { "x": 64, "y": 0, "w": 32, "h": 32 }, "sourceSize": { "x": 64, "y": 0, "w": 32, "h": 32 } },
+		"item-stick": { "frame": { "x": 96, "y": 0, "w": 32, "h": 32 }, "sourceSize": { "x": 96, "y": 0, "w": 32, "h": 32 } },
+		"item-gravelrock": { "frame": { "x": 0, "y": 32, "w": 32, "h": 32 }, "sourceSize": { "x": 0, "y": 32, "w": 32, "h": 32 } }
 	},
 	"meta": {
 		"image": "items.png"

@@ -56,7 +56,7 @@ export let reviverSeed: ItemBlueprint = {
 		throw: ["throw"]
 	},
 	handlers: {
-		entityDefeat(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
+		entityDefeat(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
 			entity.stats.hp.current = entity.stats.hp.max;
 			crawl.propagateLogEvent(state, {
 				type: "message",
@@ -119,7 +119,7 @@ export let oranBerry: ItemBlueprint = {
 		throw: ["throw"]
 	},
 	handlers: {
-		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
+		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -183,3 +183,29 @@ export let antidefenseScarf: ItemBlueprint = {
 		drop: ["drop"]
 	}
 };
+
+export let stick: ItemBlueprint = {
+	name: "Stick",
+	description: "Can be thrown in a striaght line for some damage.",
+	graphics: "item-stick",
+	handlers: {
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]) {
+			entity.stats.hp.current -= 20;
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				stat: "hp",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				change: -20
+			}, eventLog);
+		}
+	},
+	actions: {
+		throw: ["throw", "use", "hurl"]
+	}
+}

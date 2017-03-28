@@ -3,9 +3,10 @@ interface ItemBlueprint {
 	description: string;
 	equip?(entity: UnplacedCrawlEntity): UnplacedCrawlEntity; // via a proxy
 	handlers: {
-		use?(entity: CrawlEntity, state: InProgressCrawlState, Item: Item, held: boolean, eventLog: LogEvent[]): void;
-		throw?(): void;
-		entityDefeat?(entity: CrawlEntity, state: InProgressCrawlState, Item: Item, held: boolean, eventLog: LogEvent[]): void;
+		use?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void;
+		throwTarget?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: number): CrawlLocation;
+		entityDefeat?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void;
+		collide?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void;
 	};
 	actions?: {
 		[action: string]: string[]; // In reality, index is ItemActionType

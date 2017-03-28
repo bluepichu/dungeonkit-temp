@@ -79,6 +79,16 @@ export default class DungeonRenderer extends Container {
 			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
 	}
 
+	public showThrow(entity: CondensedEntity, from: CrawlLocation, to: CrawlLocation, direction: number, item: Item): Thenable {
+		this.ensureEntityExists(entity, from);
+
+		this.entityLayer.setDirection(entity.id, direction);
+
+		return this.entityLayer.waitForAnimation(entity.id, "throw")
+			// TODO: some kind of thrown-item animation here
+			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
+	}
+
 	public showHurt(entity: CondensedEntity, location: CrawlLocation, amount: number): Thenable {
 		this.ensureEntityExists(entity, location);
 

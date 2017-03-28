@@ -309,6 +309,7 @@ export function isValidAction(
 	state: CensoredInProgressCrawlState,
 	entity: CrawlEntity,
 	action: Action): boolean {
+
 	switch (action.type) {
 		case "wait":
 			return true;
@@ -325,6 +326,9 @@ export function isValidAction(
 
 		case "stairs":
 			return state.floor.map.grid[entity.location.r][entity.location.c].stairs;
+
+		default:
+			unreachable(action);
 	}
 }
 
@@ -366,7 +370,7 @@ function execute(
 			break;
 
 		default:
-			result = state;
+			unreachable(action);
 			break;
 	}
 
@@ -536,15 +540,13 @@ function executeItemPickup(state: InProgressCrawlState, entity: CrawlEntity, eve
 /**
  * Executes an item drop action.
  * @param state - The state.
- * @param entity - The entity.
- * @param action - The action.
- * @return A promise for the state after performing the action.
+ * @param location - The location near which to drop the item.
+ * @param item - The item to drop.
+ * @return The state after performing the action.
  */
-function executeItemDrop(
-	state: InProgressCrawlState,
-	location: CrawlLocation,
-	item: Item): CrawlState {
+function executeItemDrop(state: InProgressCrawlState, location: CrawlLocation, item: Item): CrawlState {
 	let loc = { r: location.r, c: location.c };
+
 	for (let i = 0; i < Math.max(state.floor.map.width, state.floor.map.height); i++) {
 		for (let [dr, dc, di] of [[-1, 0, 0], [0, 1, 0], [1, 0, 1], [0, -1, 1]]) {
 			for (let j = 0; j < 2 * i + di; j++) {
@@ -552,13 +554,75 @@ function executeItemDrop(
 					&& utils.getItemAtCrawlLocation(state, loc) === undefined) {
 					let crawlItem = Object.assign(item, { location: loc });
 					state.items.push(crawlItem);
-					return;
+					return state;
 				}
 				loc.r += dr;
 				loc.c += dc;
 			}
 		}
 	}
+}
+
+/**
+ * Executes an item throw action.
+ * @param state - The state.
+ * @param entity - The entity throwing the item.
+ * @param direction - The direction in which the item is being thrown.
+ * @param item - The item being thrown.
+ * @return The state after the item is thrown.
+ */
+function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, direction: number, item: Item, eventLog: LogEvent[]): CrawlState {
+	let target: CrawlLocation;
+
+	if (item.handlers.throwTarget !== undefined) {
+		target = item.handlers.throwTarget(entity, state, item, direction);
+	} else {
+		// Default: straight line
+		let dirArr = utils.decodeDirection(direction);
+		let lastLoc = { r: entity.location.r, c: entity.location.c };
+		let loc = { r: entity.location.r + dirArr[0], c: entity.location.c + dirArr[1] };
+
+		while (utils.getTile(state.floor.map, loc).type !== DungeonTileType.WALL) {
+			lastLoc = loc;
+			loc = { r: loc.r + dirArr[0], c: loc.c + dirArr[1] };
+
+			if (utils.getEntityAtCrawlLocation(state, lastLoc) !== undefined) {
+				break;
+			}
+		}
+
+		target = lastLoc;
+	}
+
+	if ((target.r === entity.location.r && target.c === entity.location.c)
+			|| (utils.getEntityAtCrawlLocation(state, target) === undefined)
+			|| (item.handlers.collide === undefined)) {
+		// Item falls to the ground
+		eventLog.push({
+			type: "item_throw",
+			entity: {
+				id: entity.id,
+				name: entity.name,
+				graphics: entity.graphics
+			},
+			item,
+			from: entity.location,
+			to: target,
+			direction
+		});
+
+		eventLog.push({
+			type: "item_fall",
+			item
+		});
+
+		executeItemDrop(state, target, item);
+	} else {
+		// Item collides with an entity
+		item.handlers.collide(utils.getEntityAtCrawlLocation(state, target), state, item, eventLog);
+	}
+
+	return state;
 }
 
 /**
@@ -681,6 +745,9 @@ function getTargets(
 			return selection.filter((entity) => entity.alignment !== attacker.alignment
 				|| (entity !== attacker && rts.includeAllies)
 				|| (entity === attacker && rts.includeSelf));
+
+		default:
+			unreachable(selector);
 	}
 }
 
@@ -736,6 +803,9 @@ function applyAttack(
 			case "defense":
 				defender.stats.defense.modifier += effect.amount;
 				break;
+
+			default:
+				unreachable(effect.stat);
 		}
 
 		propagateLogEvent(state, {
@@ -839,6 +909,12 @@ function executeItem(
 			break;
 
 		case "throw":
+			if (held) {
+				entity.items.held.items = entity.items.held.items.filter((it) => it.id !== item.id);
+			} else {
+				entity.items.bag.items = entity.items.bag.items.filter((it) => it.id !== item.id);
+			}
+			executeItemThrow(state, entity, action.direction, item, eventLog);
 			break;
 
 		case "drop":
@@ -870,13 +946,13 @@ function executeItem(
 			break;
 
 		default:
-			// ???
+			unreachable(action.action);
 			break;
 	}
 
 	drainBellyAndRecoverHp(entity, 1, 0.5);
 
-	return state; // TODO
+	return state;
 }
 
 function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecoverProbability: number): void {
@@ -941,13 +1017,19 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent, 
 			}
 			break;
 
+		case "start":
 		case "stairs":
 		case "defeat":
 		case "message":
 		case "item_pickup":
 		case "item_drop":
+		case "item_throw":
+		case "item_fall":
 			eventLog.push(event);
 			break;
+
+		default:
+			unreachable(event);
 	}
 }
 
@@ -996,4 +1078,12 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 			}
 		}
 	}
+}
+
+/**
+ * Used for asserting that all cases should be handled.
+ * @throws An error stating that the case is invalid.
+ */
+function unreachable(arg: never): never {
+	throw new Error(`Reached default case of exhaustive switch.`);
 }

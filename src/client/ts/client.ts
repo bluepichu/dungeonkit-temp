@@ -37,8 +37,7 @@ import * as WebFont                 from "webfontloader";
 
 const enum GamePhase {
 	OVERWORLD,
-	CRAWL,
-	CUTSCENE
+	CRAWL
 };
 
 let renderer: WebGLRenderer | CanvasRenderer = undefined;
@@ -429,7 +428,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 									handler: () => {
 										socket.sendCrawlAction({
 											type: "item",
-											direction: 0,
+											direction: currentDirection,
 											action: action as ItemActionType,
 											item: item.id
 										});
@@ -445,7 +444,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								handler: () => {
 									socket.sendCrawlAction({
 										type: "item",
-										direction: 0,
+										direction: currentDirection,
 										action: "equip",
 										item: item.id
 									});
@@ -464,7 +463,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 								handler: () => {
 									socket.sendCrawlAction({
 										type: "item",
-										direction: 0,
+										direction: currentDirection,
 										action: action as ItemActionType,
 										item: item.id
 									});
@@ -481,7 +480,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							handler: () => {
 								socket.sendCrawlAction({
 									type: "item",
-									direction: 0,
+									direction: currentDirection,
 									action: "unequip",
 									item: item.id
 								});
@@ -643,6 +642,20 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				messageLog.push(`${highlightEntity(event.entity)} dropped the <item>${event.item.name}</item>.`);
 				done();
 				break;
+
+			case "item_throw":
+				messageLog.push(`${highlightEntity(event.entity)} threw the <item>${event.item.name}</item>!`);
+				dungeonRenderer.showThrow(event.entity, event.from, event.to, event.direction, event.item)
+					.then(done);
+				break;
+
+			case "item_fall":
+				messageLog.push(`The <item>${event.item.name}</item> fell to the ground.`);
+				done();
+				break;
+
+			default:
+				unreachable(event);
 		}
 	});
 }
@@ -719,6 +732,13 @@ function setGamePhase(phase: GamePhase): void {
 		case GamePhase.OVERWORLD:
 			gameContainer.removeChild(overworldRenderer);
 			break;
+
+		case undefined:
+			// No need to do anything in particular
+			break;
+
+		default:
+			unreachable(currentPhase);
 	}
 
 	currentPhase = phase;
@@ -907,7 +927,18 @@ function setGamePhase(phase: GamePhase): void {
 				}
 			]
 			break;
+
+		default:
+			unreachable(phase);
 	}
+}
+
+/**
+ * Used for asserting that all cases should be handled.
+ * @throws An error stating that the case is invalid.
+ */
+function unreachable(arg: never): never {
+	throw new Error(`Reached default case of exhaustive switch.`);
 }
 
 /**

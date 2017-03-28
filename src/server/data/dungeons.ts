@@ -12,7 +12,8 @@ import {
 
 import {
 	oranBerry,
-	reviverSeed
+	reviverSeed,
+	stick
 } from "./items";
 
 let roomFeatures = [
@@ -187,7 +188,8 @@ let dungeon: Dungeon = {
 				],
 				items: [
 					{ item: reviverSeed, density: { type: "binomial", n: 40, p: 1 } },
-					{ item: oranBerry, density: { type: "binomial", n: 60, p: 1 } }
+					{ item: oranBerry, density: { type: "binomial", n: 60, p: 1 } },
+					{ item: stick, density: { type: "binomial", n: 40, p: 1 } }
 				]
 			}
 		}
