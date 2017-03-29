@@ -95,7 +95,6 @@ export default class GameSocket {
 		this.socket.on("entity-graphics", fn);
 	}
 
-<<<<<<< a57001e1687c84c2bd7374440235d7f2b9793865
 	/**
 	 * Adds a hook for the "crawl-update" event.
 	 * @param fn - The function to call.
