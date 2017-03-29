@@ -173,6 +173,8 @@ export default class CommController {
 			.then(() => {
 				let dungeon = dungeons.get(dungeonName);
 				this.checkGraphics(dungeon.graphics);
+				this.socket.removeAllListeners("overworld-interact-entity");
+				this.socket.removeAllListeners("overworld-interact-hotzone");
 				this.socket.emit("crawl-init", dungeon);
 				this.send({
 					type: "crawl-start",
@@ -223,6 +225,9 @@ export default class CommController {
 		update.stateUpdate.self.items.bag.items.forEach((item) => this.checkGraphics(item.graphics));
 		update.stateUpdate.self.items.held.items.forEach((item) => this.checkGraphics(item.graphics));
 		update.stateUpdate.entities.forEach((ent) => this.checkEntityGraphics(ent.graphics));
+
+		this.entity.stats = update.stateUpdate.self.stats;
+		this.entity.items = update.stateUpdate.self.items;
 
 		this.socket.emit("crawl-update", update);
 

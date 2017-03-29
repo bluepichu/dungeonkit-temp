@@ -195,7 +195,7 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 
 	if (action.type === "attack" && "attack" in action) {
 		// Replace with the correct attack object
-		(action as AttackAction).attack = self.attacks.filter((attack) => attack.name === (action as AttackAction).attack.name)[0];
+		action.attack = self.attacks.filter((attack) => attack.name === (action as AttackAction).attack.name)[0];
 	}
 
 	let eventLog: LogEvent[] = [];
