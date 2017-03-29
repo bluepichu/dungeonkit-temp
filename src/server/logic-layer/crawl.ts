@@ -318,8 +318,7 @@ export function isValidAction(
 			return isValidMove(state, entity, (action as MoveAction).direction);
 
 		case "attack":
-			let attack = (action as AttackAction).attack;
-			return entity.attacks.indexOf(attack) >= 0 && attack.uses.current > 0;
+			return entity.attacks.indexOf(action.attack) >= 0 && action.attack.uses.current > 0;
 
 		case "item":
 			return true; // TODO
