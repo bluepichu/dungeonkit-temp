@@ -12,3 +12,6 @@ build
 
 # Redis
 dump.rdb
+
+# Artillery
+artillery_report_*
