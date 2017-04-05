@@ -1,32 +1,82 @@
 <html>
 	<head>
-		<title>DungeonKit</title>
+		<title>Toaster Wars 2KLutS</title>
 
-		<style>
-		body {
-			margin: 0px;
-			overflow: hidden;
+		<link href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700" rel="stylesheet">
+		<link rel="stylesheet" href="css/style.css" />
+
+		<script>
+		function login() {
+			localStorage.setItem("user", document.getElementById("user").value);
+			localStorage.setItem("pass", document.getElementById("pass").value);
+			go();
+			return false;
 		}
 
-		canvas {
-			width: 100%;
-			height: 100%;
+		function guest() {
+			go();
+			return false;
 		}
-		</style>
 
-		<script src="/lib/webfontloader.js"></script>
-		<script src="/socket.io/socket.io.js"></script>
-		<script src="/lib/pixi.js"></script>
-		<script src="/lib/pixi-multistyle-text.js"></script>
-		<script src="/lib/howler.js"></script>
-		<script src="/lib/keymaster.js"></script>
-		<script src="/lib/stats.min.js"></script>
-
-		<script src="/js/client.js"></script>
+		function go() {
+			window.location = "/game";
+		}
+		</script>
 	</head>
 	<body>
-		<header></header>
-		<main></main>
+		<header>
+			<h1>Toaster Wars: Going Rogue</h1>
+			<h2>Episode 2.5: 20000 Leagues under the Sink</h2>
+		</header>
+		<main>
+			<div class="announcement"><b>Our game is now in open beta!</b>  Thank you very much to the testers in the closed alpha who made this possible.  We made a dungeon specially for you with its very own collectible flag.  Thanks for playing!</div>
+
+			<div class="play-game">
+				<h3>Play the Game</h3>
+				<div class="split">
+					<div class="form">
+						<h4>Have an account?</h4>
+						<form onsubmit="return login()">
+							<input type="text" name="username" placeholder="Username" id="user" />
+							<input type="password" name="password" placeholder="Password" id="pass" />
+							<button>Login</button>
+						</form>
+					</div>
+					<div class="form">
+						<h4>Don't have an account?</h4>
+						<form onsumbit="return guest()">
+							<button>Continue as Guest</button>
+						</form>
+					</div>
+				</div>
+			</div>
+
+			<h3>Dungeons</h3>
+
+			<div class="dungeon-listing">
+				<h4>Shallow Sand Bar</h4>
+				<h5>Alpha Tester Exclusive!</h5>
+				<h6>Obtain the <b>Blazing Flag</b>!</h6>
+				<img src="assets/dungeon-img.png" />
+			</div>
+
+			<div class="dungeon-listing">
+				<h4>Treacherous Trench</h4>
+				<h6>Obtain the <b>Stormy Flag</b>!</h6>
+				<img src="assets/dungeon-img.png" />
+			</div>
+
+			<div class="dungeon-listing">
+				<h4>Undersea Cavern</h4>
+				<h6>Obtain the <b>Light Flag</b>!</h6>
+				<img src="assets/dungeon-img.png" />
+			</div>
+
+			<div class="dungeon-listing">
+				<h4>Calm Coral Reef</h4>
+				<img src="assets/dungeon-img.png" />
+			</div>
+		</main>
 		<footer></footer>
 	</body>
 </html>

@@ -77,19 +77,24 @@ gulp.task("watch", ["default", "watch-server", "watch-client", "watch-monitor", 
 
 gulp.task("watch-client", () => {
 	gulp.watch(src("client/**/*.ts", "types/**/*.*", "common/**/*.*"), ["client-ts"]);
-	gulp.watch(src("client/index.html"), ["client-html"]);
+	gulp.watch(src("client/*.html"), ["client-html"]);
 	gulp.watch(src("client/assets/**/*.*"), ["client-assets"]);
+	gulp.watch(src("client/css/**/*.*"), ["client-css"]);
 	gulp.watch(src("client/lib/*.js"), ["client-lib"]);
 });
 
-gulp.task("client", ["client-html", "client-assets", "client-ts", "client-lib"]);
+gulp.task("client", ["client-html", "client-assets", "client-ts", "client-lib", "client-css"]);
 
 gulp.task("client-assets", () =>
 	gulp.src(src("client/assets/**/*.*"))
 		.pipe(gulp.dest(build("client/assets"))));
 
+gulp.task("client-css", () =>
+	gulp.src(src("client/css/**/*.*"))
+		.pipe(gulp.dest(build("client/css"))));
+
 gulp.task("client-html", () =>
-	gulp.src(src("client/index.html"))
+	gulp.src(src("client/*.html"))
 		.pipe(gulp.dest(build("client"))));
 
 gulp.task("client-ts", () =>

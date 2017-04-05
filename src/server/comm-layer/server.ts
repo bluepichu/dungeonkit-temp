@@ -34,9 +34,10 @@ const controllerMap: Map<String, CommController> = new Map<String, CommControlle
 export function start(queue: kue.Queue) {
 	const app: express.Express = express();
 
-	app.use("/", express.static(path.join(__dirname, "../../client")));
+	app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../../client/index.html")));
+	app.get("/game", (req, res) => res.sendFile(path.join(__dirname, "../../client/game.html")));
 
-	app.get("/mobile", (req, res) => res.sendFile("client/index.html", { root: path.join(__dirname, "..") }));
+	app.use("/", express.static(path.join(__dirname, "../../client")));
 
 	const server: http.Server = app.listen(0, "localhost", () => {
 		log("Comm server is up");
