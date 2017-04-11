@@ -1046,8 +1046,8 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 
 	let queue: Queue<CrawlLocation> = new Queue<CrawlLocation>();
 
-	for (let r = location.r - 2; r <= location.r + 2; r++) {
-		for (let c = location.c - 2; c <= location.c + 2; c++) {
+	for (let r = location.r - 3; r <= location.r + 3; r++) {
+		for (let c = location.c - 3; c <= location.c + 3; c++) {
 			if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
 				if (!isAi) {
 					mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
@@ -1064,8 +1064,8 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 		if (state.floor.map.grid[loc.r][loc.c].type !== DungeonTileType.WALL
 			&& utils.inSameRoom(state.floor.map, loc, entity.location)) {
 			// Keep on expanding
-			for (let r = loc.r - 2; r <= loc.r + 2; r++) {
-				for (let c = loc.c - 2; c <= loc.c + 2; c++) {
+			for (let r = loc.r - 3; r <= loc.r + 3; r++) {
+				for (let c = loc.c - 3; c <= loc.c + 3; c++) {
 					if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
 						if (!isAi) {
 							mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });

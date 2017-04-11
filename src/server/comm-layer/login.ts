@@ -1,7 +1,8 @@
 "use strict";
 
-const mongo = require("promised-mongo");
-const db = mongo("mongodb://localhost:27017/dungeonkit", ["users"]);
+import * as redis from "redis";
+
+const redisClient = redis.createClient();
 
 export function checkLogin(user: string, pass: string): Promise<User> {
 	return new Promise((resolve, reject) => {
@@ -11,13 +12,13 @@ export function checkLogin(user: string, pass: string): Promise<User> {
 			return;
 		}
 
-		db["users"].findOne({ user, pass })
-			.then((user: User) => {
-				if (user) {
-					resolve(user);
-				} else {
-					reject();
-				}
-			});
+
+		redisClient.get(`user:${user}`, (err: Error, pw: string) => {
+			if (!err && pass === pw) {
+				resolve(user);
+			} else {
+				reject();
+			}
+		});
 	});
 }

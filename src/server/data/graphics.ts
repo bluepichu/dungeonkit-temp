@@ -1,5 +1,7 @@
 "use strict";
 
+const letters = "abcdefghijklmnopqrstuvwxyz";
+
 function makeDefaultAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
 	return [
 		{
@@ -288,27 +290,16 @@ let eeveeGraphics: EntityGraphicsDescriptor = {
 	useReflection: true
 };
 
-function dungeonGraphicsAnimations(): { [key: string]: AnimationDescriptor } {
-	let wallPatterns = [
-		0xff,                                           // surrounded
-		0x7f, 0xbf, 0xdf, 0xef, 0xf7, 0xfb, 0xfd, 0xfe, // one direction open
-		0x3e, 0x8f, 0xe3, 0xf8,                         // one side open
-		0xe0, 0x38, 0x0e, 0x83, 0x22, 0x88,             // two sides open
-		0x80, 0x20, 0x08, 0x02,                         // three sides open
-		0x00                                            // island
-	];
-
+function dungeonGraphicsAnimations(patternCounts: { [key: number]: number }): { [key: string]: AnimationDescriptor } {
 	let ret: { [key: string]: AnimationDescriptor }  = {};
 
-	for (let pattern = 0x00; pattern <= 0xff; pattern++) {
-		for (let match of wallPatterns) {
-			if ((match & pattern) === match) {
-				let animName = "wall-" + ("00" + pattern.toString(16)).substr(-2);
-				let frameName = "wall-" + ("00" + match.toString(16)).substr(-2);
-				ret[animName] = [
-					{ duration: 0, sprites: [ { texture: frameName, anchor: { x: 12, y: 5 } } ] }
+	for (let pattern = 0; pattern <= 0xff; pattern++) {
+		if (patternCounts[pattern]) {
+			let name = "wall-" + ("00" + pattern.toString(16)).substr(-2);
+			for (let i = 0; i < patternCounts[pattern]; i++) {
+				ret[`${name}-${letters.charAt(i)}`] = [
+					{ duration: 0, sprites: [ { texture: `${name}-${letters.charAt(i)}`, anchor: { x: 12, y: 5 } } ] }
 				];
-				break;
 			}
 		}
 	}
@@ -324,9 +315,45 @@ function dungeonGraphicsAnimations(): { [key: string]: AnimationDescriptor } {
 	return ret;
 }
 
+function bitCount(num: number) {
+	let cnt = 0;
+
+	while (num > 0) {
+		if (num & 1) {
+			cnt++;
+		}
+		num >>= 1;
+	}
+
+	return cnt;
+}
+
+let tiles = [
+	[ "w-10000011", "w-10001111", "w-00001110", "w-10000010", "w-10001000", "w-00001010", "w-10001010", "w-10001111", "w-00101010", "open", "stairs" ],
+	[ "w-11100011", "w-11111111", "w-00111110", "w-00100010", "w-00000000", "w-10111011", "w-11100011", "w-11111111", "w-00111110" ],
+	[ "w-11100000", "w-11111000", "w-00111000", "w-10100000", "w-11101110", "w-00101000", "w-10100010", "w-11111000", "w-10101000" ],
+	[ "w-10001010", "w-00000010", "w-00101010", "w-11111110", "w-11111010", "w-11111011", "w-10111110", "w-10101111", "w-11101011" ],
+	[ "w-10000000", "w-10101010", "w-00001000", "w-10111110", "w-11111111", "w-11101011", "w-11111110", "w-11111011" ],
+	[ "w-10100010", "w-00100000", "w-10101000", "w-10111111", "w-10101111", "w-11101111", "w-10111111", "w-11101111" ],
+	[ "w-11100010", "w-00111010", "w-10001110", "w-10001011", "w-10101011", "w-10101110", "w-11111110", "w-11111011", "w-11100010", "w-00111010", "w-10001110", "w-10001011" ],
+	[ "w-10100011", "w-00101110", "w-10111000", "w-11101000", "w-11101010", "w-10111010", "w-10111111", "w-11101111", "w-10100011", "w-00101110", "w-10111000", "w-11101000" ]
+];
+
+let counts: { [key: number]: number } = {};
+
+for (let row of tiles) {
+	for (let tile of row) {
+		if (tile.split("-").length > 1) {
+			let idx = parseInt(tile.split("-")[1], 2);
+			counts[idx] = counts[idx] || 0;
+			counts[idx]++;
+		}
+	}
+}
+
 let dungeonGraphics: GraphicsObjectDescriptor = {
-	base: "dng-proto",
-	animations: dungeonGraphicsAnimations()
+	base: "dng-stormy-sea",
+	animations: dungeonGraphicsAnimations(counts)
 };
 
 let seedGraphics: GraphicsObjectDescriptor = {

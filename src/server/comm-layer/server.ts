@@ -74,7 +74,7 @@ export function start(queue: kue.Queue) {
 			login.checkLogin(user, pass)
 				.then((user) => {
 					controllerMap.get(socket.id).user = user;
-					io.emit("feed", { type: "login", user: user.display, id: socket.id });
+					io.emit("feed", { type: "login", user: user, id: socket.id });
 				})
 				.catch(() => {
 					// Do nothing

@@ -31,6 +31,7 @@ import MessageLog                   from "./message-log";
 import OverworldRenderer            from "./overworld/overworld-renderer";
 import SpeakingArea                 from "./speaking-area";
 import TeamOverlay                  from "./team-overlay";
+import tilesheetParser              from "./graphics/tilesheet-parser";
 import * as Tweener                 from "./graphics/tweener";
 import * as utils                   from "../../common/utils";
 import * as WebFont                 from "webfontloader";
@@ -91,9 +92,12 @@ document.addEventListener("DOMContentLoaded", () => {
  * needed (probably dynamic loading).
  */
 function loadAssets(): void {
+	(loader as any)._afterMiddleware.unshift(tilesheetParser); // tilesheet parser needs to run first
+
 	loader
 		.add("bg-pkmn-square", "/assets/pkmn-square.json")
 		.add("dng-proto", "/assets/tiles.json")
+		.add("dng-stormy-sea", "/assets/tileset-stormy-sea.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
 		.add("ent-eevee", "/assets/eevee.json")
 		.add("items", "/assets/items.json")
