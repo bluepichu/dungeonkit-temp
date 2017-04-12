@@ -9,6 +9,7 @@ import * as bl      from "beautiful-log";
 import * as kue     from "kue";
 import * as nconf   from "nconf";
 import * as redis   from "redis";
+import * as random  from "seedrandom";
 import * as shortid from "shortid";
 
 nconf.argv().env();
@@ -18,7 +19,10 @@ let name: string;
 
 const redisClient = redis.createClient({ host: nconf.get("redis-host") || "127.0.0.1", port: nconf.get("redis-port") || 6379 });
 
+const genrand = () => random.xor128(shortid.generate()); // TODO: allow player to set/retrieve random seed
+
 const games: Map<string, CrawlState> = new Map<string, CrawlState>();
+const randoms: Map<string, () => number> = new Map<string, () => number>();
 let queue: kue.Queue;
 
 const names = ["Oran", "Pecha", "Rawst", "Cheri", "Chesto", "Sitrus"];
@@ -34,7 +38,7 @@ export function start(q: kue.Queue): void {
 		log(`Logic server "${name}" is up`);
 		queue = q;
 
-		queue.process(`in:${name}`, 2, (job: kue.Job, done: () => void) => {
+		queue.process(`in:${name}`, 1, (job: kue.Job, done: () => void) => {
 			log("<-------- in");
 			let { socketId, message } = job.data;
 			receive(socketId, message, () => {
@@ -79,6 +83,21 @@ function register(): Promise<string> {
  * @param callback - A function to call when processing is complete.
  */
 function receive(socketId: string, message: InMessage, callback: () => void): void {
+	switch (message.type) {
+		case "crawl-start":
+		case "crawl-action":
+			if (!randoms.has(socketId)) {
+				randoms.set(socketId, genrand());
+			}
+
+			Math.random = randoms.get(socketId);
+			break;
+
+		case "disconnect":
+			randoms.delete(socketId);
+			break;
+	}
+
 	switch (message.type) {
 		case "crawl-start":
 			handleCrawlStart(socketId, message.dungeon, message.entity, callback);
@@ -201,7 +220,11 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
 
-	if (!crawl.isValidAction(state, self, action)) {
+	let newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
+
+	if (newState.valid) {
+		send(socketId, newState.state, eventLog, mapUpdates, callback);
+	} else {
 		queue.create("out", { socketId, message: { type: "crawl-action-invalid" }}).save((err: Error) => {
 			if (err) {
 				log.error(err);
@@ -209,11 +232,7 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 				callback();
 			}
 		});
-		return;
 	}
-
-	let newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
-	send(socketId, newState, eventLog, mapUpdates, callback);
 }
 
 /**

@@ -59,6 +59,12 @@ interface Locatable {
 interface UnplacedCrawlEntity extends Entity {
 	alignment: number;
 	ai: boolean;
+	status: StatusCondition[];
+}
+
+declare const enum StatusCondition {
+	CONFUSED,
+	PARALYZED
 }
 
 interface CrawlEntity extends UnplacedCrawlEntity, Locatable {
@@ -73,7 +79,7 @@ interface CondensedEntity {
 
 type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
 	| StartLogEvent | MissLogEvent | MessageLogEvent | ItemPickupLogEvent | ItemDropLogEvent | ItemThrowLogEvent
-	| ItemFallLogEvent;
+	| ItemFallLogEvent | StatusAfflictionLogEvent | StatusRecoveryLogEvent;
 
 interface WaitLogEvent {
 	type: "wait";
@@ -162,6 +168,18 @@ interface ItemThrowLogEvent {
 interface ItemFallLogEvent {
 	type: "item_fall";
 	item: Item;
+}
+
+interface StatusAfflictionLogEvent {
+	type: "status_affliction";
+	entity: CondensedEntity;
+	status: StatusCondition;
+}
+
+interface StatusRecoveryLogEvent {
+	type: "status_recovery";
+	entity: CondensedEntity;
+	status: StatusCondition;
 }
 
 interface SynchronizedMessage<T> {
@@ -273,6 +291,7 @@ interface CensoredCrawlEntity extends Locatable {
 	alignment: number;
 	ai: boolean;
 	stats: CensoredEntityStats;
+	status: StatusCondition[];
 }
 
 interface CensoredEntityStats {
@@ -293,4 +312,5 @@ interface CensoredSelfCrawlEntity extends Locatable {
 		bag?: ItemSet;
 	};
 	// map: FloorMap;
+	status: StatusCondition[];
 }

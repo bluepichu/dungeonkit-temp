@@ -693,6 +693,32 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				done();
 				break;
 
+			case "status_affliction":
+				switch (event.status) {
+					case StatusCondition.CONFUSED:
+						messageLog.push(`${highlightEntity(event.entity)} became confused!`);
+						break;
+
+					case StatusCondition.PARALYZED:
+						messageLog.push(`${highlightEntity(event.entity)} became paralyzed!`);
+						break;
+				}
+				done();
+				break;
+
+			case "status_recovery":
+				switch (event.status) {
+					case StatusCondition.CONFUSED:
+						messageLog.push(`${highlightEntity(event.entity)} recovered from confusion.`);
+						break;
+
+					case StatusCondition.PARALYZED:
+						messageLog.push(`${highlightEntity(event.entity)} recovered from paralysis.`);
+						break;
+				}
+				done();
+				break;
+
 			default:
 				unreachable(event);
 		}

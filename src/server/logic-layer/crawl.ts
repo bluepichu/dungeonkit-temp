@@ -33,22 +33,32 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
 
 	if (entity.ai) {
 		let action = ai.getAction(censoredState, entity);
-		let newState = execute(state, entity, action, eventLog, mapUpdates);
-		log("Done executing move - filtering");
 
-		if (state.entities.every((entity) => entity.ai)) {
-			return {
-				dungeon: state.dungeon,
-				success: false,
-				floor: state.floor.number
-			};
+		for (let act of getActionsToTry(entity, action)) {
+			if (!isValidAction(state, entity, act)) {
+				continue;
+			}
+
+			let newState = execute(state, entity, action, eventLog, mapUpdates);
+			log("Done executing move - filtering");
+
+			if (state.entities.every((entity) => entity.ai)) {
+				return {
+					dungeon: state.dungeon,
+					success: false,
+					floor: state.floor.number
+				};
+			}
+
+			if (utils.isCrawlOver(newState)) {
+				return newState;
+			}
+
+			return step(newState, eventLog, mapUpdates);
 		}
 
-		if (utils.isCrawlOver(newState)) {
-			return newState;
-		}
-
-		return step(newState, eventLog, mapUpdates);
+		// AI, you done goofed
+		return step(state, eventLog, mapUpdates);
 	} else {
 		state.entities.unshift(state.entities.pop());
 		return state;
@@ -60,31 +70,66 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
+export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[], mapUpdates: MapUpdate[]): { valid: boolean, state: CrawlState } {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
 	if (entity.ai) {
 		// What?
-		return state;
+		return { valid: false, state };
 	}
 
-	let newState = execute(state, entity, action, eventLog, mapUpdates);
-	log("Done executing move - filtering");
+	for (let act of getActionsToTry(entity, action)) {
+		if (!isValidAction(state, entity, act)) {
+			continue;
+		}
 
-	if (state.entities.every((entity) => entity.ai)) {
-		return {
-			dungeon: state.dungeon,
-			success: false,
-			floor: state.floor.number
-		};
+		let newState = execute(state, entity, act, eventLog, mapUpdates);
+		log("Done executing move - filtering");
+
+		if (state.entities.every((entity) => entity.ai)) {
+			return {
+				valid: true,
+				state: {
+					dungeon: state.dungeon,
+					success: false,
+					floor: state.floor.number
+				}
+			};
+		}
+
+		if (utils.isCrawlOver(newState)) {
+			return { valid: true, state: newState };
+		}
+
+		return { valid: true, state: step(newState, eventLog, mapUpdates) };
 	}
 
-	if (utils.isCrawlOver(newState)) {
-		return newState;
-	}
+	return { valid: false, state }; // Action wasn't valid
+}
 
-	return step(newState, eventLog, mapUpdates);
+/**
+ * Generates the set of actions to try for the given input move.  In particular, yields the move with each direction
+ *     in a random order if the entity is confused, and otherwise yields just the original move.
+ * @param entity - The entity taking the action.
+ * @param action - The action being taken.
+ */
+function* getActionsToTry(entity: CrawlEntity, action: Action): Iterable<Action> {
+	if (entity.status.indexOf(StatusCondition.CONFUSED) >= 0 && action.type !== "wait" && action.type !== "stairs") {
+		let directions = [0, 1, 2, 3, 4, 5, 6, 7];
+
+		while (directions.length > 0) {
+			let idx = utils.randint(0, directions.length - 1);
+			let t = directions[idx];
+			directions[idx] = directions[directions.length - 1];
+			directions[directions.length - 1] = t;
+
+			action.direction = directions.pop();
+			yield action;
+		}
+	} else {
+		yield action;
+	}
 }
 
 /**
@@ -274,7 +319,8 @@ function censorEntity(entity: CrawlEntity): CensoredCrawlEntity {
 		stats: {
 			attack: { modifier: entity.stats.attack.modifier },
 			defense: { modifier: entity.stats.defense.modifier }
-		}
+		},
+		status: entity.status
 	};
 }
 
@@ -294,7 +340,8 @@ function censorSelf(entity: CrawlEntity): CensoredSelfCrawlEntity {
 		graphics: entity.graphics,
 		alignment: entity.alignment,
 		ai: entity.ai,
-		items: entity.items
+		items: entity.items,
+		status: entity.status
 	};
 }
 
@@ -315,7 +362,7 @@ export function isValidAction(
 			return true;
 
 		case "move":
-			return isValidMove(state, entity, (action as MoveAction).direction);
+			return isValidMove(state, entity, action.direction);
 
 		case "attack":
 			return entity.attacks.indexOf(action.attack) >= 0 && action.attack.uses.current > 0;
@@ -385,6 +432,30 @@ function execute(
 function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
 	if (utils.isCrawlOver(state)) {
 		return state;
+	}
+
+	for (let i = 0; i < entity.status.length; i++) {
+		switch (entity.status[i]) {
+			case StatusCondition.CONFUSED:
+				if (Math.random() < .125) {
+					entity.status.splice(i, 1);
+					i--;
+
+					propagateLogEvent(state, {
+						type: "status_recovery",
+						entity: {
+							id: entity.id,
+							name: entity.name,
+							graphics: entity.graphics
+						},
+						status: StatusCondition.CONFUSED
+					}, eventLog);
+				}
+				break;
+
+			case StatusCondition.PARALYZED:
+				break;
+		}
 	}
 
 	if (entity.stats.belly.current === 0) {
@@ -635,6 +706,10 @@ function isValidMove(
 	state: CensoredInProgressCrawlState,
 	entity: CrawlEntity,
 	direction: number): boolean {
+	if (entity.status.indexOf(StatusCondition.PARALYZED) >= 0) {
+		return false;
+	}
+
 	let offset: [number, number] = utils.decodeDirection(direction);
 	let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
 
@@ -1024,6 +1099,8 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent, 
 		case "item_drop":
 		case "item_throw":
 		case "item_fall":
+		case "status_affliction":
+		case "status_recovery":
 			eventLog.push(event);
 			break;
 

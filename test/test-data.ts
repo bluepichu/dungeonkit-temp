@@ -136,7 +136,8 @@ export let entity1: CrawlEntity = {
 	},
 	location: { r: 3, c: 7 },
 	alignment: 1,
-	ai: false
+	ai: false,
+	status: []
 };
 
 export let entity2: CrawlEntity = {
@@ -152,7 +153,8 @@ export let entity2: CrawlEntity = {
 	},
 	location: { r: 15, c: 3 },
 	alignment: 1,
-	ai: false
+	ai: false,
+	status: []
 };
 
 export let entity3: CrawlEntity = {
@@ -167,7 +169,8 @@ export let entity3: CrawlEntity = {
 	},
 	location: { r: 13, c: 15 },
 	alignment: 0,
-	ai: true
+	ai: true,
+	status: []
 };
 
 export let entity4: CrawlEntity = {
@@ -182,7 +185,8 @@ export let entity4: CrawlEntity = {
 	},
 	location: { r: 14, c: 18 },
 	alignment: 0,
-	ai: true
+	ai: true,
+	status: []
 };
 
 export let entity5: CrawlEntity = {
@@ -197,7 +201,8 @@ export let entity5: CrawlEntity = {
 	},
 	location: { r: 10, c: 2 },
 	alignment: 0,
-	ai: true
+	ai: true,
+	status: []
 };
 
 export let entity6: CrawlEntity = {
@@ -212,7 +217,8 @@ export let entity6: CrawlEntity = {
 	},
 	location: { r: 14, c: 3 },
 	alignment: 0,
-	ai: false
+	ai: false,
+	status: []
 };
 
 export let entity7: CrawlEntity = {
@@ -227,7 +233,8 @@ export let entity7: CrawlEntity = {
 	},
 	location: { r: 6, c: 0 },
 	alignment: 0,
-	ai: false
+	ai: false,
+	status: []
 };
 
 export let inProgressState: InProgressCrawlState = {

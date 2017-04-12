@@ -332,6 +332,7 @@ function placeEnemies(
 				items: {
 					held: { capacity: 1, items: [] }
 				},
+				status: []
 			})]);
 		}
 	});

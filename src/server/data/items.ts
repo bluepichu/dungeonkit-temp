@@ -110,6 +110,108 @@ export let reviverSeed: ItemBlueprint = {
 	}
 };
 
+export let totterSeed: ItemBlueprint = {
+	name: "Totter Seed",
+	description: "Afflicts the \"confused\" status on whoever eats it.  Fills the belly slightly when eaten.",
+	graphics: "item-seed",
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
+			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "belly",
+				change: newBelly - entity.stats.belly.current
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> ate the <item>Totter Seed</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "status_affliction",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				status: StatusCondition.CONFUSED
+			}, eventLog);
+
+			entity.stats.belly.current = newBelly;
+			entity.status.push(StatusCondition.CONFUSED);
+		}
+	}
+};
+
+export let shockerSeed: ItemBlueprint = {
+	name: "Shocker Seed",
+	description: "Afflicts the \"paralyzed\" status on whoever eats it.  Fills the belly slightly when eaten.",
+	graphics: "item-seed",
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
+			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "belly",
+				change: newBelly - entity.stats.belly.current
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> ate the <item>Totter Seed</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "status_affliction",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				status: StatusCondition.PARALYZED
+			}, eventLog);
+
+			entity.stats.belly.current = newBelly;
+			entity.status.push(StatusCondition.PARALYZED);
+		}
+	}
+};
+
 export let oranBerry: ItemBlueprint = {
 	name: "Oran Berry",
 	description: "A sweet berry.  Heals 20 HP and fills the belly slightly when eaten.",

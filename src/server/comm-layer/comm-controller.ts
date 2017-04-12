@@ -187,7 +187,8 @@ export default class CommController {
 						attacks: this.entity.attacks,
 						items: this.entity.items,
 						alignment: 1,
-						ai: false
+						ai: false,
+						status: []
 					}
 				})
 			});
