@@ -6,10 +6,6 @@
 			"check-space"
 		],
 		"curly": true,
-		"max-line-length": [
-			true,
-			120
-		],
 		"no-duplicate-variable": true,
 		"no-eval": true,
 		"no-internal-module": true,

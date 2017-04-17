@@ -438,7 +438,7 @@ let pkmnSquareGraphics: GraphicsObjectDescriptor = {
 			}
 		]
 	}
-}
+};
 
 let pondGraphics: GraphicsObjectDescriptor = {
 	base: "bg",
@@ -452,7 +452,7 @@ let pondGraphics: GraphicsObjectDescriptor = {
 			}
 		]
 	}
-}
+};
 
 export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["dng-proto", dungeonGraphics],

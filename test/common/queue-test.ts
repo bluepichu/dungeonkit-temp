@@ -13,7 +13,7 @@ export function testQueue(): void {
 				test.eq(queue.size, 0);
 				test.eq((queue as any).in, []);
 				test.eq((queue as any).out, []);
-			})
+			});
 		});
 
 		describe("from()", () => {
@@ -38,7 +38,7 @@ export function testQueue(): void {
 				let queue = Queue.from(arr);
 				arr[0] = 2;
 				test.eq(queue.poll(), 1);
-			})
+			});
 		});
 
 		describe("add()", () => {
@@ -48,7 +48,7 @@ export function testQueue(): void {
 
 				test.eq((queue as any).in, [1, 2, 3, 4, 5, 6]);
 				test.eq((queue as any).out, []);
-			})
+			});
 
 			it("should append the arguent to the in stack", () => {
 				let queue = Queue.from([1, 2, 3, 4, 5]);
@@ -57,7 +57,7 @@ export function testQueue(): void {
 
 				test.eq((queue as any).in, [6]);
 				test.eq((queue as any).out, [5, 4, 3, 2]);
-			})
+			});
 		});
 
 		describe("poll()", () => {
@@ -92,7 +92,7 @@ export function testQueue(): void {
 				let queue = Queue.from([1, 2]);
 				queue.poll();
 				test.eq(queue.size, 1);
-			})
+			});
 
 			it("should return the correct answer when both stacks have elements", () => {
 				let queue = Queue.from([1, 2, 3, 4, 5]);
@@ -102,7 +102,7 @@ export function testQueue(): void {
 				queue.poll();
 				queue.add(8);
 				test.eq(queue.size, 6);
-			})
+			});
 		});
 	});
 }

@@ -124,7 +124,7 @@ export default class DungeonGroundLayer extends Sprite {
 			[0b00010000, 0b00101000],
 			[0b00000100, 0b00001010],
 			[0b00000001, 0b10000010]
-		]
+		];
 
 		for (let [corner, sides] of cornerChecks) {
 			if ((pattern & corner) > 0 && (pattern & sides) < sides) {

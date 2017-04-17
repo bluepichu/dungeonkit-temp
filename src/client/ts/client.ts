@@ -215,7 +215,7 @@ function init(): void {
 		}
 	});
 
-	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); }
+	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); };
 
 	gameContainer.addChild(commandArea);
 
@@ -776,7 +776,7 @@ function startInteraction(): void {
 				};
 			}
 		}
-	})
+	});
 
 	socket.onInteractEnd(() => {
 		interacting = false;
@@ -881,7 +881,7 @@ function setGamePhase(phase: GamePhase): void {
 					},
 					always: true
 				}
-			]
+			];
 			break;
 
 		case GamePhase.OVERWORLD:
@@ -990,7 +990,7 @@ function setGamePhase(phase: GamePhase): void {
 					startOnly: true,
 					enabled: () => currentMenu !== undefined
 				}
-			]
+			];
 			break;
 
 		default:

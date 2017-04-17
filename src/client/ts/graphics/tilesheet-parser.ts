@@ -23,7 +23,7 @@ interface SpriteSheetJson {
 	};
 	meta: {
 		image: string;
-	}
+	};
 }
 
 /**

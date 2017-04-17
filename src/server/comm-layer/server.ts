@@ -79,7 +79,7 @@ export function start(queue: kue.Queue) {
 				.catch(() => {
 					// Do nothing
 				});
-		})
+		});
 	});
 
 	process.on("message", (message: string, connection: net.Socket) => {
@@ -89,9 +89,9 @@ export function start(queue: kue.Queue) {
 
 		server.emit("connection", connection);
 		connection.resume();
-	})
+	});
 
-	process.on('unhandledRejection', (reason: string) => {
+	process.on("unhandledRejection", (reason: string) => {
 		log.error("Unhandled promise rejection:", reason);
 	});
 

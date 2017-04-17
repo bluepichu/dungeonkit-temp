@@ -32,8 +32,8 @@ interface CrawlInteraction {
 }
 
 interface TransitionInteraction {
-	type: "transition",
-	scene: OverworldScene,
+	type: "transition";
+	scene: OverworldScene;
 	start: {
 		position: Point;
 		direction: number;

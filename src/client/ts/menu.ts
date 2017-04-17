@@ -61,7 +61,7 @@ export default class Menu extends Container {
 		bg.beginFill(Colors.WHITE);
 		bg.lineStyle(4, Colors.BLACK);
 		bg.drawRect(-10, -10, 200, options.length * 20 + 20);
-		this.addChild(bg)
+		this.addChild(bg);
 
 		this.options = options.map((text, i) => {
 			let opt = new Option(text);

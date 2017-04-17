@@ -121,7 +121,7 @@ export default class CommController {
 						} else {
 							advance(interaction.next(response));
 						}
-					})
+					});
 					break;
 
 				case "crawl":
@@ -190,7 +190,7 @@ export default class CommController {
 						ai: false,
 						status: []
 					}
-				})
+				});
 			});
 	}
 
@@ -275,7 +275,7 @@ export default class CommController {
 			if (err) {
 				log.error(err);
 			}
-		})
+		});
 	}
 
 	/**

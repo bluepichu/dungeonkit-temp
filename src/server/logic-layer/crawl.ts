@@ -6,7 +6,7 @@ import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
 import { Queue }      from "../../common/queue";
 
-const log = require("beautiful-log")("dungeonkit:crawl")
+const log = require("beautiful-log")("dungeonkit:crawl");
 
 /**
  * Starts a new crawl in the given dungeon with the given entities.
@@ -194,7 +194,7 @@ function advanceToFloor(
 		};
 	} else {
 		let blueprint = getFloorBlueprint(dungeon, floor);
-		let state = generator.generateFloor(dungeon, floor, blueprint, entities)
+		let state = generator.generateFloor(dungeon, floor, blueprint, entities);
 
 		state.entities.forEach((entity) => {
 			updateFloorMap(state, entity, mapUpdates);

@@ -71,7 +71,7 @@ function register(): Promise<string> {
 				} else {
 					register().then(resolve); // Name was taken, try again
 				}
-			});;
+			});
 		});
 	});
 }
@@ -188,7 +188,7 @@ function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCra
 			width: state.floor.map.width,
 			height: state.floor.map.height,
 			grid: Array.from(new Array(state.floor.map.height), () => Array.from(new Array((state as InProgressCrawlState).floor.map.width), () => ({ type: DungeonTileType.UNKNOWN })))
-		}
+		};
 
 		send(socketId, newState, eventLog, mapUpdates, callback);
 	}

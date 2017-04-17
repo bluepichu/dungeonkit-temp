@@ -311,7 +311,7 @@ export let stick: ItemBlueprint = {
 	actions: {
 		throw: ["throw", "use", "hurl"]
 	}
-}
+};
 
 export let rock: ItemBlueprint = {
 	name: "Heavy Rock",
@@ -347,4 +347,4 @@ export let rock: ItemBlueprint = {
 	actions: {
 		throw: ["throw", "use", "hurl"]
 	}
-}
+};

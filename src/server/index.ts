@@ -84,7 +84,7 @@ function spawnCommNode(log: (...args: any[]) => void, idx: number): void {
 
 	workers[idx].on("exit", (code, signal) => {
 		spawnCommNode(log, idx);
-	})
+	});
 }
 
 function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
@@ -94,12 +94,12 @@ function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 
 	workers[idx].on("exit", (code, signal) => {
 		spawnLogicNode(log, idx);
-	})
+	});
 }
 
 function getCommStats(redisClient: redis.RedisClient): Promise<CommNodeStats[]> {
 	return new Promise((resolve, reject) => {
-		resolve([{ name: "Blinker" }])
+		resolve([{ name: "Blinker" }]);
 	});
 }
 
@@ -109,7 +109,7 @@ function getLogicStats(redisClient: redis.RedisClient): Promise<LogicNodeStats[]
 			let ret: LogicNodeStats[] = [];
 
 			for (let i = 0; i < stats.length; i += 2) {
-				ret.push({ name: stats[i], games: parseInt(stats[i+1]) });
+				ret.push({ name: stats[i], games: parseInt(stats[i + 1]) });
 			}
 
 			resolve(ret);

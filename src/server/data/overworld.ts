@@ -54,7 +54,7 @@ let lonelyKip: OverworldEntity = {
 				speaker: "Mudkip",
 				portrait: "portrait-mudkip-neutral",
 				text: "Ok, but don't hesitate to come back if you change your mind!"
-			}
+			};
 		}
 	}
 };
@@ -107,7 +107,7 @@ let pond: OverworldScene = {
 						position: { x: 516, y: 37 },
 						direction: 6
 					}
-				}
+				};
 			}
 		}
 	],
@@ -150,7 +150,7 @@ export let scene: OverworldScene = {
 						position: { x: 230, y: 500 },
 						direction: 2
 					}
-				}
+				};
 			}
 		}
 	],
@@ -178,4 +178,4 @@ alphaScene.hotzones.push({
 			};
 		}
 	}
-})
+});
