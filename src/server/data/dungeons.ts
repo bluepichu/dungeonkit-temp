@@ -164,17 +164,14 @@ let dungeon: Dungeon = {
 			range: [1, 4],
 			blueprint: {
 				generatorOptions: {
-					width: { type: "uniform", a: 3, b: 4 },
-					height: { type: "uniform", a: 3, b: 4 },
-					scale: 15,
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
 					features: {
 						rooms: roomFeatures,
-						// corridors: corridorFeatures
+						corridors: corridorFeatures
 					},
-					// limit: 100000,
-					// cleanliness: .95
-					rooms: { type: "uniform", a: 4, b: 8 },
-					junctions: { type: "uniform", a: 2, b: 4 }
+					limit: 100000,
+					cleanliness: .95
 				},
 				enemies: [
 					{

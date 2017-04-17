@@ -222,12 +222,12 @@ interface AttackBlueprint {
 interface GeneratorOptions {
 	width: Distribution;
 	height: Distribution;
-	scale: number;
-	rooms: Distribution;
-	junctions: Distribution;
 	features: {
 		rooms: Feature[];
+		corridors: Feature[];
 	};
+	limit: number;
+	cleanliness: number;
 }
 
 interface Feature {

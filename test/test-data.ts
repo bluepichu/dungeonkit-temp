@@ -4,12 +4,12 @@ export let floorBlueprint: FloorBlueprint = {
 	generatorOptions: {
 		width: { type: "binomial", n: 10, p: 1 },
 		height: { type: "binomial", n: 10, p: 1 },
-		scale: 5,
-		rooms: { type: "uniform", a: 1, b: 3 },
-		junctions: { type: "uniform", a: 2, b: 3 },
 		features: {
-			rooms: []
-		}
+			rooms: [],
+			corridors: []
+		},
+		limit: 0,
+		cleanliness: 1
 	},
 	enemies: [],
 	items: []

@@ -3,6 +3,7 @@
 import * as redis from "redis";
 
 const redisClient = redis.createClient();
+const log = require("beautiful-log")("dk:login");
 
 export function checkLogin(user: string, pass: string): Promise<User> {
 	return new Promise((resolve, reject) => {
@@ -12,9 +13,11 @@ export function checkLogin(user: string, pass: string): Promise<User> {
 			return;
 		}
 
+		log("Attempting login:", user, pass); // #security
 
 		redisClient.get(`user:${user}`, (err: Error, pw: string) => {
 			if (!err && pass === pw) {
+				log("Logged in!");
 				resolve(user);
 			} else {
 				reject();
