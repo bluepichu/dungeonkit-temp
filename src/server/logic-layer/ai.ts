@@ -65,7 +65,10 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	/* Attempt to throw something at our foe */
 	if (enemy !== null && utils.lineOfSight(state.self.location, enemy.location, state.floor.map)) {
 		for (let item of state.self.items.held.items) {
-			if (item.actions !== undefined && item.actions["throw"] !== undefined) {
+			if (item.actions !== undefined && item.actions["throw"] !== undefined &&
+			   	(item.name == "Paprika"    ||
+				 item.name == "Peppercorn" ||
+				 item.name == "Cayenne")) {
 				let angle = utils.getAngleBetween(state.self.location, enemy.location);
 				return { type: "item", direction: angle, action: "throw", item: item.id }
 			}
