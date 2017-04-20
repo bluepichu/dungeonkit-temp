@@ -97,7 +97,7 @@ function loadAssets(): void {
 		.add("bg-ocean", "/assets/ocean.json")
 		.add("dng-proto", "/assets/tiles.json")
 		.add("dng-stormy-sea", "/assets/tileset-stormy-sea.json")
-		.add("ent-mudkip", "/assets/mudkip.json")
+		.add("ent-blender", "/assets/blender.json")
 		.add("ent-toaster", "/assets/toaster.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")

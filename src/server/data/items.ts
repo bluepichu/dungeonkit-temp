@@ -560,13 +560,23 @@ export let battery: ItemBlueprint = {
 	}
 };
 
-export let salt: ItemBlueprint = {
+export let salt: ItemBlueprint = { // TODO: let players use salt to buy items
 	name: "Salt",
 	description: "Acts as currency.",
 	graphics: "item-salt",
 	actions: {},
 	handlers: {
 		pickup(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): boolean {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> picked up <item>${item.amount} Salt</item>.`
+			}, eventLog);
+
 			entity.salt += item.amount;
 			state.items = state.items.filter((it) => it !== item);
 			return false;

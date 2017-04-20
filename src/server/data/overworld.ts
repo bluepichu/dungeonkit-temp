@@ -1,14 +1,14 @@
 import { generate as shortid } from "shortid";
 
-import { mudkipStats }         from "./stats";
+import { blenderStats }        from "./stats";
 
 let lonelyKip: OverworldEntity = {
 	id: shortid(),
-	name: "Mudkip",
-	graphics: "mudkip",
+	name: "Blender",
+	graphics: "blender",
 	position: { x: 200, y: 200 },
 	direction: 7,
-	stats: mudkipStats,
+	stats: blenderStats,
 	attacks: [],
 	attributes: [],
 	salt: 0,
@@ -18,21 +18,21 @@ let lonelyKip: OverworldEntity = {
 	*interact() {
 		yield {
 			type: "speak",
-			speaker: "Mudkip",
+			speaker: "Blender",
 			portrait: "portrait-mudkip-happy",
 			text: "It's good to see you!"
 		};
 
 		yield {
 			type: "speak",
-			speaker: "Mudkip",
+			speaker: "Blender",
 			portrait: "portrait-mudkip-sad",
 			text: "It can get kind of lonely hanging around here all by myself sometimes..."
 		};
 
 		let selection = yield {
 			type: "speak",
-			speaker: "Mudkip",
+			speaker: "Blender",
 			portrait: "portrait-mudkip-neutral",
 			text: "Anyway... would you like to visit a dungeon?",
 			responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "No thanks."]
@@ -41,7 +41,7 @@ let lonelyKip: OverworldEntity = {
 		if (selection === 0) {
 			yield {
 				type: "speak",
-				speaker: "Mudkip",
+				speaker: "Blender",
 				portrait: "portrait-mudkip-happy",
 				text: "Great!  I'll warp you there."
 			};
@@ -53,7 +53,7 @@ let lonelyKip: OverworldEntity = {
 		} else if (selection === 1) {
 			yield {
 				type: "speak",
-				speaker: "Mudkip",
+				speaker: "Blender",
 				portrait: "portrait-mudkip-happy",
 				text: "Sounds good.  Have fun in there!"
 			};
@@ -65,7 +65,7 @@ let lonelyKip: OverworldEntity = {
 		} else if (selection === 2) {
 			yield {
 				type: "speak",
-				speaker: "Mudkip",
+				speaker: "Blender",
 				portrait: "portrait-mudkip-happy",
 				text: "No problem.  Enjoy your exploration!"
 			};
@@ -77,7 +77,7 @@ let lonelyKip: OverworldEntity = {
 		} else {
 			return {
 				type: "speak",
-				speaker: "Mudkip",
+				speaker: "Blender",
 				portrait: "portrait-mudkip-neutral",
 				text: "Ok, but don't hesitate to come back if you change your mind!"
 			};
@@ -87,11 +87,11 @@ let lonelyKip: OverworldEntity = {
 
 let angryKip: OverworldEntity = {
 	id: shortid(),
-	name: "Mudkip",
-	graphics: "mudkip",
+	name: "Blender",
+	graphics: "blender",
 	position: { x: 250, y: 200 },
 	direction: 5,
-	stats: mudkipStats,
+	stats: blenderStats,
 	attacks: [],
 	attributes: [],
 	salt: 0,
@@ -101,14 +101,14 @@ let angryKip: OverworldEntity = {
 	*interact() {
 		yield {
 			type: "speak",
-			speaker: "Mudkip",
+			speaker: "Blender",
 			portrait: "portrait-mudkip-angry",
 			text: "Did that other guy say something to you about being lonely?"
 		};
 
 		return {
 			type: "speak",
-			speaker: "Mudkip",
+			speaker: "Blender",
 			portrait: "portrait-mudkip-sad",
 			text: "He does realize I'm right here, right?"
 		};
