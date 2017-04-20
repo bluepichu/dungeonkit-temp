@@ -789,9 +789,9 @@ function setGamePhase(phase: GamePhase): void {
 		case GamePhase.CRAWL:
 			inputHandler.hooks = [
 				{
-					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT],
+					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT, Keys.SHIFT],
 					delay: 4,
-					handle: ([up, down, left, right]: boolean[]) => {
+					handle: ([up, down, left, right, shift]: boolean[]) => {
 						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up ? 8 : 0) + (down ? 4 : 0) + (left ? 2 : 0) + (right ? 1 : 0)];
 						if (direction < 0) {
 							return;
@@ -799,13 +799,16 @@ function setGamePhase(phase: GamePhase): void {
 						if (awaitingMove) {
 							dungeonRenderer.showDirection(state.self.id, direction);
 							currentDirection = direction;
-							socket.sendCrawlAction({
-								type: "move",
-								direction
-							}, {
-								dash: key.isPressed(Keys.B)
-							});
-							awaitingMove = false;
+
+							if (!shift) {
+								socket.sendCrawlAction({
+									type: "move",
+									direction
+								}, {
+									dash: key.isPressed(Keys.B)
+								});
+								awaitingMove = false;
+							}	
 						}
 					},
 					enabled: () => awaitingMove
