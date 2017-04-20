@@ -303,6 +303,14 @@ export function shuffleList<T>(input: T[]): T[] {
 	return output;
 }
 
+/**
+ * Finds the (direction) angle between two crawl locations
+ * @param loc1 - The first location
+ * @param loc2 - The second location
+ * @requires  - loc1 and loc2 have line of sight
+ * @returns - The relative direction angle
+ */
+
 export function getAngleBetween(loc1: CrawlLocation, loc2: CrawlLocation) {
 	let dr = Math.sign(loc2.r - loc1.r);
 	let dc = Math.sign(loc2.c - loc1.c);
@@ -343,4 +351,23 @@ export function lineOfSight(loc1: CrawlLocation, loc2: CrawlLocation, map: Floor
 		testLoc.c += Math.sign(dc);
 	}
 	return true;
+}
+
+/**
+ * Gives the range [i, j)
+ * @param i - The start index
+ * @param j - The end index
+ * @return The range [i, j)
+ */
+
+export function range(i: number, j?: number): number[] {
+	if (j === undefined) {
+		j = i;
+		i = 0;
+	}
+	let output = Array(Math.abs(j-i));
+	for (let idx = 0; idx < Math.abs(j-i); idx++) {
+		output[idx] = i + Math.sign(j-i) * idx;
+	}
+	return output
 }

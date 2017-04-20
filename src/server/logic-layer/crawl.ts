@@ -58,6 +58,7 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
 		}
 
 		// AI, you done goofed
+		log(action)
 		return step(state, eventLog, mapUpdates);
 	} else {
 		state.entities.unshift(state.entities.pop());

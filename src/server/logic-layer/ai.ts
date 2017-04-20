@@ -21,7 +21,7 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 		state.self.location.direction = 0;
 	}
 
-	let enemy = null;
+	let enemy:CensoredCrawlEntity = null;
 	
 	for (let entity of state.entities) {
 		if (entity.alignment !== state.self.alignment) {
@@ -72,8 +72,23 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 		}
 	}
 
+	/* Attempt to move closer if we can see our -friend- enemy */
+	if (enemy !== null) {
+		let [loc, dist] = utils.range(8)
+		  .map(n => utils.offsetLocationInDir(state.self.location, n))
+		  .filter(l => utils.getTile(state.floor.map, l).type == DungeonTileType.FLOOR)
+		  .map(l => [l, getHeuristicDistance(l, enemy.location)])
+		  .reduce(([l1, d1], [l2, d2]) => d1 < d2 ? [l1, d1] : [l2, d2]); 
+
+		if (dist < getHeuristicDistance(state.self.location, enemy.location)) {
+			let angle = utils.getAngleBetween(state.self.location, loc as CrawlLocation);
+			return { type: "move", direction: angle };
+		}
+	}
+
+
 	/* If in a corridor, attempt to continue moving forward */
-	if (tile.roomId !== undefined) {
+	if (tile.roomId === undefined) {
 		for (let d = 0; d < 8; d++) {
 			let dir = (state.self.location.direction + Math.ceil(d/2) * Math.pow(-1, d%2) + 8) % 8;
 
@@ -105,6 +120,12 @@ function getHeuristicDistance(loc1: CrawlLocation, loc2: CrawlLocation) {
 
 /**
  * Copied from crawl because i'm tired
+ *     ...
+ * @param state - The state.
+ * @param attacker - The attacking entity.
+ * @param direction - The direction that the attacker is facing.
+ * @param selector - The attack's target selector.
+ * @return A list of crawl entities targeted by the attack.
  */
 
 function getTargets(
