@@ -291,7 +291,7 @@ export let peppercorn: ItemBlueprint = {
 export let turmeric: ItemBlueprint = {
 	name: "Turmeric",
 	description: "Boosts the user's defense.",
-	graphics: "item-peppercorn",
+	graphics: "item-turmeric",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
@@ -355,7 +355,7 @@ export let turmeric: ItemBlueprint = {
 export let oregano: ItemBlueprint = {
 	name: "Oregano",
 	description: "Boosts the user's attack.",
-	graphics: "item-peppercorn",
+	graphics: "item-oregano",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
