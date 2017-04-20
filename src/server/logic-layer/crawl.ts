@@ -198,6 +198,8 @@ function advanceToFloor(
 
 		state.entities.forEach((entity) => {
 			updateFloorMap(state, entity, mapUpdates);
+			entity.stats.attack.modifier = 0;
+			entity.stats.defense.modifier = 0;
 		});
 
 		let player = state.entities.filter((ent) => !ent.ai)[0];
@@ -765,7 +767,7 @@ function executeAttack(
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target, eventLog));
 
-	drainBellyAndRecoverHp(entity, 3, 1);
+	drainBellyAndRecoverHp(entity, 3, 0);
 
 	return state;
 }
@@ -907,13 +909,13 @@ function computeDamage(attacker: Entity, defender: Entity, attack: Attack): numb
 	let a = getModifiedStat(attacker.stats.attack) + attack.power;
 	let b = attacker.stats.level;
 	let c = getModifiedStat(defender.stats.defense);
-	let d = ((a - c) / 8) + (b * 43690 / 65536);
+	let d = ((a - c) / 8) + (b * 2 / 3);
 
 	if (d < 0) {
 		return 0;
 	}
 
-	let baseDamage = (((d * 2) - c) + 10) + ((d * d) * 3276 / 65536);
+	let baseDamage = (((d * 2) - c) + 10) + ((d * d) / 20);
 	let multiplier = (Math.random() * 2 + 7) / 8;
 	return Math.round(baseDamage * multiplier);
 }
