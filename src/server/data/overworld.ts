@@ -119,12 +119,54 @@ export let scene: OverworldScene = {
 	background: [
 		{ graphics: "ocean", position: { x: 0, y: 0 }}
 	],
-	bounds: { x: { min: 0, max: 480 }, y: { min: 0, max: 336 } },
-	obstacles: [],
+	bounds: { x: { min: 20, max: 460 }, y: { min: 20, max: 316 } },
+	obstacles: [
+		[ { x: 210, y: 246 }, { x: 168, y: 200 }, { x: 168, y: 143 }, { x: 212, y: 100 }, { x: 268, y: 100 }, { x: 312, y: 143 }, { x: 312, y: 200 }, { x: 270, y: 246 } ],
+		[ { x: 0, y: 220 }, { x: 94, y: 250 }, { x: 188, y: 336 }, { x: 0, y: 336 } ],
+		[ { x: 480, y: 220 }, { x: 386, y: 250 }, { x: 292, y: 336 }, { x: 480, y: 336 } ],
+		[ { x: 0, y: 182 },  { x: 150, y: 133 }, { x: 225, y: 70 }, { x: 225, y: 0 }, { x: 0, y: 0 } ],
+		[ { x: 480, y: 182 },  { x: 330, y: 133 }, { x: 255, y: 70 }, { x: 255, y: 0 }, { x: 480, y: 0 } ]
+	],
 	hotzones: [
 		{
+			id: "to-coral-reef",
+			area: [ { x: 0, y: 182 }, { x: 40, y: 182 }, { x: 40, y: 220 }, { x: 0, y: 220 } ],
+			*interact() {
+				let selection = yield {
+					type: "speak",
+					text: "Would you like to enter Calm Coral Reef?",
+					responses: [ "Yes", "No" ]
+				};
+
+				if (selection === 0) {
+					return {
+						type: "crawl",
+						dungeon: "coral-reef"
+					};
+				}
+			}
+		},
+		{
+			id: "to-cavern",
+			area: [ { x: 480, y: 182 }, { x: 440, y: 182 }, { x: 440, y: 220 }, { x: 480, y: 220 } ],
+			*interact() {
+				let selection = yield {
+					type: "speak",
+					text: "Would you like to enter Undersea Cavern?",
+					responses: [ "Yes", "No" ]
+				};
+
+				if (selection === 0) {
+					return {
+						type: "crawl",
+						dungeon: "cavern"
+					};
+				}
+			}
+		},
+		{
 			id: "to-trench",
-			area: [ { x: 460, y: 316 }, { x: 480, y: 316 }, { x: 480, y: 336 }, { x: 460, y: 336 } ],
+			area: [ { x: 225, y: 0 }, { x: 255, y: 0 }, { x: 255, y: 40 }, { x: 225, y: 40 } ],
 			*interact() {
 				let selection = yield {
 					type: "speak",
