@@ -13,6 +13,7 @@ import * as sourcemap   from "source-map-support";
 
 nconf.argv().env();
 
+const commNodeNames = ["Blast", "Totter", "Reviver", "Plain", "X-Eye"];
 const numCommNodes = nconf.get("comm") || 1;
 const numLogicNodes = nconf.get("logic") || 1;
 
@@ -65,7 +66,6 @@ if (cluster.isMaster) {
 		Promise.all([commStatsPrm, logicStatsPrm, queueStatsPrm])
 			.then(([commNodes, logicNodes, queues]) => {
 				let stats: MonitorStats = { commNodes, logicNodes, queues };
-				log(stats);
 				io.emit("update", stats);
 			});
 	}, 5000);
@@ -99,7 +99,15 @@ function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 
 function getCommStats(redisClient: redis.RedisClient): Promise<CommNodeStats[]> {
 	return new Promise((resolve, reject) => {
-		resolve([{ name: "Blinker" }]);
+		let ret: CommNodeStats[] = [];
+
+		for (let i = 0; i < numCommNodes; i++) {
+			ret.push({
+				name: commNodeNames[i]
+			});
+		}
+
+		resolve(ret);
 	});
 }
 
