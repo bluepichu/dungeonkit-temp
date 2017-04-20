@@ -559,8 +559,10 @@ function entityAnimations(
 
 	for (let attack of attacks) {
 		switch (attack) {
+			case "growl":
+			case "water-gun":
 			case "tackle":
-				desc.animations["tackle"] = makeTackleAnimation(dir, pivot, shadowPivot);
+				desc.animations[attack] = makeTackleAnimation(dir, pivot, shadowPivot);
 				break;
 
 			case "spinshock":
@@ -582,14 +584,14 @@ function entityAnimations(
 
 let mudkipGraphics: EntityGraphicsDescriptor = {
 	descriptors: {
-		[0]: entityAnimations("mudkip", 0, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[1]: entityAnimations("mudkip", 1, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[2]: entityAnimations("mudkip", 2, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[3]: entityAnimations("mudkip", 3, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[4]: entityAnimations("mudkip", 4, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[5]: entityAnimations("mudkip", 5, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[6]: entityAnimations("mudkip", 6, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
-		[7]: entityAnimations("mudkip", 7, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true)
+		[0]: entityAnimations("mudkip", 0, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[1]: entityAnimations("mudkip", 1, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[2]: entityAnimations("mudkip", 2, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[3]: entityAnimations("mudkip", 3, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[4]: entityAnimations("mudkip", 4, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[5]: entityAnimations("mudkip", 5, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[6]: entityAnimations("mudkip", 6, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
+		[7]: entityAnimations("mudkip", 7, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true)
 	}
 };
 

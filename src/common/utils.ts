@@ -268,4 +268,79 @@ export function locationToPoint(location: CrawlLocation, gridSize: number): Poin
  */
 export function isVoid<T>(v: T | void): v is void {
 	return v === undefined;
+}		
+
+/**
+ * Offsets a location in a given direction
+ * @param location - The location of the base object
+ * @param direction - The direction to offset it by
+ * @return The offset location
+ */ 
+
+export function offsetLocationInDir(location: CrawlLocation, direction: number): CrawlLocation {
+	let [dr, dc] = decodeDirection(direction)
+	return {
+		r: location.r + dr,
+		c: location.c + dc,
+		direction: location.direction
+	}
+}
+
+/**
+ * Shuffles a list
+ * @param input - The list to be shuffled
+ * @return The shuffled list
+ */
+
+export function shuffleList<T>(input: T[]): T[] {
+	let output = input.slice()
+	for (let i = 0; i < output.length; i++) {
+		let dest = Math.floor(Math.random() * (output.length - i)) + i;
+		let tmp = output[dest];
+		output[dest] = output[i];
+		output[i] = tmp;
+	}
+	return output;
+}
+
+export function getAngleBetween(loc1: CrawlLocation, loc2: CrawlLocation) {
+	let dr = Math.sign(loc2.r - loc1.r);
+	let dc = Math.sign(loc2.c - loc1.c);
+	     if (dr == 0  && dc == 1 ) return 0;
+	else if (dr == -1 && dc == 1 ) return 1;
+	else if (dr == -1 && dc == 0 ) return 2;
+	else if (dr == -1 && dc == -1) return 3;
+	else if (dr == 0  && dc == -1) return 4;
+	else if (dr == 1  && dc == -1) return 5;
+	else if (dr == 1  && dc == 0 ) return 6;
+	else if (dr == 1  && dc == 1 ) return 7;
+	else throw new Error('Getting angle between overlapping locations');
+
+}
+
+/**
+ * Checks whether two crawl locations have line of sight
+ * @param loc1 - The first location
+ * @param loc2 - The second location
+ * @param map - The floormap
+ * @return Whether or not they have line of sight
+ */
+export function lineOfSight(loc1: CrawlLocation, loc2: CrawlLocation, map: FloorMap): boolean {
+	let dr = loc2.r - loc1.r;
+	let dc = loc2.c - loc1.c;
+	if (!(dr === 0 || dc === 0 || dr === dc)) {
+		return false;
+	}
+
+	let testLoc = { r: loc1.r, c: loc1.c }
+
+	for (let i = 0; i < Math.max(dr, dc); i++) {
+		let tile = getTile(map, testLoc);
+		if (tile.type !== DungeonTileType.FLOOR) {
+			return false;
+		}
+		testLoc.r += Math.sign(dr);
+		testLoc.c += Math.sign(dc);
+	}
+	return true;
 }
