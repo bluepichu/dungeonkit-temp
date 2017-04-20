@@ -40,7 +40,7 @@ if (cluster.isMaster) {
 	}
 
 	net.createServer({ pauseOnConnect: true } as {}, (connection: net.Socket) => {
-		let worker = workers[0]; // TODO
+		let worker = workers[ipValue(connection) % numCommNodes];
 		worker.send("sticky-session:connection", connection);
 	}).listen(PORT);
 
@@ -124,4 +124,16 @@ function getQueueStats(): Promise<QueueStats[]> {
 				new Promise((res, rej) => queue.activeCount(type, (err: Error, count: number) => res({ name: type, length: count }))))));
 		});
 	});
+}
+
+function ipValue(connection: net.Socket): number {
+	let s = "";
+
+	for (let i = 0; i < connection.remoteAddress.length; i++) {
+		if (0x30 <= connection.remoteAddress.charCodeAt(i) && connection.remoteAddress.charCodeAt(i) <= 0x39) {
+			s += connection.remoteAddress[i];
+		}
+	}
+
+	return parseInt(s);
 }
