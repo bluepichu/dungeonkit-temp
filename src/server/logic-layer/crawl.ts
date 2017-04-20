@@ -585,24 +585,32 @@ function executeItemPickup(state: InProgressCrawlState, entity: CrawlEntity, eve
 	let item = utils.getItemAtCrawlLocation(state, entity.location);
 
 	if (item !== undefined) {
-		propagateLogEvent(state, {
-			type: "item_pickup",
-			entity: {
-				id: entity.id,
-				name: entity.name,
-				graphics: entity.graphics
-			},
-			item: item
-		}, eventLog);
-
 		if (item.handlers.pickup !== undefined && !item.handlers.pickup(entity, state, item, eventLog)) {
 			return state;
 		}
 
 		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
+			propagateLogEvent(state, {
+				type: "item_pickup",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				item: item
+			}, eventLog);
 			entity.items.bag.items.push(item);
 			state.items = state.items.filter((it) => it !== item);
 		} else if (entity.items.held.items.length < entity.items.held.capacity) {
+			propagateLogEvent(state, {
+				type: "item_pickup",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				item: item
+			}, eventLog);
 			entity.items.held.items.push(item);
 			state.items = state.items.filter((it) => it !== item);
 		} else {

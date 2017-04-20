@@ -73,35 +73,176 @@ function makeWalkAnimation(dir: number, pivot: Point, shadowPivot: Point): Anima
 	];
 }
 
+function makeDefaultAnimationFromBase(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 40
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: { x: pivot.x, y: pivot.y + 1 } },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 8
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: { x: pivot.x, y: pivot.y + 2 } },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 8
+		}
+	];
+}
+
+function makeWalkAnimationFromBase(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: { x: pivot.x, y: pivot.y + 1 } },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 6
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: { x: pivot.x, y: pivot.y + 2 } },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 6
+		}
+	];
+}
+
 function makeThrowAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
 	return [
 		{
 			sprites: [
-				{ texture: `walk-${dir}a`, anchor: pivot },
-				{ texture: "shadow", anchor: shadowPivot }
+				{ texture: `walk-${(dir + 0) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
 			],
-			duration: 8
+			duration: 1
 		},
 		{
 			sprites: [
-				{ texture: `walk-${dir}b`, anchor: pivot },
-				{ texture: "shadow", anchor: shadowPivot }
+				{ texture: `walk-${(dir + 1) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
 			],
-			duration: 8
+			duration: 1
 		},
 		{
 			sprites: [
-				{ texture: `walk-${dir}a`, anchor: pivot },
-				{ texture: "shadow", anchor: shadowPivot }
+				{ texture: `walk-${(dir + 2) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
 			],
-			duration: 8
+			duration: 1
 		},
 		{
 			sprites: [
-				{ texture: `walk-${dir}b`, anchor: pivot },
-				{ texture: "shadow", anchor: shadowPivot }
+				{ texture: `walk-${(dir + 3) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
 			],
-			duration: 8
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 4) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 5) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 6) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 7) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		}
+	];
+}
+
+function makeThrowAnimationFromBase(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `base-${(dir + 0) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 1) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 2) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 3) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 4) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 5) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 6) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${(dir + 7) % 8}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
 		}
 	];
 }
@@ -235,6 +376,130 @@ function makeTackleAnimation(dir: number, pivot: Point, shadowPivot: Point): Ani
 		{
 			sprites: [
 				{ texture: `walk-${dir}a`, anchor: pivot, offset: 0.25 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.25 }
+			],
+			duration: 1
+		}
+	];
+}
+
+function makeTackleAnimationFromBase(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: -0.05 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.05 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: -0.09 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.09 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: -0.12 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.12 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: -0.15 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.15 }
+			],
+			duration: 4
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: -0.15 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.15 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: -0.05 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.05 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.05 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.05 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.15 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.15 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.25 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.25 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.35 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.35 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.45 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.45 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.55 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.55 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.65 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.65 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.75 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.75 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.5 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0.5 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `base-${dir}`, anchor: pivot, offset: 0.25 },
 				{ texture: "shadow", anchor: shadowPivot, offset: 0.25 }
 			],
 			duration: 1
@@ -543,26 +808,25 @@ function entityAnimations(
 		pivot: Point,
 		shadowPivot: Point,
 		attacks: string[],
-		useWalkForDefault?: boolean): GraphicsObjectDescriptor {
+		useWalkForDefault?: boolean,
+		useBase?: boolean): GraphicsObjectDescriptor {
 	let desc: GraphicsObjectDescriptor = {
 		base,
 		animations: {
 			"default": useWalkForDefault
-					? makeDefaultAnimationFromWalk(dir, pivot, shadowPivot)
+					? (useBase ? makeDefaultAnimationFromBase(dir, pivot, shadowPivot) : makeDefaultAnimationFromWalk(dir, pivot, shadowPivot))
 					: makeDefaultAnimation(dir, pivot, shadowPivot),
-			"walk": makeWalkAnimation(dir, pivot, shadowPivot),
+			"walk": (useBase ? makeWalkAnimationFromBase(dir, pivot, shadowPivot) : makeWalkAnimation(dir, pivot, shadowPivot)),
 			"hurt": makeHurtAnimation(dir, pivot, shadowPivot),
 			"defeat": makeHurtAnimation(dir, pivot, shadowPivot),
-			"throw": makeThrowAnimation(dir, pivot, shadowPivot)
+			"throw": (useBase ? makeThrowAnimationFromBase(dir, pivot, shadowPivot) : makeThrowAnimation(dir, pivot, shadowPivot))
 		}
 	};
 
 	for (let attack of attacks) {
 		switch (attack) {
-			case "growl":
-			case "water-gun":
 			case "tackle":
-				desc.animations[attack] = makeTackleAnimation(dir, pivot, shadowPivot);
+				desc.animations["tackle"] = (useBase ? makeTackleAnimationFromBase(dir, pivot, shadowPivot) : makeTackleAnimation(dir, pivot, shadowPivot));
 				break;
 
 			case "spinshock":
@@ -582,16 +846,16 @@ function entityAnimations(
 	return desc;
 }
 
-let mudkipGraphics: EntityGraphicsDescriptor = {
+let blenderGraphics: EntityGraphicsDescriptor = {
 	descriptors: {
-		[0]: entityAnimations("mudkip", 0, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[1]: entityAnimations("mudkip", 1, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[2]: entityAnimations("mudkip", 2, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[3]: entityAnimations("mudkip", 3, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[4]: entityAnimations("mudkip", 4, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[5]: entityAnimations("mudkip", 5, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[6]: entityAnimations("mudkip", 6, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true),
-		[7]: entityAnimations("mudkip", 7, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle", "growl", "water-gun"], true)
+		[0]: entityAnimations("blender", 0, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[1]: entityAnimations("blender", 1, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[2]: entityAnimations("blender", 2, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[3]: entityAnimations("blender", 3, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[4]: entityAnimations("blender", 4, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[5]: entityAnimations("blender", 5, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[6]: entityAnimations("blender", 6, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
+		[7]: entityAnimations("blender", 7, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true)
 	}
 };
 
@@ -696,8 +960,7 @@ function staticDescriptor(base: string, texture: string, position: Point = { x: 
 
 export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["dng-proto", dungeonGraphics],
-	["pkmn-square", staticDescriptor("bg", "pkmn-square", { x: 0, y: 0 })],
-	["pond", staticDescriptor("bg", "pond", { x: 0, y: 0 })],
+	["ocean", staticDescriptor("bg", "ocean", { x: 0, y: 0 })],
 	["item-screwdriver", staticDescriptor("item", "screwdriver")],
 	["item-battery", staticDescriptor("item", "battery")],
 	["item-paprika", staticDescriptor("item", "paprika")],
@@ -707,10 +970,13 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["item-cinnamon", staticDescriptor("item", "cinnamon")],
 	["item-peppercorn", staticDescriptor("item", "peppercorn")],
 	["item-spare-parts", staticDescriptor("item", "spare-parts")],
-	["item-salt", staticDescriptor("item", "salt")]
+	["item-salt", staticDescriptor("item", "salt")],
+	["item-flag", staticDescriptor("item", "flag")],
+	["item-key", staticDescriptor("item", "key")],
+	["item-box", staticDescriptor("item", "box")]
 ]);
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([
-	["mudkip", mudkipGraphics],
+	["blender", blenderGraphics],
 	["toaster", toasterGraphics]
 ]);

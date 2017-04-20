@@ -1,10 +1,10 @@
 "use strict";
 
-export let mudkipStats: EntityStats = {
+export let blenderStats: EntityStats = {
 	level: 10,
 	hp: {
-		max: 10,
-		current: 10
+		max: 20,
+		current: 20
 	},
 	attack: {
 		base: 19,
@@ -15,16 +15,16 @@ export let mudkipStats: EntityStats = {
 		modifier: 0
 	},
 	energy: {
-		max: 600,
-		current: 600
+		max: 6000,
+		current: 6000
 	}
 };
 
 export let opStats: EntityStats = {
 	level: 10,
 	hp: {
-		max: 200,
-		current: 200
+		max: 1000,
+		current: 1000
 	},
 	attack: {
 		base: 19,
@@ -35,8 +35,8 @@ export let opStats: EntityStats = {
 		modifier: 0
 	},
 	energy: {
-		max: 600,
-		current: 600
+		max: 6000,
+		current: 6000
 	}
 };
 

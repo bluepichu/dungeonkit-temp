@@ -3,6 +3,8 @@
 import * as crawl from "../logic-layer/crawl";
 import * as utils from "../../common/utils";
 
+import * as process from "process";
+
 type DeepProxyHandler = {
 	get?(target: any, field: string | number | symbol): any,
 	set?(target: any, field: string | number | symbol, value: any): void
@@ -289,7 +291,7 @@ export let peppercorn: ItemBlueprint = {
 export let turmeric: ItemBlueprint = {
 	name: "Turmeric",
 	description: "Boosts the user's defense.",
-	graphics: "item-peppercorn",
+	graphics: "item-turmeric",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
@@ -353,7 +355,7 @@ export let turmeric: ItemBlueprint = {
 export let oregano: ItemBlueprint = {
 	name: "Oregano",
 	description: "Boosts the user's attack.",
-	graphics: "item-peppercorn",
+	graphics: "item-oregano",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
@@ -539,7 +541,7 @@ export let battery: ItemBlueprint = {
 				message: `<self>${entity.name}</self> used the <item>Battery</item>!`
 			}, eventLog);
 
-			let newEnergy = Math.min(entity.stats.hp.max, entity.stats.hp.current + 300);
+			let newEnergy = Math.min(entity.stats.energy.max, entity.stats.energy.current + 300);
 
 			crawl.propagateLogEvent(state, {
 				type: "stat",
@@ -550,7 +552,7 @@ export let battery: ItemBlueprint = {
 				},
 				location: entity.location,
 				stat: "energy",
-				change: newEnergy - entity.stats.hp.current
+				change: newEnergy - entity.stats.energy.current
 			}, eventLog);
 
 			entity.stats.energy.current = newEnergy;
@@ -558,16 +560,159 @@ export let battery: ItemBlueprint = {
 	}
 };
 
-export let salt: ItemBlueprint = {
+export let salt: ItemBlueprint = { // TODO: let players use salt to buy items
 	name: "Salt",
 	description: "Acts as currency.",
 	graphics: "item-salt",
 	actions: {},
 	handlers: {
 		pickup(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): boolean {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> picked up <item>${item.amount} Salt</item>.`
+			}, eventLog);
+
 			entity.salt += item.amount;
 			state.items = state.items.filter((it) => it !== item);
 			return false;
 		}
 	}
+};
+
+export let lightFlag: ItemBlueprint = {
+	name: "Light Flag",
+	description: "The Light Flag.",
+	graphics: "item-flag",
+	actions: {
+		use: ["use"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Light Flag</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> found some important words sewn into the back of the flag: <item>${process.env["LIGHT_FLAG"]}</item>`
+			}, eventLog);
+		}
+	}
+};
+
+export let blazingFlag: ItemBlueprint = {
+	name: "Blazing Flag",
+	description: "The Blazing Flag.",
+	graphics: "item-flag",
+	actions: {
+		use: ["use"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Blazing Flag</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> found some important words sewn into the back of the flag: <item>${process.env["BLAZING_FLAG"]}</item>`
+			}, eventLog);
+		}
+	}
+};
+
+export let stormyFlag: ItemBlueprint = {
+	name: "Stormy Flag",
+	description: "The Stormy Flag.",
+	graphics: "item-flag",
+	actions: {
+		use: ["use"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Stormy Flag</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> found some important words sewn into the back of the flag: <item>${process.env["STORMY_FLAG"]}</item>`
+			}, eventLog);
+		}
+	}
+};
+
+export let key: ItemBlueprint = {
+	name: "Key",
+	description: "Can be used to open an equipped locked box.",
+	graphics: "item-key",
+	actions: {
+		use: ["use"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Key</item>!`
+			}, eventLog);
+
+			let index = entity.items.held.items.findIndex((it) => it.name === "Locked Box");
+
+			if (index >= 0) {
+				let it = entity.items.held.items[index];
+				Object.assign(it, lightFlag);
+			}
+		}
+	}
+};
+
+export let lockedBox: ItemBlueprint = {
+	name: "Locked Box",
+	description: "A locked box.  You need a key to open it.",
+	graphics: "item-box",
+	actions: {},
+	handlers: {}
 };

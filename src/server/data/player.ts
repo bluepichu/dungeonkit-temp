@@ -22,8 +22,8 @@ export function generatePlayer(name: string = "Toaster"): PlayerOverworldEntity 
 			bag: { capacity: 12, items: [] }
 		},
 		graphics: "toaster",
-		position: { x: 60, y: 323 },
-		direction: 1,
+		position: { x: 240, y: 312 },
+		direction: 2,
 		attributes: [],
 		salt: 0
 	};

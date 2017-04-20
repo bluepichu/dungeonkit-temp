@@ -1,6 +1,6 @@
 "use strict";
 
-import { mudkipStats, opStats }  from "./stats";
+import { blenderStats, opStats }  from "./stats";
 
 import {
 	tackle,
@@ -21,12 +21,17 @@ import {
 	cinnamon,
 	peppercorn,
 	salt,
-	spareParts
+	spareParts,
+	key,
+	lockedBox,
+	lightFlag,
+	blazingFlag,
+	stormyFlag
 } from "./items";
 
-let finalBossMudkip = {
-	name: "Mudkip",
-	graphics: "mudkip",
+let finalBoss = {
+	name: "Spatula",
+	graphics: "spatula",
 	stats: opStats,
 	attacks: [
 		{ attack: op, weight: 1 }
@@ -318,13 +323,11 @@ let trench: Dungeon = {
 				enemies: [
 					{
 						density: { type: "binomial", n: 10, p: .4 },
-						name: "Mudkip",
-						graphics: "mudkip",
-						stats: mudkipStats,
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 },
-							{ attack: growl, weight: 1 },
-							{ attack: waterGun, weight: 1 }
+							{ attack: tackle, weight: 1 }
 						]
 					}
 				],
@@ -363,7 +366,7 @@ let trench: Dungeon = {
 						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ]
 					]
 				},
-				enemies: [ { blueprint: finalBossMudkip, location: { r: 2, c: 5 } } ],
+				enemies: [ { blueprint: finalBoss, location: { r: 2, c: 5 } } ],
 				items: [],
 				playerLocation: { r: 6, c: 5 }
 			} as StaticFloorBlueprint // why do I need this?
@@ -373,48 +376,274 @@ let trench: Dungeon = {
 
 let sandbar: Dungeon = {
 	name: "Shallow Sandbar",
-	floors: 1,
+	floors: 4,
 	direction: "down",
-	difficulty: 5,
+	difficulty: 2,
 	graphics: "dng-proto",
 	blueprint: [
 		{
-			range: [1, 1],
+			range: [1, 3],
 			blueprint: {
-				type: "static",
-				map: {
-					width: 11,
-					height: 17,
-					grid: [
-						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
-						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), st(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
-						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ]
-					]
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 40, p: .8 },
+					height: { type: "binomial", n: 40, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
 				},
-				enemies: [],
-				items: [],
-				playerLocation: { r: 2, c: 5 }
+				enemies: [
+					{
+						density: { type: "binomial", n: 5, p: .4 },
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
+						attacks: [
+							{ attack: tackle, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } }
+				]
 			}
 		},
+		{
+			range: [3, 3],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
+						attacks: [
+							{ attack: tackle, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: blazingFlag, density: { type: "uniform", a: 1, b: 1 } }
+				]
+			}
+		}
 	]
 };
+
+let coralReef: Dungeon = {
+	name: "Calm Coral Reef",
+	floors: 3,
+	direction: "up",
+	difficulty: 2,
+	graphics: "dng-proto",
+	blueprint: [
+		{
+			range: [1, 2],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
+						attacks: [
+							{ attack: tackle, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } }
+				]
+			}
+		},
+		{
+			range: [3, 3],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
+						attacks: [
+							{ attack: tackle, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: key, density: { type: "uniform", a: 1, b: 1 } }
+				]
+			}
+		}
+	]
+};
+
+let cavern: Dungeon = {
+	name: "Undersea Cavern",
+	floors: 3,
+	direction: "down",
+	difficulty: 2,
+	graphics: "dng-proto",
+	blueprint: [
+		{
+			range: [1, 2],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
+						attacks: [
+							{ attack: tackle, weight: 1 }						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } }
+				]
+			}
+		},
+		{
+			range: [3, 3],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Blender",
+						graphics: "blender",
+						stats: blenderStats,
+						attacks: [
+							{ attack: tackle, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: lockedBox, density: { type: "uniform", a: 1, b: 1 } }
+				]
+			}
+		}
+	]
+}
 
 let dungeons: Map<string, Dungeon> = new Map<string, Dungeon>();
 dungeons.set("trench", trench);
 dungeons.set("sandbar", sandbar);
+dungeons.set("coral-reef", coralReef);
+dungeons.set("cavern", cavern);
 
 export default dungeons;
