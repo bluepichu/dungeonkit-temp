@@ -40,7 +40,7 @@ export let opStats: EntityStats = {
 	}
 };
 
-export let eeveeStats: EntityStats = {
+export let toasterStats: EntityStats = {
 	level: 10,
 	hp: {
 		max: 48,

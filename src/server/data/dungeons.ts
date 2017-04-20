@@ -171,7 +171,7 @@ let wl: () => DungeonTile = () => ({ type: DungeonTileType.WALL, stairs: false }
 let fl: () => DungeonTile = () => ({ type: DungeonTileType.FLOOR, roomId: 1, stairs: false });
 let st: () => DungeonTile = () => ({ type: DungeonTileType.FLOOR, roomId: 1, stairs: true });
 
-let dungeon: Dungeon = {
+let trench: Dungeon = {
 	name: "Treacherous Trench",
 	floors: 5,
 	direction: "down",
@@ -371,7 +371,50 @@ let dungeon: Dungeon = {
 	]
 };
 
+let sandbar: Dungeon = {
+	name: "Shallow Sandbar",
+	floors: 1,
+	direction: "down",
+	difficulty: 5,
+	graphics: "dng-proto",
+	blueprint: [
+		{
+			range: [1, 1],
+			blueprint: {
+				type: "static",
+				map: {
+					width: 11,
+					height: 17,
+					grid: [
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), st(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ]
+					]
+				},
+				enemies: [],
+				items: [],
+				playerLocation: { r: 2, c: 5 }
+			}
+		},
+	]
+};
+
 let dungeons: Map<string, Dungeon> = new Map<string, Dungeon>();
-dungeons.set("proto-forest", dungeon);
+dungeons.set("trench", trench);
+dungeons.set("sandbar", sandbar);
 
 export default dungeons;

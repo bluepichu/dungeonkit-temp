@@ -53,7 +53,6 @@ let floorSignText: Text = undefined;
 let attackOverlay: AttackOverlay = undefined;
 let inputHandler: KeyboardInputHandler = undefined;
 let teamOverlay: TeamOverlay = undefined;
-let feedLog: MessageLog = undefined;
 let main: HTMLElement = undefined;
 let awaitingMove: boolean = false;
 let state: CensoredClientCrawlState;
@@ -99,7 +98,7 @@ function loadAssets(): void {
 		.add("dng-proto", "/assets/tiles.json")
 		.add("dng-stormy-sea", "/assets/tileset-stormy-sea.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
-		.add("ent-eevee", "/assets/eevee.json")
+		.add("ent-toaster", "/assets/toaster.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
 		.add("portraits", "/assets/portraits.json")
@@ -154,30 +153,6 @@ function init(): void {
 		processAll(updates);
 	});
 
-	socket.onFeed((message) => {
-		console.log(message);
-		switch (message.type) {
-			case "connect":
-				// do nothing?
-				break;
-
-			case "login":
-				let tag = message.special ? "special" : "user";
-				feedLog.push(`<${tag}>${message.user}</${tag}> has logged in.`);
-				break;
-
-			case "win":
-				tag = message.special ? "special" : "user";
-				feedLog.push(`<${tag}>${message.user}</${tag}> cleared <dungeon>${message.dungeon}</dungeon>!`);
-				break;
-
-			case "lose":
-				tag = message.special ? "special" : "user";
-				feedLog.push(`<${tag}>${message.user}</${tag}> was defeated in <dungeon>${message.dungeon}</dungeon>.`);
-				break;
-		}
-	});
-
 	for (let name in PixiUtils.TextureCache) {
 		PixiUtils.TextureCache[name].baseTexture.scaleMode = SCALE_MODES.NEAREST;
 	}
@@ -224,9 +199,6 @@ function init(): void {
 
 	speakingArea = new SpeakingArea();
 	gameContainer.addChild(speakingArea);
-
-	feedLog = new MessageLog(true);
-	gameContainer.addChild(feedLog);
 
 	messageLog.push(Messages.WELCOME, 10000);
 	messageLog.push(Messages.START_HELP, 10000);
@@ -353,9 +325,6 @@ function handleWindowResize(): void {
 
 	messageLog.x = rendererWidth;
 	messageLog.y = rendererHeight;
-
-	feedLog.x = 0;
-	feedLog.y = rendererHeight;
 
 	commandArea.x = rendererWidth - 310;
 	commandArea.y = 10;

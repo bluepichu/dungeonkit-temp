@@ -242,13 +242,309 @@ function makeTackleAnimation(dir: number, pivot: Point, shadowPivot: Point): Ani
 	];
 }
 
+function getSpinshockSprite(dir: number) {
+	switch (dir) {
+		case 0: return { texture: "spinshock-0", anchor: { x: 36, y: 20 }, offset: 0 };
+		case 1: return { texture: "spinshock-1", anchor: { x: 20, y: 20 }, offset: 0 };
+		case 2: return { texture: "spinshock-2", anchor: { x: 12, y: 20 }, offset: 0 };
+		case 3: return { texture: "spinshock-3", anchor: { x: 12, y: 35 }, offset: 0 };
+		case 4: return { texture: "spinshock-4", anchor: { x: 12, y: 44 }, offset: 0 };
+		case 5: return { texture: "spinshock-5", anchor: { x: 26, y: 44 }, offset: 0 };
+		case 6: return { texture: "spinshock-6", anchor: { x: 36, y: 44 }, offset: 0 };
+		case 7: return { texture: "spinshock-7", anchor: { x: 36, y: 27 }, offset: 0 };
+	}
+}
+
+function makeSpinshockAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				getSpinshockSprite((dir + 0) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 7) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 6) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 5) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 4) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 3) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 2) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 1) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 0) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 7) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 6) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 5) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 4) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 3) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 2) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 1) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				getSpinshockSprite((dir + 0) % 8),
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 5
+		},
+	];
+}
+
+
+function makeOverheatAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `overheat-${dir}a`, anchor: { x: 12, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}b`, anchor: { x: 12, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}c`, anchor: { x: 12, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}d`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}e`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}c`, anchor: { x: 12, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}d`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}e`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}c`, anchor: { x: 12, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}d`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}e`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}f`, anchor: { x: 24, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `overheat-${dir}g`, anchor: { x: 12, y: 44 }, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 2
+		},
+	];
+}
+
+function makeCalmMindAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 0) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 1) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 2) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 3) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 4) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 5) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 6) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		},
+		{
+			sprites: [
+				{ texture: `walk-${(dir + 7) % 8}a`, anchor: pivot, offset: 0 },
+				{ texture: "shadow", anchor: shadowPivot, offset: 0 }
+			],
+			duration: 1
+		}
+	];
+}
+
 function entityAnimations(
 		base: string,
 		dir: number,
 		pivot: Point,
 		shadowPivot: Point,
+		attacks: string[],
 		useWalkForDefault?: boolean): GraphicsObjectDescriptor {
-	return {
+	let desc: GraphicsObjectDescriptor = {
 		base,
 		animations: {
 			"default": useWalkForDefault
@@ -256,38 +552,62 @@ function entityAnimations(
 					: makeDefaultAnimation(dir, pivot, shadowPivot),
 			"walk": makeWalkAnimation(dir, pivot, shadowPivot),
 			"hurt": makeHurtAnimation(dir, pivot, shadowPivot),
-			"tackle": makeTackleAnimation(dir, pivot, shadowPivot),
-			"swift": makeTackleAnimation(dir, pivot, shadowPivot),
-			"growl": makeTackleAnimation(dir, pivot, shadowPivot),
-			"tail-whip": makeTackleAnimation(dir, pivot, shadowPivot),
 			"defeat": makeHurtAnimation(dir, pivot, shadowPivot),
 			"throw": makeThrowAnimation(dir, pivot, shadowPivot)
 		}
 	};
+
+	for (let attack of attacks) {
+		switch (attack) {
+			case "tackle":
+				desc.animations["tackle"] = makeTackleAnimation(dir, pivot, shadowPivot);
+				break;
+
+			case "spinshock":
+				desc.animations["spinshock"] = makeSpinshockAnimation(dir, pivot, shadowPivot);
+				break;
+
+			case "overheat":
+				desc.animations["overheat"] = makeOverheatAnimation(dir, pivot, shadowPivot);
+				break;
+
+			case "calm-mind":
+				desc.animations["calm-mind"] = makeCalmMindAnimation(dir, pivot, shadowPivot);
+				break;
+		}
+	}
+
+	return desc;
 }
 
 let mudkipGraphics: EntityGraphicsDescriptor = {
 	descriptors: {
-		[0]: entityAnimations("mudkip", 0, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[1]: entityAnimations("mudkip", 1, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[2]: entityAnimations("mudkip", 2, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[3]: entityAnimations("mudkip", 3, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[4]: entityAnimations("mudkip", 4, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[5]: entityAnimations("mudkip", 5, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[6]: entityAnimations("mudkip", 6, { x: 12, y: 15 }, { x: 12, y: 5 }, true),
-		[7]: entityAnimations("mudkip", 7, { x: 12, y: 15 }, { x: 12, y: 5 }, true)
+		[0]: entityAnimations("mudkip", 0, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[1]: entityAnimations("mudkip", 1, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[2]: entityAnimations("mudkip", 2, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[3]: entityAnimations("mudkip", 3, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[4]: entityAnimations("mudkip", 4, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[5]: entityAnimations("mudkip", 5, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[6]: entityAnimations("mudkip", 6, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true),
+		[7]: entityAnimations("mudkip", 7, { x: 12, y: 15 }, { x: 12, y: 5 }, ["tackle"], true)
 	}
 };
 
-let eeveeGraphics: EntityGraphicsDescriptor = {
+let pivot = { x: 12, y: 15 };
+let shadowPivot = { x: 12, y: 6 };
+let attacks = ["tackle", "spinshock", "overheat", "calm-mind"];
+
+let toasterGraphics: EntityGraphicsDescriptor = {
 	descriptors: {
-		[2]: entityAnimations("eevee", 2, { x: 16, y: 20 }, { x: 16, y: 18 }),
-		[3]: entityAnimations("eevee", 3, { x: 16, y: 20 }, { x: 16, y: 18 }),
-		[4]: entityAnimations("eevee", 4, { x: 16, y: 20 }, { x: 16, y: 18 }),
-		[5]: entityAnimations("eevee", 5, { x: 16, y: 20 }, { x: 16, y: 18 }),
-		[6]: entityAnimations("eevee", 6, { x: 16, y: 20 }, { x: 16, y: 18 })
-	},
-	useReflection: true
+		[0]: entityAnimations("toaster", 0, pivot, shadowPivot, attacks, true),
+		[1]: entityAnimations("toaster", 1, pivot, shadowPivot, attacks, true),
+		[2]: entityAnimations("toaster", 2, pivot, shadowPivot, attacks, true),
+		[3]: entityAnimations("toaster", 3, pivot, shadowPivot, attacks, true),
+		[4]: entityAnimations("toaster", 4, pivot, shadowPivot, attacks, true),
+		[5]: entityAnimations("toaster", 5, pivot, shadowPivot, attacks, true),
+		[6]: entityAnimations("toaster", 6, pivot, shadowPivot, attacks, true),
+		[7]: entityAnimations("toaster", 7, pivot, shadowPivot, attacks, true)
+	}
 };
 
 function dungeonGraphicsAnimations(patternCounts: { [key: number]: number }): { [key: string]: AnimationDescriptor } {
@@ -390,5 +710,5 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([
 	["mudkip", mudkipGraphics],
-	["eevee", eeveeGraphics]
+	["toaster", toasterGraphics]
 ]);

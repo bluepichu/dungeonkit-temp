@@ -16,7 +16,7 @@ interface Attack {
 /**
  * Describes the enemies targeted by an attack.
  */
-type TargetSelector = RoomTargetSelector | FrontTargetSelector | SelfTargetSelector | TeamTargetSelector;
+type TargetSelector = RoomTargetSelector | FrontTargetSelector | SelfTargetSelector | TeamTargetSelector | AroundTargetSelector;
 
 /**
  * A target selector that selects entities in the same room as the attacker.
@@ -24,6 +24,14 @@ type TargetSelector = RoomTargetSelector | FrontTargetSelector | SelfTargetSelec
 interface RoomTargetSelector {
 	type: "room";
 	includeSelf: boolean;
+	includeAllies: boolean;
+}
+
+/**
+ * A target selector that selects entities in all directions around the attacker.
+ */
+interface AroundTargetSelector {
+	type: "around";
 	includeAllies: boolean;
 }
 

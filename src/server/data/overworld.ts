@@ -34,7 +34,7 @@ let lonelyKip: OverworldEntity = {
 			type: "speak",
 			speaker: "Mudkip",
 			portrait: "portrait-mudkip-neutral",
-			text: "Anyway... would you like to go to Prototypical Forest?",
+			text: "Anyway... would you like to go to Treacherous Trench?",
 			responses: ["Sure!", "No thanks."]
 		};
 
@@ -48,7 +48,7 @@ let lonelyKip: OverworldEntity = {
 
 			return {
 				type: "crawl",
-				dungeon: "proto-forest"
+				dungeon: "trench"
 			};
 		} else {
 			return {
@@ -131,14 +131,14 @@ export let scene: OverworldScene = {
 			*interact() {
 				let selection = yield {
 					type: "speak",
-					text: "Would you like to enter Prototypical Forest?",
+					text: "Would you like to enter Treacherous Trench?",
 					responses: [ "Yes", "No" ]
 				};
 
 				if (selection === 0) {
 					return {
 						type: "crawl",
-						dungeon: "proto-forest"
+						dungeon: "trench"
 					};
 				}
 			}
@@ -171,14 +171,14 @@ alphaScene.hotzones.push({
 	*interact() {
 		let selection = yield {
 			type: "speak",
-			text: "Would you like to enter the special dungeon?",
+			text: "Would you like to enter Shallow Sandbar?",
 			responses: [ "Yes", "No" ]
 		};
 
 		if (selection === 0) {
 			return {
 				type: "crawl",
-				dungeon: "proto-forest"
+				dungeon: "sandbar"
 			};
 		}
 	}

@@ -1,6 +1,7 @@
 "use strict";
 
 export let floorBlueprint: FloorBlueprint = {
+	type: "generated",
 	generatorOptions: {
 		width: { type: "binomial", n: 10, p: 1 },
 		height: { type: "binomial", n: 10, p: 1 },
@@ -120,7 +121,7 @@ let mockStats: EntityStats = {
 	hp: { max: 1, current: 1 },
 	attack: { base: 1, modifier: 0 },
 	defense: { base: 1, modifier: 0 },
-	belly: { max: 1, current: 1 }
+	energy: { max: 1, current: 1 }
 };
 
 export let entity1: CrawlEntity = {
@@ -137,7 +138,9 @@ export let entity1: CrawlEntity = {
 	location: { r: 3, c: 7 },
 	alignment: 1,
 	ai: false,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let entity2: CrawlEntity = {
@@ -154,7 +157,9 @@ export let entity2: CrawlEntity = {
 	location: { r: 15, c: 3 },
 	alignment: 1,
 	ai: false,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let entity3: CrawlEntity = {
@@ -170,7 +175,9 @@ export let entity3: CrawlEntity = {
 	location: { r: 13, c: 15 },
 	alignment: 0,
 	ai: true,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let entity4: CrawlEntity = {
@@ -186,7 +193,9 @@ export let entity4: CrawlEntity = {
 	location: { r: 14, c: 18 },
 	alignment: 0,
 	ai: true,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let entity5: CrawlEntity = {
@@ -202,7 +211,9 @@ export let entity5: CrawlEntity = {
 	location: { r: 10, c: 2 },
 	alignment: 0,
 	ai: true,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let entity6: CrawlEntity = {
@@ -218,7 +229,9 @@ export let entity6: CrawlEntity = {
 	location: { r: 14, c: 3 },
 	alignment: 0,
 	ai: false,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let entity7: CrawlEntity = {
@@ -234,7 +247,9 @@ export let entity7: CrawlEntity = {
 	location: { r: 6, c: 0 },
 	alignment: 0,
 	ai: false,
-	status: []
+	status: [],
+	salt: 0,
+	attributes: []
 };
 
 export let inProgressState: InProgressCrawlState = {

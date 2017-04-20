@@ -17,6 +17,67 @@ export let tackle: Attack = {
 	onHit: []
 };
 
+export let spinshock: Attack = {
+	name: "Spinshock",
+	animation: "spinshock",
+	description: "Sends electricity in all directions around the user.",
+	target: {
+		type: "around",
+		includeAllies: false
+	},
+	uses: {
+		max: 20,
+		current: 20
+	},
+	accuracy: 90,
+	power: 12,
+	onHit: []
+};
+
+export let overheat: Attack = {
+	name: "Overheat",
+	animation: "overheat",
+	description: "Heats the entire room that the user is in to dangerous levels.",
+	target: {
+		type: "room",
+		includeSelf: false,
+		includeAllies: false
+	},
+	uses: {
+		max: 10,
+		current: 10
+	},
+	accuracy: 80,
+	power: 10,
+	onHit: []
+};
+
+export let calmMind: Attack = {
+	name: "Calm Mind",
+	animation: "calm-mind",
+	description: "Calms the user, raising their attack and defense.",
+	target: {
+		type: "self"
+	},
+	uses: {
+		max: 20,
+		current: 20
+	},
+	accuracy: "always",
+	onHit: [
+		{
+			type: "stat",
+			stat: "attack",
+			amount: 1
+		},
+		{
+			type: "stat",
+			stat: "defense",
+			amount: 1
+		}
+	]
+};
+
 export let growl: Attack = {
 	name: "Growl",
 	animation: "growl",

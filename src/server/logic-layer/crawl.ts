@@ -792,10 +792,13 @@ function getTargets(
 		case "self":
 			return [attacker];
 
+		case "around":
+			return state.entities.filter((entity) => utils.distance(attacker.location, entity.location) === 1
+				&& (entity.alignment !== attacker.alignment || selector.includeAllies));
+
 		case "team":
-			let tts = selector as TeamTargetSelector;
 			return state.entities.filter((entity) => entity.alignment === attacker.alignment
-				&& (entity !== attacker || !tts.includeSelf));
+				&& (entity !== attacker || !selector.includeSelf));
 
 		case "front":
 			let offset: [number, number] = utils.decodeDirection(direction);
@@ -811,7 +814,6 @@ function getTargets(
 
 		case "room":
 			let room = state.floor.map.grid[attacker.location.r][attacker.location.c].roomId;
-			let rts = selector as RoomTargetSelector;
 			let selection = state.entities;
 
 			if (room === undefined) {
@@ -822,8 +824,8 @@ function getTargets(
 			}
 
 			return selection.filter((entity) => entity.alignment !== attacker.alignment
-				|| (entity !== attacker && rts.includeAllies)
-				|| (entity === attacker && rts.includeSelf));
+				|| (entity !== attacker && selector.includeAllies)
+				|| (entity === attacker && selector.includeSelf));
 
 		default:
 			unreachable(selector);

@@ -71,6 +71,7 @@ export function start(queue: kue.Queue) {
 		});
 
 		socket.on("login", (user: string, pass: string) => {
+			log("Checking login:", user, pass);
 			login.checkLogin(user, pass)
 				.then((user) => {
 					controllerMap.get(socket.id).user = user;

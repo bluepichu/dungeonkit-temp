@@ -416,7 +416,7 @@ export let oregano: ItemBlueprint = {
 
 export let cinnamon: ItemBlueprint = {
 	name: "Cinnamon",
-	description: "Lowers the user's attack.",
+	description: "Refreshes all of the user's moves.",
 	graphics: "item-cinnamon",
 	actions: {
 		use: ["eat", "use"],
@@ -436,18 +436,18 @@ export let cinnamon: ItemBlueprint = {
 			}, eventLog);
 
 			crawl.propagateLogEvent(state, {
-				type: "stat",
+				type: "message",
 				entity: {
 					id: entity.id,
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				location: entity.location,
-				stat: "attack",
-				change: -2
+				message: `<self>${entity.name}</self>'s moves got refreshed!`
 			}, eventLog);
 
-			entity.stats.attack.modifier -= 2;
+			for (let attack of entity.attacks) {
+				attack.uses.current = attack.uses.max;
+			}
 		},
 
 		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
@@ -462,18 +462,18 @@ export let cinnamon: ItemBlueprint = {
 			}, eventLog);
 
 			crawl.propagateLogEvent(state, {
-				type: "stat",
+				type: "message",
 				entity: {
 					id: entity.id,
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				location: entity.location,
-				stat: "attack",
-				change: -2
+				message: `<enemy>${entity.name}</enemy>'s moves got refreshed!`
 			}, eventLog);
 
-			entity.stats.attack.modifier -= 2;
+			for (let attack of entity.attacks) {
+				attack.uses.current = attack.uses.max;
+			}
 		}
 	}
 };

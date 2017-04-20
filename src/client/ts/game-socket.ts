@@ -41,7 +41,7 @@ export default class GameSocket {
 	 * @param pass - the password to send.
 	 */
 	public login(user: string, pass: string): void {
-		this.socket.emit("login", { user, pass });
+		this.socket.emit("login", user, pass);
 	}
 
 	/**
