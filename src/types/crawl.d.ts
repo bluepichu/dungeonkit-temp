@@ -50,6 +50,7 @@ declare const enum DungeonTileType {
 interface CrawlLocation {
 	r: number;
 	c: number;
+	direction?: number;
 }
 
 interface Locatable {

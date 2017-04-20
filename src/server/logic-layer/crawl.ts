@@ -58,6 +58,7 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
 		}
 
 		// AI, you done goofed
+		log(action)
 		return step(state, eventLog, mapUpdates);
 	} else {
 		state.entities.unshift(state.entities.pop());
@@ -791,11 +792,16 @@ function executeAttack(
  * @param selector - The attack's target selector.
  * @return A list of crawl entities targeted by the attack.
  */
-function getTargets(
-	state: InProgressCrawlState,
-	attacker: CrawlEntity,
+export function getTargets(
+	state: InProgressCrawlState, 
+	attacker: CrawlEntity, 
+	direction: number, 
+	selector: TargetSelector): CrawlEntity[];
+export function getTargets(
+	state: CensoredInProgressCrawlState,
+	attacker: CensoredCrawlEntity,
 	direction: number,
-	selector: TargetSelector): CrawlEntity[] {
+	selector: TargetSelector): CensoredCrawlEntity[] {
 	switch (selector.type) {
 		case "self":
 			return [attacker];
@@ -1197,6 +1203,6 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
  * Used for asserting that all cases should be handled.
  * @throws An error stating that the case is invalid.
  */
-function unreachable(arg: never): never {
+export function unreachable(arg: never): never {
 	throw new Error(`Reached default case of exhaustive switch.`);
 }
