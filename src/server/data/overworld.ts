@@ -6,7 +6,7 @@ let lonelyKip: OverworldEntity = {
 	id: shortid(),
 	name: "Mudkip",
 	graphics: "mudkip",
-	position: { x: 461, y: 275 },
+	position: { x: 200, y: 200 },
 	direction: 7,
 	stats: mudkipStats,
 	attacks: [],
@@ -89,7 +89,7 @@ let angryKip: OverworldEntity = {
 	id: shortid(),
 	name: "Mudkip",
 	graphics: "mudkip",
-	position: { x: 573, y: 281 },
+	position: { x: 250, y: 200 },
 	direction: 5,
 	stats: mudkipStats,
 	attacks: [],
@@ -115,43 +115,16 @@ let angryKip: OverworldEntity = {
 	}
 };
 
-let sc: OverworldScene;
-
-let pond: OverworldScene = {
-	background: [
-		{ graphics: "pond", position: { x: 0, y: 0 }},
-	],
-	bounds: { x: { min: 0, max: 460 }, y: { min: 0, max: 530 } },
-	obstacles: [],
-	hotzones: [
-		{
-			id: "to-pond",
-			area: [ { x: 194, y: 507 }, { x: 194, y: 536 }, { x: 266, y: 536 }, { x: 266, y: 507 } ],
-			*interact(): IterableIterator<Interaction> {
-				return {
-					type: "transition",
-					scene: sc,
-					start: {
-						position: { x: 516, y: 37 },
-						direction: 6
-					}
-				};
-			}
-		}
-	],
-	entities: []
-};
-
 export let scene: OverworldScene = {
 	background: [
-		{ graphics: "pkmn-square", position: { x: 0, y: 0 }}
+		{ graphics: "ocean", position: { x: 0, y: 0 }}
 	],
-	bounds: { x: { min: 0, max: 958 }, y: { min: 0, max: 719 } },
+	bounds: { x: { min: 0, max: 480 }, y: { min: 0, max: 336 } },
 	obstacles: [],
 	hotzones: [
 		{
-			id: "to-proto-forest",
-			area: [ { x: 926, y: 307 }, { x: 958, y: 307 }, { x: 958, y: 339 }, { x: 926, y: 339 } ],
+			id: "to-trench",
+			area: [ { x: 460, y: 316 }, { x: 480, y: 316 }, { x: 480, y: 336 }, { x: 460, y: 336 } ],
 			*interact() {
 				let selection = yield {
 					type: "speak",
@@ -166,32 +139,16 @@ export let scene: OverworldScene = {
 					};
 				}
 			}
-		},
-		{
-			id: "to-pond",
-			area: [ { x: 478, y: 0 }, { x: 553, y: 0 }, { x: 553, y: 32 }, { x: 478, y: 32 }],
-			*interact(): IterableIterator<Interaction> {
-				return {
-					type: "transition",
-					scene: pond,
-					start: {
-						position: { x: 230, y: 500 },
-						direction: 2
-					}
-				};
-			}
 		}
 	],
 	entities: [lonelyKip, angryKip]
 };
 
-sc = scene;
-
 export let alphaScene: OverworldScene = Object.assign({}, scene);
 alphaScene.hotzones = alphaScene.hotzones.map((x) => x);
 alphaScene.hotzones.push({
 	id: "to-special",
-	area: [ { x: 926, y: 407 }, { x: 958, y: 407 }, { x: 958, y: 439 }, { x: 926, y: 439 } ],
+	area: [ { x: 0, y: 20 }, { x: 20, y: 20 }, { x: 20, y: 0 }, { x: 0, y: 0 } ],
 	*interact() {
 		let selection = yield {
 			type: "speak",

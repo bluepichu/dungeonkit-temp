@@ -94,7 +94,7 @@ function loadAssets(): void {
 	(loader as any)._afterMiddleware.unshift(tilesheetParser); // tilesheet parser needs to run first
 
 	loader
-		.add("bg-pkmn-square", "/assets/pkmn-square.json")
+		.add("bg-ocean", "/assets/ocean.json")
 		.add("dng-proto", "/assets/tiles.json")
 		.add("dng-stormy-sea", "/assets/tileset-stormy-sea.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
@@ -102,7 +102,6 @@ function loadAssets(): void {
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
 		.add("portraits", "/assets/portraits.json")
-		.add("bg-pond", "/assets/pond.json")
 		.once("complete", init);
 
 	loader.load();

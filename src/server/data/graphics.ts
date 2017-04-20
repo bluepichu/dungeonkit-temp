@@ -694,8 +694,7 @@ function staticDescriptor(base: string, texture: string, position: Point = { x: 
 
 export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["dng-proto", dungeonGraphics],
-	["pkmn-square", staticDescriptor("bg", "pkmn-square", { x: 0, y: 0 })],
-	["pond", staticDescriptor("bg", "pond", { x: 0, y: 0 })],
+	["ocean", staticDescriptor("bg", "ocean", { x: 0, y: 0 })],
 	["item-screwdriver", staticDescriptor("item", "screwdriver")],
 	["item-battery", staticDescriptor("item", "battery")],
 	["item-paprika", staticDescriptor("item", "paprika")],
