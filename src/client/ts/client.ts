@@ -539,8 +539,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				let floorName =
 					(state.dungeon.direction === "down" ? "B" : "")
-					+ "F"
-					+ state.floor.number;
+					+ state.floor.number
+					+ "F";
 
 				floorSignText.text = `${state.dungeon.name}\n${floorName}`;
 
@@ -699,8 +699,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						messageLog.push(`${highlightEntity(event.entity)} became confused!`);
 						break;
 
-					case StatusCondition.PARALYZED:
+					case StatusCondition.SHORT_CIRCUITED:
 						messageLog.push(`${highlightEntity(event.entity)} became paralyzed!`);
+						break;
+
+					case StatusCondition.POISONED:
+						messageLog.push(`${highlightEntity(event.entity)} became poisoned!`);
 						break;
 				}
 				done();
@@ -712,8 +716,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 						messageLog.push(`${highlightEntity(event.entity)} recovered from confusion.`);
 						break;
 
-					case StatusCondition.PARALYZED:
+					case StatusCondition.SHORT_CIRCUITED:
 						messageLog.push(`${highlightEntity(event.entity)} recovered from paralysis.`);
+						break;
+
+					case StatusCondition.POISONED:
+						messageLog.push(`${highlightEntity(event.entity)} recovered from poison.`);
 						break;
 				}
 				done();

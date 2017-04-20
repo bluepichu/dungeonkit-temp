@@ -84,6 +84,10 @@ export default class GraphicsObject extends Sprite {
 	 *     necessary.
 	 */
 	protected prerender() {
+		if (this.descriptor[this.animation].length === 1 && this.descriptor[this.animation][0].duration === 0 && !this.changed) {
+			return;
+		}
+
 		this.frame++;
 
 		if (this.frame >= this.descriptor[this.animation][this.step].duration) {

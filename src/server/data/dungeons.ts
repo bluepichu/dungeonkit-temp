@@ -1,23 +1,37 @@
 "use strict";
 
-import { mudkipStats }  from "./stats";
+import { mudkipStats, opStats }  from "./stats";
 
 import {
 	tackle,
 	tailWhip,
 	growl,
 	waterGun,
-	swift
+	swift,
+	op
 } from "./attacks";
 
 import {
-	oranBerry,
-	reviverSeed,
-	stick,
-	rock,
-	totterSeed,
-	shockerSeed
+	screwdriver,
+	battery,
+	paprika,
+	cayenne,
+	turmeric,
+	oregano,
+	cinnamon,
+	peppercorn,
+	salt,
+	spareParts
 } from "./items";
+
+let finalBossMudkip = {
+	name: "Mudkip",
+	graphics: "mudkip",
+	stats: opStats,
+	attacks: [
+		{ attack: op, weight: 1 }
+	]
+};
 
 let roomFeatures = [
 	{
@@ -153,16 +167,144 @@ let corridorFeatures = [
 	}
 ];
 
+let wl: () => DungeonTile = () => ({ type: DungeonTileType.WALL, stairs: false });
+let fl: () => DungeonTile = () => ({ type: DungeonTileType.FLOOR, roomId: 1, stairs: false });
+let st: () => DungeonTile = () => ({ type: DungeonTileType.FLOOR, roomId: 1, stairs: true });
+
 let dungeon: Dungeon = {
-	name: "Prototypical Forest",
-	floors: 4,
-	direction: "up",
-	difficulty: 3,
+	name: "Treacherous Trench",
+	floors: 5,
+	direction: "down",
+	difficulty: 5,
 	graphics: "dng-proto",
 	blueprint: [
 		{
-			range: [1, 4],
+			range: [1, 1],
 			blueprint: {
+				type: "static",
+				map: {
+					width: 11,
+					height: 17,
+					grid: [
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), st(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ]
+					]
+				},
+				enemies: [],
+				items: [
+					{ blueprint: screwdriver, location: { r: 2, c: 2} },
+					{ blueprint: screwdriver, location: { r: 2, c: 3} },
+					{ blueprint: screwdriver, location: { r: 2, c: 4} },
+					{ blueprint: screwdriver, location: { r: 3, c: 2} },
+					{ blueprint: screwdriver, location: { r: 3, c: 3} },
+					{ blueprint: screwdriver, location: { r: 3, c: 4} },
+
+					{ blueprint: paprika, location: { r: 4, c: 2} },
+					{ blueprint: paprika, location: { r: 4, c: 3} },
+					{ blueprint: paprika, location: { r: 4, c: 4} },
+					{ blueprint: paprika, location: { r: 5, c: 2} },
+					{ blueprint: paprika, location: { r: 5, c: 3} },
+					{ blueprint: paprika, location: { r: 5, c: 4} },
+
+					{ blueprint: turmeric, location: { r: 6, c: 2} },
+					{ blueprint: turmeric, location: { r: 6, c: 3} },
+					{ blueprint: turmeric, location: { r: 6, c: 4} },
+					{ blueprint: turmeric, location: { r: 7, c: 2} },
+					{ blueprint: turmeric, location: { r: 7, c: 3} },
+					{ blueprint: turmeric, location: { r: 7, c: 4} },
+
+					{ blueprint: cinnamon, location: { r: 8, c: 2} },
+					{ blueprint: cinnamon, location: { r: 8, c: 3} },
+					{ blueprint: cinnamon, location: { r: 8, c: 4} },
+					{ blueprint: cinnamon, location: { r: 9, c: 2} },
+					{ blueprint: cinnamon, location: { r: 9, c: 3} },
+					{ blueprint: cinnamon, location: { r: 9, c: 4} },
+
+					{ blueprint: salt, location: { r: 10, c: 2} },
+					{ blueprint: salt, location: { r: 10, c: 3} },
+					{ blueprint: salt, location: { r: 10, c: 4} },
+					{ blueprint: salt, location: { r: 11, c: 2} },
+					{ blueprint: salt, location: { r: 11, c: 3} },
+					{ blueprint: salt, location: { r: 11, c: 4} },
+
+					{ blueprint: salt, location: { r: 12, c: 2} },
+					{ blueprint: salt, location: { r: 12, c: 3} },
+					{ blueprint: salt, location: { r: 12, c: 4} },
+					{ blueprint: salt, location: { r: 13, c: 2} },
+					{ blueprint: salt, location: { r: 13, c: 3} },
+					{ blueprint: salt, location: { r: 13, c: 4} },
+
+					{ blueprint: battery, location: { r: 2, c: 6} },
+					{ blueprint: battery, location: { r: 2, c: 7} },
+					{ blueprint: battery, location: { r: 2, c: 8} },
+					{ blueprint: battery, location: { r: 3, c: 6} },
+					{ blueprint: battery, location: { r: 3, c: 7} },
+					{ blueprint: battery, location: { r: 3, c: 8} },
+
+					{ blueprint: cayenne, location: { r: 4, c: 6} },
+					{ blueprint: cayenne, location: { r: 4, c: 7} },
+					{ blueprint: cayenne, location: { r: 4, c: 8} },
+					{ blueprint: cayenne, location: { r: 5, c: 6} },
+					{ blueprint: cayenne, location: { r: 5, c: 7} },
+					{ blueprint: cayenne, location: { r: 5, c: 8} },
+
+					{ blueprint: oregano, location: { r: 6, c: 6} },
+					{ blueprint: oregano, location: { r: 6, c: 7} },
+					{ blueprint: oregano, location: { r: 6, c: 8} },
+					{ blueprint: oregano, location: { r: 7, c: 6} },
+					{ blueprint: oregano, location: { r: 7, c: 7} },
+					{ blueprint: oregano, location: { r: 7, c: 8} },
+
+					{ blueprint: peppercorn, location: { r: 8, c: 6} },
+					{ blueprint: peppercorn, location: { r: 8, c: 7} },
+					{ blueprint: peppercorn, location: { r: 8, c: 8} },
+					{ blueprint: peppercorn, location: { r: 9, c: 6} },
+					{ blueprint: peppercorn, location: { r: 9, c: 7} },
+					{ blueprint: peppercorn, location: { r: 9, c: 8} },
+
+					{ blueprint: salt, location: { r: 10, c: 6} },
+					{ blueprint: salt, location: { r: 10, c: 7} },
+					{ blueprint: salt, location: { r: 10, c: 8} },
+					{ blueprint: salt, location: { r: 11, c: 6} },
+					{ blueprint: salt, location: { r: 11, c: 7} },
+					{ blueprint: salt, location: { r: 11, c: 8} },
+
+					{ blueprint: salt, location: { r: 12, c: 6} },
+					{ blueprint: salt, location: { r: 12, c: 7} },
+					{ blueprint: salt, location: { r: 12, c: 8} },
+					{ blueprint: salt, location: { r: 13, c: 6} },
+					{ blueprint: salt, location: { r: 13, c: 7} },
+					{ blueprint: salt, location: { r: 13, c: 8} },
+
+					{ blueprint: spareParts, location: { r: 14, c: 2} },
+					{ blueprint: spareParts, location: { r: 14, c: 3} },
+					{ blueprint: spareParts, location: { r: 14, c: 4} },
+					{ blueprint: spareParts, location: { r: 14, c: 6} },
+					{ blueprint: spareParts, location: { r: 14, c: 7} },
+					{ blueprint: spareParts, location: { r: 14, c: 8} },
+				],
+				playerLocation: { r: 2, c: 5 }
+			}
+		},
+		{
+			range: [2, 4],
+			blueprint: {
+				type: "generated",
 				generatorOptions: {
 					width: { type: "binomial", n: 60, p: .8 },
 					height: { type: "binomial", n: 60, p: .8 },
@@ -170,7 +312,7 @@ let dungeon: Dungeon = {
 						rooms: roomFeatures,
 						corridors: corridorFeatures
 					},
-					limit: 100000,
+					limit: 1000,
 					cleanliness: .95
 				},
 				enemies: [
@@ -187,14 +329,44 @@ let dungeon: Dungeon = {
 					}
 				],
 				items: [
-					{ item: reviverSeed, density: { type: "binomial", n: 20, p: 0.6 } },
-					{ item: totterSeed, density: { type: "binomial", n: 20, p: 0.6 } },
-					{ item: shockerSeed, density: { type: "binomial", n: 20, p: 0.6 } },
-					{ item: oranBerry, density: { type: "binomial", n: 20, p: 0.6 } },
-					{ item: stick, density: { type: "binomial", n: 20, p: 0.6 } },
-					{ item: rock, density: { type: "binomial", n: 20, p: 0.6 } }
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } }
 				]
 			}
+		},
+		{
+			range: [5, 5],
+			blueprint: {
+				type: "static",
+				map: {
+					width: 9,
+					height: 11,
+					grid: [
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
+						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ]
+					]
+				},
+				enemies: [ { blueprint: finalBossMudkip, location: { r: 2, c: 5 } } ],
+				items: [],
+				playerLocation: { r: 6, c: 5 }
+			} as StaticFloorBlueprint // why do I need this?
 		}
 	]
 };

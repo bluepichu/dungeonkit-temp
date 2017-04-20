@@ -10,6 +10,8 @@ let lonelyKip: OverworldEntity = {
 	direction: 7,
 	stats: mudkipStats,
 	attacks: [],
+	attributes: [],
+	salt: 0,
 	items: {
 		held: { capacity: 0, items: [] }
 	},
@@ -67,6 +69,8 @@ let angryKip: OverworldEntity = {
 	direction: 5,
 	stats: mudkipStats,
 	attacks: [],
+	attributes: [],
+	salt: 0,
 	items: {
 		held: { capacity: 0, items: [] }
 	},

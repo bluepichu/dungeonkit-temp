@@ -21,12 +21,63 @@ export function generateFloor(
 	floor: number,
 	blueprint: FloorBlueprint,
 	entities: UnplacedCrawlEntity[]): InProgressCrawlState {
-	let map = generateFloorMap(blueprint.generatorOptions);
-	map = placeStairs(map);
-	let state = initializeState(dungeon, floor, map);
-	state = placeEntityGroup(state, entities);
-	state = placeEnemies(state, blueprint);
-	state = placeItems(state, blueprint);
+	let state: InProgressCrawlState;
+
+	switch (blueprint.type) {
+		case "generated":
+				let map = generateFloorMap(blueprint.generatorOptions);
+				map = placeStairs(map);
+				state = initializeState(dungeon, floor, map);
+				state = placeEntityGroup(state, entities);
+				state = placeEnemies(state, blueprint);
+				state = placeItems(state, blueprint);
+				break;
+
+		case "static":
+				state = initializeState(dungeon, floor, blueprint.map);
+
+				for (let entity of entities) {
+					let map: FloorMap = {
+						width: state.floor.map.width,
+						height: state.floor.map.height,
+						grid: utils.tabulate((row) =>
+							utils.tabulate((col) =>
+								({ type: DungeonTileType.UNKNOWN }),
+								state.floor.map.width),
+							state.floor.map.height)
+					};
+					state.entities.push(Object.assign(wrap(entities.pop()), { location: blueprint.playerLocation, map }));
+				}
+
+				for (let enemy of blueprint.enemies) {
+					let map: FloorMap = {
+						width: state.floor.map.width,
+						height: state.floor.map.height,
+						grid: utils.tabulate((row) =>
+							utils.tabulate((col) =>
+								({ type: DungeonTileType.UNKNOWN }),
+								state.floor.map.width),
+							state.floor.map.height)
+					};
+					state.entities.push(Object.assign(wrap(generateEnemy(enemy.blueprint)), { location: enemy.location, map }));
+				}
+
+				for (let item of blueprint.items) {
+					state.items.push(Object.assign({ id: shortid.generate(), location: item.location }, item.blueprint));
+				}
+
+				break;
+
+		default:
+			return unreachable(blueprint);
+	}
+
+	for (let item of state.items) {
+		if (item.name === "Salt") {
+			item.amount = Math.floor(Math.random() * 1280) + 1;
+		}
+	}
+
 	return state;
 }
 
@@ -209,37 +260,48 @@ function placeEntityGroup(state: InProgressCrawlState, entities: UnplacedCrawlEn
  */
 function placeEnemies(
 	state: InProgressCrawlState,
-	blueprint: FloorBlueprint): InProgressCrawlState {
+	blueprint: GeneratedFloorBlueprint): InProgressCrawlState {
 	blueprint.enemies.forEach((enemyBlueprint) => {
 		let count = evaluateDistribution(enemyBlueprint.density);
 
 		for (let i = 0; i < count; i++) {
-			placeEntityGroup(state, [wrap({
-				name: enemyBlueprint.name,
-				graphics: enemyBlueprint.graphics,
-				id: shortid.generate(),
-				attacks: enemyBlueprint.attacks
-					.sort((a, b) => Math.random() * b.weight - Math.random() * a.weight)
-					.slice(0, 4)
-					.map((attackBlueprint) => attackBlueprint.attack),
-				stats: {
-					level: enemyBlueprint.stats.level,
-					attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
-					defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 },
-					hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
-					belly: { max: enemyBlueprint.stats.belly.max, current: enemyBlueprint.stats.belly.current }
-				},
-				alignment: 0,
-				ai: true,
-				items: {
-					held: { capacity: 1, items: [] }
-				},
-				status: []
-			})]);
+			placeEntityGroup(state, [generateEnemy(enemyBlueprint)]);
 		}
 	});
 
 	return state;
+}
+
+/**
+ * Generates an enemy from a blueprint.
+ * @param enemyBlueprint - The blueprint from which to generate the enemy.
+ * @return The generated enemy.
+ */
+function generateEnemy(enemyBlueprint: EntityBlueprint): WrappedUnplacedCrawlEntity {
+	return wrap({
+		name: enemyBlueprint.name,
+		graphics: enemyBlueprint.graphics,
+		id: shortid.generate(),
+		attacks: enemyBlueprint.attacks
+			.sort((a, b) => Math.random() * b.weight - Math.random() * a.weight)
+			.slice(0, 4)
+			.map((attackBlueprint) => attackBlueprint.attack),
+		stats: {
+			level: enemyBlueprint.stats.level,
+			attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
+			defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 },
+			hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
+			energy: { max: enemyBlueprint.stats.energy.max, current: enemyBlueprint.stats.energy.current }
+		},
+		alignment: 0,
+		ai: true,
+		items: {
+			held: { capacity: 1, items: [] }
+		},
+		status: [],
+		attributes: [],
+		salt: 0
+	});
 }
 
 /**
@@ -250,7 +312,7 @@ function placeEnemies(
  */
 function placeItems(
 	state: InProgressCrawlState,
-	blueprint: FloorBlueprint): InProgressCrawlState {
+	blueprint: GeneratedFloorBlueprint): InProgressCrawlState {
 	blueprint.items.forEach((itemBlueprint) => {
 		let count = evaluateDistribution(itemBlueprint.density);
 

@@ -47,12 +47,12 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 	return makeProxy(obj, field.split("."), handler);
 }
 
-export let reviverSeed: ItemBlueprint = {
-	name: "Reviver Seed",
-	description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
-	graphics: "item-seed",
+export let spareParts: ItemBlueprint = {
+	name: "Spare Parts",
+	description: "Revives the user on defeat.",
+	graphics: "item-spare-parts",
 	actions: {
-		use: ["eat", "use"],
+		use: ["use"],
 		drop: ["drop"],
 		throw: ["throw"]
 	},
@@ -66,75 +66,33 @@ export let reviverSeed: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				message: `<self>${entity.name}</self> was revived by the <item>Reviver Seed</item>!`
+				message: `<self>${entity.name}</self> was revived by the <item>Spare Parts</item>!`
 			}, eventLog);
-			crawl.propagateLogEvent(state, {
-				type: "message",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				message: `The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!`
-			}, eventLog);
-			item.name = "Plain Seed";
-			item.description = "Does nothing in particular.  Fills the belly slightly when eaten.";
-			item.handlers = { use: item.handlers.use };
+
+			if (held) {
+				entity.items.held.items = entity.items.held.items.filter((heldItem) => item !== heldItem);
+			} else {
+				entity.items.bag.items = entity.items.bag.items.filter((bagItem) => item !== bagItem);
+			}
 		},
+
 		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
-			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
-
-			crawl.propagateLogEvent(state, {
-				type: "stat",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				location: entity.location,
-				stat: "belly",
-				change: newBelly - entity.stats.belly.current
-			}, eventLog);
-			crawl.propagateLogEvent(state, {
-				type: "message",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				message: `<self>${entity.name}</self> ate the <item>Reviver Seed</item>!`
-			}, eventLog);
-
-			entity.stats.belly.current = newBelly;
+			// doesn't do anything
 		}
 	}
 };
 
-export let totterSeed: ItemBlueprint = {
-	name: "Totter Seed",
-	description: "Afflicts the \"confused\" status on whoever eats it.  Fills the belly slightly when eaten.",
-	graphics: "item-seed",
+export let paprika: ItemBlueprint = {
+	name: "Paprika",
+	description: "Afflicts the \"confused\" status effect when consumed or thrown.",
+	graphics: "item-paprika",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
 		throw: ["throw"]
 	},
 	handlers: {
-		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
-			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
-
-			crawl.propagateLogEvent(state, {
-				type: "stat",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				location: entity.location,
-				stat: "belly",
-				change: newBelly - entity.stats.belly.current
-			}, eventLog);
-
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -142,7 +100,7 @@ export let totterSeed: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				message: `<self>${entity.name}</self> ate the <item>Totter Seed</item>!`
+				message: `<self>${entity.name}</self> used the <item>Paprika</item>!`
 			}, eventLog);
 
 			crawl.propagateLogEvent(state, {
@@ -155,37 +113,10 @@ export let totterSeed: ItemBlueprint = {
 				status: StatusCondition.CONFUSED
 			}, eventLog);
 
-			entity.stats.belly.current = newBelly;
 			entity.status.push(StatusCondition.CONFUSED);
-		}
-	}
-};
+		},
 
-export let shockerSeed: ItemBlueprint = {
-	name: "Shocker Seed",
-	description: "Afflicts the \"paralyzed\" status on whoever eats it.  Fills the belly slightly when eaten.",
-	graphics: "item-seed",
-	actions: {
-		use: ["eat", "use"],
-		drop: ["drop"],
-		throw: ["throw"]
-	},
-	handlers: {
-		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
-			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
-
-			crawl.propagateLogEvent(state, {
-				type: "stat",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				location: entity.location,
-				stat: "belly",
-				change: newBelly - entity.stats.belly.current
-			}, eventLog);
-
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -193,7 +124,7 @@ export let shockerSeed: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				message: `<self>${entity.name}</self> ate the <item>Totter Seed</item>!`
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Paprika</item>!`
 			}, eventLog);
 
 			crawl.propagateLogEvent(state, {
@@ -203,26 +134,25 @@ export let shockerSeed: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				status: StatusCondition.PARALYZED
+				status: StatusCondition.CONFUSED
 			}, eventLog);
 
-			entity.stats.belly.current = newBelly;
-			entity.status.push(StatusCondition.PARALYZED);
+			entity.status.push(StatusCondition.CONFUSED);
 		}
 	}
 };
 
-export let oranBerry: ItemBlueprint = {
-	name: "Oran Berry",
-	description: "A sweet berry.  Heals 20 HP and fills the belly slightly when eaten.",
-	graphics: "item-berry",
+export let cayenne: ItemBlueprint = {
+	name: "Cayenne",
+	description: "Afflicts the \"short-circuited\" status effect when consumed or thrown.",
+	graphics: "item-cayenne",
 	actions: {
 		use: ["eat", "use"],
 		drop: ["drop"],
 		throw: ["throw"]
 	},
 	handlers: {
-		[ItemHook.ITEM_USE](entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
 			crawl.propagateLogEvent(state, {
 				type: "message",
 				entity: {
@@ -230,11 +160,346 @@ export let oranBerry: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				message: `<self>${entity.name}</self> ate the <item>Oran Berry</item>!`
+				message: `<self>${entity.name}</self> used the <item>Paprika</item>!`
 			}, eventLog);
 
-			let newHp = Math.min(entity.stats.hp.max, entity.stats.hp.current + 20);
-			let newBelly = Math.min(entity.stats.belly.max, entity.stats.belly.current + 90);
+			if (entity.attributes.indexOf(Attribute.IMMUNE_TO_SHORT_CIRCUIT) >= 0) {
+				crawl.propagateLogEvent(state, {
+					type: "message",
+					entity: {
+						id: entity.id,
+						name: entity.name,
+						graphics: entity.graphics
+					},
+					message: `<self>${entity.name}</self> is immune to short-circuiting!`
+				}, eventLog);
+			} else {
+				crawl.propagateLogEvent(state, {
+					type: "status_affliction",
+					entity: {
+						id: entity.id,
+						name: entity.name,
+						graphics: entity.graphics
+					},
+					status: StatusCondition.SHORT_CIRCUITED
+				}, eventLog);
+			}
+
+			entity.status.push(StatusCondition.SHORT_CIRCUITED);
+		},
+
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Paprika</item>!`
+			}, eventLog);
+
+			if (entity.attributes.indexOf(Attribute.IMMUNE_TO_SHORT_CIRCUIT) >= 0) {
+				crawl.propagateLogEvent(state, {
+					type: "message",
+					entity: {
+						id: entity.id,
+						name: entity.name,
+						graphics: entity.graphics
+					},
+					message: `<enemy>${entity.name}</enemy> is immune to short-circuiting!`
+				}, eventLog);
+			} else {
+				crawl.propagateLogEvent(state, {
+					type: "status_affliction",
+					entity: {
+						id: entity.id,
+						name: entity.name,
+						graphics: entity.graphics
+					},
+					status: StatusCondition.SHORT_CIRCUITED
+				}, eventLog);
+			}
+
+			entity.status.push(StatusCondition.SHORT_CIRCUITED);
+		}
+	}
+};
+
+export let peppercorn: ItemBlueprint = {
+	name: "Peppercorn",
+	description: "Afflicts the \"poisoned\" status effect when consumed or thrown.",
+	graphics: "item-peppercorn",
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Peppercorn</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "status_affliction",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				status: StatusCondition.POISONED
+			}, eventLog);
+
+			entity.status.push(StatusCondition.POISONED);
+		},
+
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Peppercorn</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "status_affliction",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				status: StatusCondition.POISONED
+			}, eventLog);
+
+			entity.status.push(StatusCondition.POISONED);
+		}
+	}
+};
+
+export let turmeric: ItemBlueprint = {
+	name: "Turmeric",
+	description: "Boosts the user's defense.",
+	graphics: "item-peppercorn",
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Turmeric</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "defense",
+				change: 2
+			}, eventLog);
+
+			entity.stats.defense.modifier += 2;
+		},
+
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Turmeric</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "defense",
+				change: 2
+			}, eventLog);
+
+			entity.stats.defense.modifier += 2;
+		}
+	}
+};
+
+export let oregano: ItemBlueprint = {
+	name: "Oregano",
+	description: "Boosts the user's attack.",
+	graphics: "item-peppercorn",
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Oregano</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "attack",
+				change: 2
+			}, eventLog);
+
+			entity.stats.attack.modifier += 2;
+		},
+
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Oregano</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "attack",
+				change: 2
+			}, eventLog);
+
+			entity.stats.attack.modifier += 2;
+		}
+	}
+};
+
+export let cinnamon: ItemBlueprint = {
+	name: "Cinnamon",
+	description: "Lowers the user's attack.",
+	graphics: "item-cinnamon",
+	actions: {
+		use: ["eat", "use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Cinnamon</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "attack",
+				change: -2
+			}, eventLog);
+
+			entity.stats.attack.modifier -= 2;
+		},
+
+		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Cinnamon</item>!`
+			}, eventLog);
+
+			crawl.propagateLogEvent(state, {
+				type: "stat",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				location: entity.location,
+				stat: "attack",
+				change: -2
+			}, eventLog);
+
+			entity.stats.attack.modifier -= 2;
+		}
+	}
+};
+
+export let screwdriver: ItemBlueprint = {
+	name: "Screwdriver",
+	description: "Recovers 40 HP when used.",
+	graphics: "item-screwdriver",
+	actions: {
+		use: ["use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
+	handlers: {
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Screwdriver</item>!`
+			}, eventLog);
+
+			let newHp = Math.min(entity.stats.hp.max, entity.stats.hp.current + 40);
 
 			crawl.propagateLogEvent(state, {
 				type: "stat",
@@ -248,103 +513,61 @@ export let oranBerry: ItemBlueprint = {
 				change: newHp - entity.stats.hp.current
 			}, eventLog);
 
-			crawl.propagateLogEvent(state, {
-				type: "stat",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				location: entity.location,
-				stat: "belly",
-				change: newBelly - entity.stats.belly.current
-			}, eventLog);
-
 			entity.stats.hp.current = newHp;
-			entity.stats.belly.current = newBelly;
 		}
 	}
 };
 
-export let antidefenseScarf: ItemBlueprint = {
-	name: "Antidefense Scarf",
-	description: "Why did you equip this?!?",
-	graphics: "item-scarf",
-	equip(entity: UnplacedCrawlEntity) {
-		return deepProxy(entity, "stats.defense.modifier", {
-			get(target: BaseModifierStat, field: any): number {
-				return target.modifier - 6;
-			},
-			set(target: BaseModifierStat, field: any, value: number): boolean {
-				target.modifier += value - target.modifier;
-				return true;
-			}
-		});
-	},
-	handlers: {},
+export let battery: ItemBlueprint = {
+	name: "Battery",
+	description: "Recovers 50 EN when used.",
+	graphics: "item-battery",
 	actions: {
-		drop: ["drop"]
-	}
-};
-
-export let stick: ItemBlueprint = {
-	name: "Stick",
-	description: "Can be thrown in a striaght line for some damage.",
-	graphics: "item-stick",
+		use: ["use"],
+		drop: ["drop"],
+		throw: ["throw"]
+	},
 	handlers: {
-		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]) {
-			entity.stats.hp.current -= 20;
+		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void {
+			crawl.propagateLogEvent(state, {
+				type: "message",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				message: `<self>${entity.name}</self> used the <item>Battery</item>!`
+			}, eventLog);
+
+			let newEnergy = Math.min(entity.stats.hp.max, entity.stats.hp.current + 300);
 
 			crawl.propagateLogEvent(state, {
 				type: "stat",
-				stat: "hp",
 				entity: {
 					id: entity.id,
 					name: entity.name,
 					graphics: entity.graphics
 				},
 				location: entity.location,
-				change: -20
+				stat: "energy",
+				change: newEnergy - entity.stats.hp.current
 			}, eventLog);
+
+			entity.stats.energy.current = newEnergy;
 		}
-	},
-	actions: {
-		throw: ["throw", "use", "hurl"]
 	}
 };
 
-export let rock: ItemBlueprint = {
-	name: "Heavy Rock",
-	description: "Can be thrown at most one space forward, but deals 100 damage if it hits.",
-	graphics: "item-rock",
+export let salt: ItemBlueprint = {
+	name: "Salt",
+	description: "Acts as currency.",
+	graphics: "item-salt",
+	actions: {},
 	handlers: {
-		throwTarget(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: number): CrawlLocation {
-			let dirArr = utils.decodeDirection(direction);
-			let loc = { r: entity.location.r + dirArr[0], c: entity.location.c + dirArr[1] };
-
-			if (utils.getTile(state.floor.map, loc).type !== DungeonTileType.WALL) {
-				return loc;
-			}
-
-			return entity.location;
-		},
-		collide(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void {
-			entity.stats.hp.current -= 100;
-
-			crawl.propagateLogEvent(state, {
-				type: "stat",
-				stat: "hp",
-				entity: {
-					id: entity.id,
-					name: entity.name,
-					graphics: entity.graphics
-				},
-				location: entity.location,
-				change: -100
-			}, eventLog);
+		pickup(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): boolean {
+			entity.salt += item.amount;
+			state.items = state.items.filter((it) => it !== item);
+			return false;
 		}
-	},
-	actions: {
-		throw: ["throw", "use", "hurl"]
 	}
 };

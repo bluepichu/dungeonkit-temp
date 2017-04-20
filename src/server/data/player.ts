@@ -11,11 +11,6 @@ import {
 	swift
 } from "./attacks";
 
-import {
-	antidefenseScarf,
-	reviverSeed
-} from "./items";
-
 export function generatePlayer(name: string = "Eevee"): PlayerOverworldEntity {
 	return {
 		id: shortid.generate(),
@@ -23,17 +18,13 @@ export function generatePlayer(name: string = "Eevee"): PlayerOverworldEntity {
 		stats: clone(eeveeStats),
 		attacks: clone([tackle, growl, tailWhip, swift]),
 		items: {
-			held: {
-				capacity: 2,
-				items: [
-					Object.assign({ id: shortid.generate() }, antidefenseScarf),
-					Object.assign({ id: shortid.generate() }, reviverSeed)
-				]
-			},
-			bag: { capacity: 16, items: [] }
+			held: { capacity: 1, items: [] },
+			bag: { capacity: 12, items: [] }
 		},
 		graphics: "eevee",
 		position: { x: 60, y: 323 },
-		direction: 1
+		direction: 1,
+		attributes: [],
+		salt: 0
 	};
 }

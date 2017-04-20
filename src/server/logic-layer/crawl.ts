@@ -439,10 +439,9 @@ function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[
 	for (let i = 0; i < entity.status.length; i++) {
 		switch (entity.status[i]) {
 			case StatusCondition.CONFUSED:
+			case StatusCondition.SHORT_CIRCUITED:
+			case StatusCondition.POISONED:
 				if (Math.random() < .125) {
-					entity.status.splice(i, 1);
-					i--;
-
 					propagateLogEvent(state, {
 						type: "status_recovery",
 						entity: {
@@ -450,17 +449,17 @@ function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[
 							name: entity.name,
 							graphics: entity.graphics
 						},
-						status: StatusCondition.CONFUSED
+						status: entity.status[i]
 					}, eventLog);
-				}
-				break;
 
-			case StatusCondition.PARALYZED:
+					entity.status.splice(i, 1);
+					i--;
+				}
 				break;
 		}
 	}
 
-	if (entity.stats.belly.current === 0) {
+	if (entity.stats.energy.current === 0) {
 		entity.stats.hp.current--;
 	}
 
@@ -529,7 +528,7 @@ function executeWait(
 	entity: CrawlEntity,
 	action: WaitAction,
 	eventLog: LogEvent[]): CrawlState {
-	drainBellyAndRecoverHp(entity, 1, 1);
+	drainEnergyAndRecoverHp(entity, 1, 1);
 
 	return state;
 }
@@ -569,7 +568,7 @@ function executeMove(
 		direction: action.direction
 	}, eventLog);
 
-	drainBellyAndRecoverHp(entity, 2, 0.25);
+	drainEnergyAndRecoverHp(entity, 2, 0.25);
 
 	return executeItemPickup(state, entity, eventLog);
 }
@@ -585,16 +584,6 @@ function executeItemPickup(state: InProgressCrawlState, entity: CrawlEntity, eve
 	let item = utils.getItemAtCrawlLocation(state, entity.location);
 
 	if (item !== undefined) {
-		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
-			entity.items.bag.items.push(item);
-			state.items = state.items.filter((it) => it !== item);
-		} else if (entity.items.held.items.length < entity.items.held.capacity) {
-			entity.items.held.items.push(item);
-			state.items = state.items.filter((it) => it !== item);
-		} else {
-			return state;
-		}
-
 		propagateLogEvent(state, {
 			type: "item_pickup",
 			entity: {
@@ -604,6 +593,20 @@ function executeItemPickup(state: InProgressCrawlState, entity: CrawlEntity, eve
 			},
 			item: item
 		}, eventLog);
+
+		if (item.handlers.pickup !== undefined && !item.handlers.pickup(entity, state, item, eventLog)) {
+			return state;
+		}
+
+		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
+			entity.items.bag.items.push(item);
+			state.items = state.items.filter((it) => it !== item);
+		} else if (entity.items.held.items.length < entity.items.held.capacity) {
+			entity.items.held.items.push(item);
+			state.items = state.items.filter((it) => it !== item);
+		} else {
+			return state;
+		}
 	}
 
 	return state;
@@ -708,7 +711,7 @@ function isValidMove(
 	state: CensoredInProgressCrawlState,
 	entity: CrawlEntity,
 	direction: number): boolean {
-	if (entity.status.indexOf(StatusCondition.PARALYZED) >= 0) {
+	if (entity.status.indexOf(StatusCondition.SHORT_CIRCUITED) >= 0) {
 		return false;
 	}
 
@@ -767,7 +770,7 @@ function executeAttack(
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target, eventLog));
 
-	drainBellyAndRecoverHp(entity, 3, 0);
+	drainEnergyAndRecoverHp(entity, 3, 0);
 
 	return state;
 }
@@ -1026,17 +1029,19 @@ function executeItem(
 			break;
 	}
 
-	drainBellyAndRecoverHp(entity, 1, 0.5);
+	drainEnergyAndRecoverHp(entity, 1, 0.5);
 
 	return state;
 }
 
-function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecoverProbability: number): void {
-	if (entity.stats.hp.current > 0 && entity.stats.belly.current > 0) {
-		if (Math.random() < hpRecoverProbability) {
+function drainEnergyAndRecoverHp(entity: CrawlEntity, energyDrain: number, hpRecoverProbability: number): void {
+	if (entity.stats.hp.current > 0 && entity.stats.energy.current > 0) {
+		if (entity.status.indexOf(StatusCondition.POISONED) >= 0) {
+			entity.stats.hp.current = Math.max(0, entity.stats.hp.current - 1);
+		} else if (Math.random() < hpRecoverProbability) {
 			entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
 		}
-		entity.stats.belly.current = Math.max(0, entity.stats.belly.current - bellyDrain);
+		entity.stats.energy.current = Math.max(0, entity.stats.energy.current - energyDrain);
 	}
 }
 

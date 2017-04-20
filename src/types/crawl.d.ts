@@ -64,7 +64,8 @@ interface UnplacedCrawlEntity extends Entity {
 
 declare const enum StatusCondition {
 	CONFUSED,
-	PARALYZED
+	SHORT_CIRCUITED,
+	POISONED
 }
 
 interface CrawlEntity extends UnplacedCrawlEntity, Locatable {
@@ -195,7 +196,28 @@ interface FloorRangeBlueprint {
 	blueprint: FloorBlueprint;
 }
 
-interface FloorBlueprint {
+type FloorBlueprint = StaticFloorBlueprint | GeneratedFloorBlueprint;
+
+interface StaticFloorBlueprint {
+	type: "static";
+	map: {
+		width: number;
+		height: number;
+		grid: DungeonTile[][];
+	};
+	enemies: {
+		blueprint: EntityBlueprint;
+		location: CrawlLocation;
+	}[];
+	items: {
+		blueprint: ItemBlueprint;
+		location: CrawlLocation;
+	}[];
+	playerLocation: CrawlLocation;
+}
+
+interface GeneratedFloorBlueprint {
+	type: "generated";
 	generatorOptions: GeneratorOptions;
 	enemies: EntityBlueprint[];
 	items: DungeonItemBlueprint[];

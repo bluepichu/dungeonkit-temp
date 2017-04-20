@@ -96,3 +96,21 @@ export let swift: Attack = {
 	power: 10,
 	onHit: []
 };
+
+export let op: Attack = {
+	name: "Overpowered",
+	animation: "tackle",
+	description: "Who put this in?!?",
+	target: {
+		type: "room",
+		includeSelf: false,
+		includeAllies: false
+	},
+	uses: {
+		max: 30,
+		current: 30
+	},
+	accuracy: 95,
+	power: 1000000000,
+	onHit: []
+};

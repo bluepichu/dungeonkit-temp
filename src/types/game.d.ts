@@ -19,6 +19,12 @@ interface Entity {
 		held: ItemSet;
 		bag?: ItemSet;
 	};
+	attributes: Attribute[];
+	salt: number;
+}
+
+declare const enum Attribute {
+	IMMUNE_TO_SHORT_CIRCUIT
 }
 
 /**
@@ -29,7 +35,7 @@ interface EntityStats {
 	hp: MaxCurrentStat;
 	attack: BaseModifierStat;
 	defense: BaseModifierStat;
-	belly: MaxCurrentStat;
+	energy: MaxCurrentStat;
 }
 
 /**

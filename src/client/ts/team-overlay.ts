@@ -234,9 +234,9 @@ class TeamListing extends Container {
 			this.hpArc.arc(0, 0, 25, -Math.PI / 2, -Math.PI / 2 + hpAngle);
 		}
 
-		this.hungerText.text = `<hunger><icon>defense</icon>${Math.ceil(entity.stats.belly.current / 6)}</hunger>`;
+		this.hungerText.text = `<hunger><icon>defense</icon>${Math.ceil(entity.stats.energy.current / 6)}</hunger>`;
 
-		let hungerPct = Math.ceil(entity.stats.belly.current / 6) / Math.ceil(entity.stats.belly.max / 6);
+		let hungerPct = Math.ceil(entity.stats.energy.current / 6) / Math.ceil(entity.stats.energy.max / 6);
 		let hungerLength = totalLength * hungerPct;
 
 		STYLES["hunger"].fill = PixiUtils.hex2string(this.getHungerColor(hungerPct));

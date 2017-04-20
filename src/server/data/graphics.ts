@@ -356,113 +356,36 @@ let dungeonGraphics: GraphicsObjectDescriptor = {
 	animations: dungeonGraphicsAnimations(counts)
 };
 
-let seedGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "seed", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let berryGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "berry", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let stickGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "stick", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let rockGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "gravelrock", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let scarfGraphics: GraphicsObjectDescriptor = {
-	base: "item",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "scarf", anchor: { x: 16, y: 16 }}
-				]
-			}
-		]
-	}
-};
-
-let pkmnSquareGraphics: GraphicsObjectDescriptor = {
-	base: "bg",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "pkmn-square", anchor: { x: 0, y: 0 }}
-				]
-			}
-		]
-	}
-};
-
-let pondGraphics: GraphicsObjectDescriptor = {
-	base: "bg",
-	animations: {
-		"default": [
-			{
-				duration: 0,
-				sprites: [
-					{ texture: "pond", anchor: { x: 0, y: 0 }}
-				]
-			}
-		]
-	}
-};
+function staticDescriptor(base: string, texture: string, position: Point = { x: 8, y: 4 }): GraphicsObjectDescriptor {
+	return {
+		base,
+		animations: {
+			"default": [
+				{
+					duration: 0,
+					sprites: [
+						{ texture, anchor: position}
+					]
+				}
+			]
+		}
+	};
+}
 
 export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["dng-proto", dungeonGraphics],
-	["pkmn-square", pkmnSquareGraphics],
-	["pond", pondGraphics],
-	["item-seed", seedGraphics],
-	["item-berry", berryGraphics],
-	["item-scarf", scarfGraphics],
-	["item-stick", stickGraphics],
-	["item-rock", rockGraphics]
+	["pkmn-square", staticDescriptor("bg", "pkmn-square", { x: 0, y: 0 })],
+	["pond", staticDescriptor("bg", "pond", { x: 0, y: 0 })],
+	["item-screwdriver", staticDescriptor("item", "screwdriver")],
+	["item-battery", staticDescriptor("item", "battery")],
+	["item-paprika", staticDescriptor("item", "paprika")],
+	["item-cayenne", staticDescriptor("item", "cayenne")],
+	["item-turmeric", staticDescriptor("item", "turmeric")],
+	["item-oregano", staticDescriptor("item", "oregano")],
+	["item-cinnamon", staticDescriptor("item", "cinnamon")],
+	["item-peppercorn", staticDescriptor("item", "peppercorn")],
+	["item-spare-parts", staticDescriptor("item", "spare-parts")],
+	["item-salt", staticDescriptor("item", "salt")]
 ]);
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([

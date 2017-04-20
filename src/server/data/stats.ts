@@ -14,7 +14,27 @@ export let mudkipStats: EntityStats = {
 		base: 19,
 		modifier: 0
 	},
-	belly: {
+	energy: {
+		max: 600,
+		current: 600
+	}
+};
+
+export let opStats: EntityStats = {
+	level: 10,
+	hp: {
+		max: 200,
+		current: 200
+	},
+	attack: {
+		base: 19,
+		modifier: 0
+	},
+	defense: {
+		base: 19,
+		modifier: 0
+	},
+	energy: {
 		max: 600,
 		current: 600
 	}
@@ -34,7 +54,7 @@ export let eeveeStats: EntityStats = {
 		base: 21,
 		modifier: 0
 	},
-	belly: {
+	energy: {
 		max: 600,
 		current: 600
 	}

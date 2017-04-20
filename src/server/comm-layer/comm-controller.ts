@@ -61,7 +61,9 @@ export default class CommController {
 			attacks: this.entity.attacks,
 			items: this.entity.items,
 			position: this.entity.position,
-			direction: this.entity.direction
+			direction: this.entity.direction,
+			attributes: this.entity.attributes,
+			salt: this.entity.salt
 		};
 
 		this.socket.emit("overworld-init", {
@@ -188,7 +190,9 @@ export default class CommController {
 						items: this.entity.items,
 						alignment: 1,
 						ai: false,
-						status: []
+						status: [],
+						attributes: this.entity.attributes,
+						salt: this.entity.salt
 					}
 				});
 			});
