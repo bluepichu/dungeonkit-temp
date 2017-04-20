@@ -62,7 +62,7 @@ interface TeamTargetSelector {
 /**
  * Describes an effect other than damage caused by an attack.
  */
-type SecondaryEffect = SecondaryStatEffect;
+type SecondaryEffect = SecondaryStatEffect | SecondaryHealEffect;
 
 /**
  * A secondary effect that affects a stat.
@@ -70,5 +70,13 @@ type SecondaryEffect = SecondaryStatEffect;
 interface SecondaryStatEffect {
 	type: "stat";
 	stat: "attack" | "defense";
+	amount: number;
+}
+
+/**
+ * A secondary effect that heals.
+ */
+interface SecondaryHealEffect {
+	type: "heal";
 	amount: number;
 }

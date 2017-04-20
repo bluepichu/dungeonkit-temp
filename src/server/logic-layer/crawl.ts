@@ -883,31 +883,51 @@ function applyAttack(
 		}, eventLog);
 	}
 
-	attack.onHit.forEach((effect: SecondaryStatEffect) => {
-		switch (effect.stat) {
-			case "attack":
-				defender.stats.attack.modifier += effect.amount;
+	attack.onHit.forEach((effect: SecondaryEffect) => {
+		switch (effect.type) {
+			case "stat":
+				switch (effect.stat) {
+					case "attack":
+						defender.stats.attack.modifier += effect.amount;
+						break;
+
+					case "defense":
+						defender.stats.defense.modifier += effect.amount;
+						break;
+
+					default:
+						unreachable(effect.stat);
+				}
+
+				propagateLogEvent(state, {
+					type: "stat",
+					entity: {
+						id: defender.id,
+						name: defender.name,
+						graphics: defender.graphics
+					},
+					location: defender.location,
+					stat: effect.stat,
+					change: effect.amount
+				}, eventLog);
 				break;
 
-			case "defense":
-				defender.stats.defense.modifier += effect.amount;
-				break;
+			case "heal":
+				propagateLogEvent(state, {
+					type: "stat",
+					entity: {
+						id: defender.id,
+						name: defender.name,
+						graphics: defender.graphics
+					},
+					location: defender.location,
+					stat: "hp",
+					change: effect.amount
+				}, eventLog);
 
-			default:
-				unreachable(effect.stat);
+				defender.stats.hp.current = Math.min(defender.stats.hp.current + effect.amount, defender.stats.hp.max);
+				break;
 		}
-
-		propagateLogEvent(state, {
-			type: "stat",
-			entity: {
-				id: defender.id,
-				name: defender.name,
-				graphics: defender.graphics
-			},
-			location: defender.location,
-			stat: effect.stat,
-			change: effect.amount
-		}, eventLog);
 	});
 }
 

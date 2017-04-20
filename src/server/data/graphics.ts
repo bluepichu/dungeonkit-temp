@@ -802,6 +802,176 @@ function makeCalmMindAnimation(dir: number, pivot: Point, shadowPivot: Point): A
 	];
 }
 
+function makePureeAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `puree-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}c`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}c`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		},
+		{
+			sprites: [
+				{ texture: `puree-${dir}c`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 3
+		}
+	];
+}
+
+function blendPivotForDirection(dir: number): Point {
+	switch (dir) {
+		case 0: return { x: 12, y: 31 };
+		case 1: return { x: 12, y: 43 };
+		case 2: return { x: 12, y: 59 };
+		case 3: return { x: 36, y: 43 };
+		case 4: return { x: 36, y: 31 };
+		case 5: return { x: 36, y: 31 };
+		case 6: return { x: 12, y: 31 };
+		case 7: return { x: 12, y: 31 };
+	}
+}
+
+function makeBlendAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [
+				{ texture: `blend-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 4
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 4
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}c`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 4
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}d`, anchor: blendPivotForDirection(dir) },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}e`, anchor: blendPivotForDirection(dir) },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}f`, anchor: blendPivotForDirection(dir) },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}g`, anchor: blendPivotForDirection(dir) },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}h`, anchor: blendPivotForDirection(dir) },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}i`, anchor: blendPivotForDirection(dir) },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 2
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}c`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 4
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}b`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 4
+		},
+		{
+			sprites: [
+				{ texture: `blend-${dir}a`, anchor: pivot },
+				{ texture: "shadow", anchor: shadowPivot }
+			],
+			duration: 4
+		}
+	];
+}
+
 function entityAnimations(
 		base: string,
 		dir: number,
@@ -840,6 +1010,14 @@ function entityAnimations(
 			case "calm-mind":
 				desc.animations["calm-mind"] = makeCalmMindAnimation(dir, pivot, shadowPivot);
 				break;
+
+			case "blend":
+				desc.animations["blend"] = makeBlendAnimation(dir, pivot, shadowPivot);
+				break;
+
+			case "puree":
+				desc.animations["puree"] = makePureeAnimation(dir, pivot, shadowPivot);
+				break;
 		}
 	}
 
@@ -848,14 +1026,14 @@ function entityAnimations(
 
 let blenderGraphics: EntityGraphicsDescriptor = {
 	descriptors: {
-		[0]: entityAnimations("blender", 0, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[1]: entityAnimations("blender", 1, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[2]: entityAnimations("blender", 2, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[3]: entityAnimations("blender", 3, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[4]: entityAnimations("blender", 4, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[5]: entityAnimations("blender", 5, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[6]: entityAnimations("blender", 6, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true),
-		[7]: entityAnimations("blender", 7, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle"], true, true)
+		[0]: entityAnimations("blender", 0, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[1]: entityAnimations("blender", 1, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[2]: entityAnimations("blender", 2, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[3]: entityAnimations("blender", 3, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[4]: entityAnimations("blender", 4, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[5]: entityAnimations("blender", 5, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[6]: entityAnimations("blender", 6, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
+		[7]: entityAnimations("blender", 7, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true)
 	}
 };
 

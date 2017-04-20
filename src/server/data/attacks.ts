@@ -158,6 +158,51 @@ export let swift: Attack = {
 	onHit: []
 };
 
+export let blend: Attack = {
+	name: "Blend",
+	animation: "blend",
+	description: "Inflicts damage on the target.",
+	target: {
+		type: "front",
+		includeAllies: false,
+		cutsCorners: true
+	},
+	uses: {
+		max: 8,
+		current: 8
+	},
+	accuracy: 95,
+	power: 8,
+	onHit: []
+};
+
+export let puree: Attack = {
+	name: "Puree",
+	animation: "puree",
+	description: "Recovers HP and boosts defense.",
+	target: {
+		type: "self",
+		includeAllies: false,
+		cutsCorners: true
+	},
+	uses: {
+		max: 4,
+		current: 4
+	},
+	accuracy: "always",
+	onHit: [
+		{
+			type: "stat",
+			stat: "defense",
+			amount: 1
+		},
+		{
+			type: "heal",
+			amount: 10
+		}
+	]
+};
+
 export let op: Attack = {
 	name: "Overpowered",
 	animation: "tackle",

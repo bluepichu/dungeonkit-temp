@@ -8,7 +8,9 @@ import {
 	growl,
 	waterGun,
 	swift,
-	op
+	op,
+	blend,
+	puree
 } from "./attacks";
 
 import {
@@ -26,7 +28,7 @@ import {
 	lockedBox,
 	lightFlag,
 	blazingFlag,
-	stormyFlag
+	stormyFlag,
 } from "./items";
 
 let finalBoss = {
@@ -327,7 +329,9 @@ let trench: Dungeon = {
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
 						]
 					}
 				],
@@ -402,7 +406,9 @@ let sandbar: Dungeon = {
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
 						]
 					}
 				],
@@ -441,7 +447,9 @@ let sandbar: Dungeon = {
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
 						]
 					}
 				],
@@ -491,7 +499,9 @@ let coralReef: Dungeon = {
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
 						]
 					}
 				],
@@ -530,7 +540,9 @@ let coralReef: Dungeon = {
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
 						]
 					}
 				],
@@ -618,7 +630,9 @@ let cavern: Dungeon = {
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
 						]
 					}
 				],
