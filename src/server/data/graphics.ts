@@ -705,7 +705,10 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 	["item-cinnamon", staticDescriptor("item", "cinnamon")],
 	["item-peppercorn", staticDescriptor("item", "peppercorn")],
 	["item-spare-parts", staticDescriptor("item", "spare-parts")],
-	["item-salt", staticDescriptor("item", "salt")]
+	["item-salt", staticDescriptor("item", "salt")],
+	["item-flag", staticDescriptor("item", "flag")],
+	["item-key", staticDescriptor("item", "key")],
+	["item-box", staticDescriptor("item", "box")]
 ]);
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([

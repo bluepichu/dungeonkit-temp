@@ -34,8 +34,8 @@ let lonelyKip: OverworldEntity = {
 			type: "speak",
 			speaker: "Mudkip",
 			portrait: "portrait-mudkip-neutral",
-			text: "Anyway... would you like to go to Treacherous Trench?",
-			responses: ["Sure!", "No thanks."]
+			text: "Anyway... would you like to visit a dungeon?",
+			responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "No thanks."]
 		};
 
 		if (selection === 0) {
@@ -49,6 +49,30 @@ let lonelyKip: OverworldEntity = {
 			return {
 				type: "crawl",
 				dungeon: "trench"
+			};
+		} else if (selection === 1) {
+			yield {
+				type: "speak",
+				speaker: "Mudkip",
+				portrait: "portrait-mudkip-happy",
+				text: "Sounds good.  Have fun in there!"
+			};
+
+			return {
+				type: "crawl",
+				dungeon: "cavern"
+			};
+		} else if (selection === 2) {
+			yield {
+				type: "speak",
+				speaker: "Mudkip",
+				portrait: "portrait-mudkip-happy",
+				text: "No problem.  Enjoy your exploration!"
+			};
+
+			return {
+				type: "crawl",
+				dungeon: "coral-reef"
 			};
 		} else {
 			return {

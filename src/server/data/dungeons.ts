@@ -21,7 +21,12 @@ import {
 	cinnamon,
 	peppercorn,
 	salt,
-	spareParts
+	spareParts,
+	key,
+	lockedBox,
+	lightFlag,
+	blazingFlag,
+	stormyFlag
 } from "./items";
 
 let finalBossMudkip = {
@@ -413,8 +418,196 @@ let sandbar: Dungeon = {
 	]
 };
 
+let coralReef: Dungeon = {
+	name: "Calm Coral Reef",
+	floors: 3,
+	direction: "up",
+	difficulty: 2,
+	graphics: "dng-proto",
+	blueprint: [
+		{
+			range: [1, 2],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Mudkip",
+						graphics: "mudkip",
+						stats: mudkipStats,
+						attacks: [
+							{ attack: tackle, weight: 1 },
+							{ attack: growl, weight: 1 },
+							{ attack: waterGun, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } }
+				]
+			}
+		},
+		{
+			range: [3, 3],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Mudkip",
+						graphics: "mudkip",
+						stats: mudkipStats,
+						attacks: [
+							{ attack: tackle, weight: 1 },
+							{ attack: growl, weight: 1 },
+							{ attack: waterGun, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: key, density: { type: "uniform", a: 1, b: 1 } }
+				]
+			}
+		}
+	]
+};
+
+let cavern: Dungeon = {
+	name: "Undersea Cavern",
+	floors: 3,
+	direction: "down",
+	difficulty: 2,
+	graphics: "dng-proto",
+	blueprint: [
+		{
+			range: [1, 2],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Mudkip",
+						graphics: "mudkip",
+						stats: mudkipStats,
+						attacks: [
+							{ attack: tackle, weight: 1 },
+							{ attack: growl, weight: 1 },
+							{ attack: waterGun, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } }
+				]
+			}
+		},
+		{
+			range: [3, 3],
+			blueprint: {
+				type: "generated",
+				generatorOptions: {
+					width: { type: "binomial", n: 60, p: .8 },
+					height: { type: "binomial", n: 60, p: .8 },
+					features: {
+						rooms: roomFeatures,
+						corridors: corridorFeatures
+					},
+					limit: 1000,
+					cleanliness: .95
+				},
+				enemies: [
+					{
+						density: { type: "binomial", n: 10, p: .4 },
+						name: "Mudkip",
+						graphics: "mudkip",
+						stats: mudkipStats,
+						attacks: [
+							{ attack: tackle, weight: 1 },
+							{ attack: growl, weight: 1 },
+							{ attack: waterGun, weight: 1 }
+						]
+					}
+				],
+				items: [
+					{ item: screwdriver, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: battery, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: paprika, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cayenne, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: turmeric, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: oregano, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: cinnamon, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: peppercorn, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: spareParts, density: { type: "binomial", n: 1, p: 0.5 } },
+					{ item: salt, density: { type: "binomial", n: 2, p: 0.6 } },
+					{ item: lockedBox, density: { type: "uniform", a: 1, b: 1 } }
+				]
+			}
+		}
+	]
+}
+
 let dungeons: Map<string, Dungeon> = new Map<string, Dungeon>();
 dungeons.set("trench", trench);
 dungeons.set("sandbar", sandbar);
+dungeons.set("coral-reef", coralReef);
+dungeons.set("cavern", cavern);
 
 export default dungeons;
