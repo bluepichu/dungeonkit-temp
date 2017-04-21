@@ -1,14 +1,10 @@
 "use strict";
 
-import { blenderStats, opStats, spatulaStats }  from "./stats";
+import { blenderStats, finalBossStats, spatulaStats }  from "./stats";
 
 import {
 	tackle,
-	tailWhip,
-	growl,
-	waterGun,
-	swift,
-	op,
+	goldenSpatulate,
 	blend,
 	puree,
 	spatulate
@@ -33,11 +29,11 @@ import {
 } from "./items";
 
 let finalBoss = {
-	name: "Spatula",
-	graphics: "spatula",
-	stats: opStats,
+	name: "Golden Spatula",
+	graphics: "golden-spatula",
+	stats: finalBossStats,
 	attacks: [
-		{ attack: op, weight: 1 }
+		{ attack: goldenSpatulate, weight: 1 }
 	]
 };
 
@@ -370,7 +366,7 @@ let trench: Dungeon = {
 						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
 						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ],
 						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
-						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
+						[ wl(), wl(), fl(), fl(), st(), fl(), fl(), wl(), wl() ],
 						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
 						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
 						[ wl(), wl(), fl(), fl(), fl(), fl(), fl(), wl(), wl() ],
@@ -380,9 +376,9 @@ let trench: Dungeon = {
 						[ wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl(), wl() ]
 					]
 				},
-				enemies: [ { blueprint: finalBoss, location: { r: 2, c: 5 } } ],
-				items: [],
-				playerLocation: { r: 6, c: 5 }
+				enemies: [ { blueprint: finalBoss, location: { r: 3, c: 4 } } ],
+				items: [ { blueprint: stormyFlag, location: { r: 3, c: 4 } } ],
+				playerLocation: { r: 6, c: 4 }
 			} as StaticFloorBlueprint // why do I need this?
 		}
 	]

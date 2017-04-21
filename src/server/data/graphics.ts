@@ -1081,6 +1081,19 @@ let spatulaGraphics: EntityGraphicsDescriptor = {
 	}
 };
 
+let goldenSpatulaGraphics: EntityGraphicsDescriptor = {
+	descriptors: {
+		[0]: entityAnimations("golden-spatula", 0, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[1]: entityAnimations("golden-spatula", 1, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[2]: entityAnimations("golden-spatula", 2, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[3]: entityAnimations("golden-spatula", 3, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[4]: entityAnimations("golden-spatula", 4, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[5]: entityAnimations("golden-spatula", 5, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[6]: entityAnimations("golden-spatula", 6, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[7]: entityAnimations("golden-spatula", 7, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true)
+	}
+};
+
 let pivot = { x: 12, y: 15 };
 let shadowPivot = { x: 12, y: 6 };
 let attacks = ["tackle", "spinshock", "overheat", "calm-mind"];
@@ -1239,5 +1252,6 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([
 	["blender", blenderGraphics],
 	["toaster", toasterGraphics],
-	["spatula", spatulaGraphics]
+	["spatula", spatulaGraphics],
+	["golden-spatula", goldenSpatulaGraphics]
 ]);

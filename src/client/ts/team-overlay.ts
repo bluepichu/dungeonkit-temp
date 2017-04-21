@@ -218,7 +218,7 @@ class TeamListing extends Container {
 		this.nameText.text = entity.name;
 		this.strategyText.text = "LEADER";
 
-		this.hpText.text = `<hp><icon>hp</icon>${entity.stats.hp.current}</hp>`;
+		this.hpText.text = `<hp>${entity.stats.hp.current}</hp>`;
 
 		let arcLength = Math.PI / 2 * 25;
 		let lineLength = 130;
@@ -239,7 +239,7 @@ class TeamListing extends Container {
 			this.hpArc.arc(0, 0, 25, -Math.PI / 2, -Math.PI / 2 + hpAngle);
 		}
 
-		this.hungerText.text = `<hunger><icon>defense</icon>${Math.ceil(entity.stats.energy.current / 6)}</hunger>`;
+		this.hungerText.text = `<hunger>${Math.ceil(entity.stats.energy.current / 6)}</hunger>`;
 
 		let hungerPct = Math.ceil(entity.stats.energy.current / 6) / Math.ceil(entity.stats.energy.max / 6);
 		let hungerLength = totalLength * hungerPct;
