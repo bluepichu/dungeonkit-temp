@@ -75,10 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			google: {
 				families: ["Lato:100,300,400,700"]
 			},
-			custom: {
-				families: ["DK Icons"],
-				urls: ["/assets/fonts.css"]
-			},
 			active: loadAssets
 		});
 	} else {

@@ -36,7 +36,7 @@ let guestGuide: OverworldEntity = {
 				speaker: "Blender",
 				portrait: "portrait-blender-neutral",
 				text: "Anyway... would you like to visit a dungeon?",
-				responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "Shallow Sand Bar sounds good!", "No thanks."]
+				responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Crystal Reef?", "Shallow Sand Bar sounds good!", "No thanks."]
 			};
 
 			switch (selection) {
@@ -134,7 +134,7 @@ let alphaGuide: OverworldEntity = {
 				speaker: "Blender",
 				portrait: "portrait-blender-neutral",
 				text: "Anyway... would you like to visit a dungeon?",
-				responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "Shallow Sand Bar sounds good!", "No thanks."]
+				responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Crystal Reef?", "Shallow Sand Bar sounds good!", "No thanks."]
 			};
 
 			switch (selection) {
@@ -221,7 +221,7 @@ export let scene: OverworldScene = {
 			*interact() {
 				let selection = yield {
 					type: "speak",
-					text: "Would you like to enter Calm Coral Reef?",
+					text: "Would you like to enter Calm Crystal Reef?",
 					responses: [ "Yes", "No" ]
 				};
 

@@ -487,7 +487,7 @@ let sandbar: Dungeon = {
 };
 
 let coralReef: Dungeon = {
-	name: "Calm Coral Reef",
+	name: "Calm Crystal Reef",
 	floors: 3,
 	direction: "up",
 	difficulty: 2,
