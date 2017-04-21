@@ -95,8 +95,10 @@ function loadAssets(): void {
 
 	loader
 		.add("bg-ocean", "/assets/ocean.json")
-		.add("dng-proto", "/assets/tiles.json")
 		.add("dng-stormy-sea", "/assets/tileset-stormy-sea.json")
+		.add("dng-wish-cave", "/assets/tileset-wish-cave.json")
+		.add("dng-waterfall-pond", "/assets/tileset-waterfall-pond.json")
+		.add("dng-surrounded-sea", "/assets/tileset-surrounded-sea.json")
 		.add("ent-blender", "/assets/blender.json")
 		.add("ent-toaster", "/assets/toaster.json")
 		.add("ent-spatula", "/assets/spatula.json")

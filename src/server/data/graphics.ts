@@ -1043,14 +1043,14 @@ let blenderGraphics: EntityGraphicsDescriptor = {
 
 let spatulaGraphics: EntityGraphicsDescriptor = {
 	descriptors: {
-		[0]: entityAnimations("spatula", 0, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
-		[1]: entityAnimations("spatula", 1, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
-		[2]: entityAnimations("spatula", 2, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
-		[3]: entityAnimations("spatula", 3, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
-		[4]: entityAnimations("spatula", 4, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
-		[5]: entityAnimations("spatula", 5, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[0]: entityAnimations("spatula", 0, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[1]: entityAnimations("spatula", 1, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[2]: entityAnimations("spatula", 2, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[3]: entityAnimations("spatula", 3, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[4]: entityAnimations("spatula", 4, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[5]: entityAnimations("spatula", 5, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
 		[6]: entityAnimations("spatula", 6, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
-		[7]: entityAnimations("spatula", 7, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true)
+		[7]: entityAnimations("spatula", 7, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true)
 	}
 };
 
@@ -1109,7 +1109,26 @@ function bitCount(num: number) {
 	return cnt;
 }
 
-let tiles = [
+function generateDungeonGraphics(name: string, tiles: string[][]): GraphicsObjectDescriptor {
+	let counts: { [key: number]: number } = {};
+
+	for (let row of tiles) {
+		for (let tile of row) {
+			if (tile && tile.split("-").length > 1) {
+				let idx = parseInt(tile.split("-")[1], 2);
+				counts[idx] = counts[idx] || 0;
+				counts[idx]++;
+			}
+		}
+	}
+
+	return {
+		base: name,
+		animations: dungeonGraphicsAnimations(counts)
+	};
+}
+
+let stormySeaTiles = [
 	[ "w-10000011", "w-10001111", "w-00001110", "w-10000010", "w-10001000", "w-00001010", "w-10001010", "w-10001111", "w-00101010", "open", "stairs" ],
 	[ "w-11100011", "w-11111111", "w-00111110", "w-00100010", "w-00000000", "w-10111011", "w-11100011", "w-11111111", "w-00111110" ],
 	[ "w-11100000", "w-11111000", "w-00111000", "w-10100000", "w-11101110", "w-00101000", "w-10100010", "w-11111000", "w-10101000" ],
@@ -1120,22 +1139,38 @@ let tiles = [
 	[ "w-10100011", "w-00101110", "w-10111000", "w-11101000", "w-11101010", "w-10111010", "w-10111111", "w-11101111", "w-10100011", "w-00101110", "w-10111000", "w-11101000" ]
 ];
 
-let counts: { [key: number]: number } = {};
+let waterfallPondTiles = [
+	[ "w-10000011", "w-10001111", "w-00001110", "w-10000010", "w-10001000", "w-00001010", "w-10001010", "w-10001111", "w-00101010", "open", "stairs" ],
+	[ "w-11100011", "w-11111111", "w-00111110", "w-00100010", "w-00000000", "w-10111011", "w-11111111", "w-11111111", "w-11111000" ],
+	[ "w-11100000", "w-11111000", "w-00111000", "w-10100000", "w-11101110", "w-00101000", "w-10100010", "w-11111000", "w-10101000" ],
+	[ "w-11111110", "w-00000010", "w-11111011", "w-11111110", "w-11111010", "w-11111011", "w-11101011", "w-10111110", "w-11101111" ],
+	[ "w-10000000", "w-10101010", "w-00001000", "w-10111110", "w-10111110", "w-11101011", "w-10101111", "w-11111110" ],
+	[ "w-10111111", "w-00100000", "w-11101111", "w-10111111", "w-10101111", "w-11101111", "w-10111111", "w-11111011" ],
+	[ "w-11100010", "w-00111010", "w-10001110", "w-10001011", "w-10101011", "w-10101110", "w-10111000", "w-11101000", "w-10111000", "w-11101000" ],
+	[ "w-10100011", "w-00101110", "w-10111000", "w-11101000", "w-11101010", "w-10111010", "w-10101011", "w-11101110", "w-11101110", "w-10101110", "w-10111011" ]
+];
 
-for (let row of tiles) {
-	for (let tile of row) {
-		if (tile.split("-").length > 1) {
-			let idx = parseInt(tile.split("-")[1], 2);
-			counts[idx] = counts[idx] || 0;
-			counts[idx]++;
-		}
-	}
-}
+let surroundedSeaTiles = [
+	[ "w-10000011", "w-10001111", "w-00001110", "w-10000010", "w-10001000", "w-00001010", null,         "w-10001111" ],
+	[ "w-11100011", "w-11111111", "w-00111110", "w-00100010", "w-00000000", "w-10111011", "w-11100011", "w-11111111", "w-00111110" ],
+	[ "w-11100000", "w-11111000", "w-00111000", "w-10100000", "w-11101110", "w-00101000", null,         "w-11111000", "open" ],
+	[ "w-10001010", "w-00000010", "w-00101010", "w-11111110", "w-11111010", "w-11111011", null,         "w-10001111", "stairs" ],
+	[ "w-10000000", "w-10101010", "w-00001000", "w-10111110", null,         "w-11101011", "w-11100011", "w-11111111", "w-00111110" ],
+	[ "w-10100010", "w-00100000", "w-10101000", "w-10111111", "w-10101111", "w-11101111", null,         "w-11111000" ],
+	[ "w-11100010", "w-00111010", "w-10001110", "w-10001011", "w-10101011", "w-10101110" ],
+	[ "w-10100011", "w-00101110", "w-10111000", "w-11101000", "w-11101010", "w-10111010" ]
+];
 
-let dungeonGraphics: GraphicsObjectDescriptor = {
-	base: "dng-stormy-sea",
-	animations: dungeonGraphicsAnimations(counts)
-};
+let wishCaveTiles = [
+	[ "w-10000011", "w-10001111", "w-00001110", "w-10000010", "w-10001000", "w-00001010", null,         "w-10001111" ],
+	[ "w-11100011", "w-11111111", "w-00111110", "w-00100010", "w-00000000", "w-10111011", "w-11100011", "w-11111111", "w-00111110" ],
+	[ "w-11100000", "w-11111000", "w-00111000", "w-10100000", "w-11101110", "w-00101000", null,         "w-11111000", "open" ],
+	[ "w-10001010", "w-00000010", "w-00101010", "w-11111110", "w-11111010", "w-11111011", null,         "w-10001111", "stairs" ],
+	[ "w-10000000", "w-10101010", "w-00001000", "w-10111110", null,         "w-11101011", "w-11100011", "w-11111111", "w-00111110" ],
+	[ "w-10100010", "w-00100000", "w-10101000", "w-10111111", "w-10101111", "w-11101111", null,         "w-11111000" ],
+	[ "w-11100010", "w-00111010", "w-10001110", "w-10001011", "w-10101011", "w-10101110" ],
+	[ "w-10100011", "w-00101110", "w-10111000", "w-11101000", "w-11101010", "w-10111010" ]
+];
 
 function staticDescriptor(base: string, texture: string, position: Point = { x: 8, y: 4 }): GraphicsObjectDescriptor {
 	return {
@@ -1154,7 +1189,10 @@ function staticDescriptor(base: string, texture: string, position: Point = { x: 
 }
 
 export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
-	["dng-proto", dungeonGraphics],
+	["dng-stormy-sea", generateDungeonGraphics("dng-stormy-sea", stormySeaTiles)],
+	["dng-waterfall-pond", generateDungeonGraphics("dng-waterfall-pond", waterfallPondTiles)],
+	["dng-surrounded-sea", generateDungeonGraphics("dng-surrounded-sea", surroundedSeaTiles)],
+	["dng-wish-cave", generateDungeonGraphics("dng-wish-cave", wishCaveTiles)],
 	["ocean", staticDescriptor("bg", "ocean", { x: 0, y: 0 })],
 	["item-screwdriver", staticDescriptor("item", "screwdriver")],
 	["item-battery", staticDescriptor("item", "battery")],

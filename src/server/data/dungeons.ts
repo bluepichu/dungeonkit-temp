@@ -184,7 +184,7 @@ let trench: Dungeon = {
 	floors: 5,
 	direction: "down",
 	difficulty: 5,
-	graphics: "dng-proto",
+	graphics: "dng-surrounded-sea",
 	blueprint: [
 		{
 			range: [1, 1],
@@ -393,7 +393,7 @@ let sandbar: Dungeon = {
 	floors: 4,
 	direction: "down",
 	difficulty: 2,
-	graphics: "dng-proto",
+	graphics: "dng-stormy-sea",
 	blueprint: [
 		{
 			range: [1, 3],
@@ -495,7 +495,7 @@ let coralReef: Dungeon = {
 	floors: 3,
 	direction: "up",
 	difficulty: 2,
-	graphics: "dng-proto",
+	graphics: "dng-waterfall-pond",
 	blueprint: [
 		{
 			range: [1, 2],
@@ -606,7 +606,7 @@ let cavern: Dungeon = {
 	floors: 3,
 	direction: "down",
 	difficulty: 2,
-	graphics: "dng-proto",
+	graphics: "dng-wish-cave",
 	blueprint: [
 		{
 			range: [1, 2],
