@@ -77,15 +77,15 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 
 	/* Attempt to move closer if we can see our -friend- enemy */
 	if (enemy !== undefined) {
-		let [loc, dist] = utils.range(8)
-		  .map(n => utils.offsetLocationInDir(state.self.location, n))
-		  .filter(l => utils.getTile(state.floor.map, l).type == DungeonTileType.FLOOR)
-		  .map(l => [l, getHeuristicDistance(l, enemy.location)])
-		  .reduce(([l1, d1], [l2, d2]) => d1 < d2 ? [l1, d1] : [l2, d2]);
+		let [loc, dir, dist] = utils.range(8)
+		  .map(n => [n, utils.offsetLocationInDir(state.self.location, n)])
+		  .filter(([d, l]) => utils.getTile(state.floor.map, l as CrawlLocation).type == DungeonTileType.FLOOR
+			         && crawl.isValidMove(state, entity, d as number))
+		  .map(([a, l]) => [l, a, getHeuristicDistance(l as CrawlLocation, enemy.location)])
+		  .reduce(([l1, a1, d1], [l2, a2, d2]) => d1 < d2 ? [l1, a1, d1] : [l2, a2, d2]);
 
 		if (dist < getHeuristicDistance(state.self.location, enemy.location)) {
-			let angle = utils.getAngleBetween(state.self.location, loc as CrawlLocation);
-			return { type: "move", direction: angle };
+			return { type: "move", direction: dir as number};
 		}
 	}
 
