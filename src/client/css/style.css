@@ -101,7 +101,7 @@ button {
 }
 
 .dungeon-listing img {
-	max-width: 100%;
+	width: 100%;
 }
 
 .dungeon-listing h4 {
