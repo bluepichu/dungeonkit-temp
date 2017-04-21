@@ -34,6 +34,24 @@ export let spatulate: Attack = {
 	onHit: []
 };
 
+export let goldenSpatulate: Attack = {
+	name: "Golden Spatulate",
+	animation: "spatulate",
+	description: "Spatulates the enemy... now with gold!",
+	target: {
+		type: "room",
+		includeAllies: false,
+		includeSelf: false
+	},
+	uses: {
+		max: 1000,
+		current: 1000
+	},
+	accuracy: 90,
+	power: 1000000000,
+	onHit: []
+};
+
 export let spinshock: Attack = {
 	name: "Spinshock",
 	animation: "spinshock",
@@ -217,22 +235,4 @@ export let puree: Attack = {
 			amount: 10
 		}
 	]
-};
-
-export let op: Attack = {
-	name: "Overpower",
-	animation: "calm-mind",
-	description: "Who put this in?!?",
-	target: {
-		type: "room",
-		includeSelf: false,
-		includeAllies: false
-	},
-	uses: {
-		max: 30,
-		current: 30
-	},
-	accuracy: 95,
-	power: 1000000000,
-	onHit: []
 };

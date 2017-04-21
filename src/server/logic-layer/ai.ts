@@ -56,7 +56,7 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 				let targets = getTargets(state, state.self, 0, attack.target);
 				targets = targets.filter((entity) => entity.alignment !== state.self.alignment);
 				if (targets.length > 0) {
-					return { type: "attack", direction: 0, attack: attack };
+					return { type: "attack", direction: 6, attack: attack };
 				}
 			}
 		}

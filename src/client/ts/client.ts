@@ -102,6 +102,7 @@ function loadAssets(): void {
 		.add("ent-blender", "/assets/blender.json")
 		.add("ent-toaster", "/assets/toaster.json")
 		.add("ent-spatula", "/assets/spatula.json")
+		.add("ent-golden-spatula", "/assets/golden-spatula.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
 		.add("blender-portrait", "/assets/blender-portrait.json")
@@ -636,8 +637,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 			case "defeat":
 				messageLog.push(`${highlightEntity(event.entity)} was defeated!`);
-				dungeonRenderer.showDefeat(event.entity);
-				done();
+				dungeonRenderer.showDefeat(event.entity).then(done);
 				break;
 
 			case "stairs":

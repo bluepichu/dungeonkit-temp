@@ -40,7 +40,7 @@ export let spatulaStats: EntityStats = {
 	}
 };
 
-export let opStats: EntityStats = {
+export let finalBossStats: EntityStats = {
 	level: 10,
 	hp: {
 		max: 1000,
