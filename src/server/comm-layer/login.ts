@@ -1,6 +1,7 @@
 "use strict";
 
-import * as redis from "redis";
+import * as crypto from "crypto";
+import * as redis  from "redis";
 
 const redisClient = redis.createClient();
 const log = require("beautiful-log")("dk:login");
@@ -14,10 +15,11 @@ export function checkLogin(user: string, pass: string): Promise<User> {
 			return;
 		}
 
-		log("Attempting login:", user, pass); // #security
+		let hash = crypto.createHash("sha256");
+		hash.update(pass);
 
 		redisClient.get(`user:${user}`, (err: Error, pw: string) => {
-			if (!err && pass === pw) {
+			if (!err && hash.digest("hex") === pw) {
 				log("Logged in!");
 				resolve(user);
 			} else {

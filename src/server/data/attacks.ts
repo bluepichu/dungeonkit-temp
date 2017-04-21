@@ -9,8 +9,8 @@ export let tackle: Attack = {
 		includeAllies: false
 	},
 	uses: {
-		max: 30,
-		current: 30
+		max: 200,
+		current: 200
 	},
 	accuracy: 95,
 	power: 7,
