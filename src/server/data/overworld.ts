@@ -40,7 +40,7 @@ let guestGuide: OverworldEntity = {
 			};
 
 			switch (selection) {
-				case 0: 
+				case 0:
 					yield {
 						type: "speak",
 						speaker: "Blender",
@@ -92,7 +92,7 @@ let guestGuide: OverworldEntity = {
 					return {
 						type: "speak",
 						speaker: "Blender",
-						portrait: "portrait-mudkip-neutral",
+						portrait: "portrait-blender-neutral",
 						text: "Ok, but don't hesitate to come back if you change your mind!"
 					};
 			}
@@ -138,7 +138,7 @@ let alphaGuide: OverworldEntity = {
 			};
 
 			switch (selection) {
-				case 0: 
+				case 0:
 					yield {
 						type: "speak",
 						speaker: "Blender",
@@ -194,7 +194,7 @@ let alphaGuide: OverworldEntity = {
 					return {
 						type: "speak",
 						speaker: "Blender",
-						portrait: "portrait-mudkip-neutral",
+						portrait: "portrait-blender-neutral",
 						text: "Ok, but don't hesitate to come back if you change your mind!"
 					};
 			}
