@@ -2,12 +2,12 @@ import { generate as shortid } from "shortid";
 
 import { blenderStats }        from "./stats";
 
-let lonelyKip: OverworldEntity = {
+let guestGuide: OverworldEntity = {
 	id: shortid(),
 	name: "Blender",
 	graphics: "blender",
-	position: { x: 200, y: 200 },
-	direction: 7,
+	position: { x: 160, y: 180 },
+	direction: 6,
 	stats: blenderStats,
 	attacks: [],
 	attributes: [],
@@ -19,78 +19,93 @@ let lonelyKip: OverworldEntity = {
 		yield {
 			type: "speak",
 			speaker: "Blender",
-			portrait: "portrait-mudkip-happy",
-			text: "It's good to see you!"
+			portrait: "portrait-blender-neutral",
+			text: "Welcome to TW: 2KLutS!"
 		};
 
 		yield {
 			type: "speak",
 			speaker: "Blender",
-			portrait: "portrait-mudkip-sad",
-			text: "It can get kind of lonely hanging around here all by myself sometimes..."
+			portrait: "portrait-blender-neutral",
+			text: "You can visit the dungeons by going up, left, or right, or by talking to me!"
 		};
 
-		let selection = yield {
-			type: "speak",
-			speaker: "Blender",
-			portrait: "portrait-mudkip-neutral",
-			text: "Anyway... would you like to visit a dungeon?",
-			responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "No thanks."]
-		};
-
-		if (selection === 0) {
-			yield {
+		while (true) {
+			let selection = yield {
 				type: "speak",
 				speaker: "Blender",
-				portrait: "portrait-mudkip-happy",
-				text: "Great!  I'll warp you there."
+				portrait: "portrait-blender-neutral",
+				text: "Anyway... would you like to visit a dungeon?",
+				responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "Shallow Sand Bar sounds good!", "No thanks."]
 			};
 
-			return {
-				type: "crawl",
-				dungeon: "trench"
-			};
-		} else if (selection === 1) {
-			yield {
-				type: "speak",
-				speaker: "Blender",
-				portrait: "portrait-mudkip-happy",
-				text: "Sounds good.  Have fun in there!"
-			};
+			switch (selection) {
+				case 0: 
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "Great!  I'll warp you there."
+					};
 
-			return {
-				type: "crawl",
-				dungeon: "cavern"
-			};
-		} else if (selection === 2) {
-			yield {
-				type: "speak",
-				speaker: "Blender",
-				portrait: "portrait-mudkip-happy",
-				text: "No problem.  Enjoy your exploration!"
-			};
+					return {
+						type: "crawl",
+						dungeon: "trench"
+					};
 
-			return {
-				type: "crawl",
-				dungeon: "coral-reef"
-			};
-		} else {
-			return {
-				type: "speak",
-				speaker: "Blender",
-				portrait: "portrait-mudkip-neutral",
-				text: "Ok, but don't hesitate to come back if you change your mind!"
-			};
+				case 1:
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "Sounds good.  Have fun in there!"
+					};
+
+					return {
+						type: "crawl",
+						dungeon: "cavern"
+					};
+
+				case 2:
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "No problem.  Enjoy your exploration!"
+					};
+
+					return {
+						type: "crawl",
+						dungeon: "coral-reef"
+					};
+
+				case 3:
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "Sorry!  Shallow Sand Bar is only available to players of our closed alpha."
+					};
+					break;
+
+				default:
+					return {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-mudkip-neutral",
+						text: "Ok, but don't hesitate to come back if you change your mind!"
+					};
+			}
 		}
 	}
 };
 
-let angryKip: OverworldEntity = {
+let alphaGuide: OverworldEntity = {
 	id: shortid(),
 	name: "Blender",
 	graphics: "blender",
-	position: { x: 250, y: 200 },
-	direction: 5,
+	position: { x: 160, y: 180 },
+	direction: 6,
 	stats: blenderStats,
 	attacks: [],
 	attributes: [],
@@ -102,16 +117,88 @@ let angryKip: OverworldEntity = {
 		yield {
 			type: "speak",
 			speaker: "Blender",
-			portrait: "portrait-mudkip-angry",
-			text: "Did that other guy say something to you about being lonely?"
+			portrait: "portrait-blender-neutral",
+			text: "Welcome to TW: 2KLutS!"
 		};
 
-		return {
+		yield {
 			type: "speak",
 			speaker: "Blender",
-			portrait: "portrait-mudkip-sad",
-			text: "He does realize I'm right here, right?"
+			portrait: "portrait-blender-neutral",
+			text: "You can visit the dungeons by going up, left, or right, or by talking to me!"
 		};
+
+		while (true) {
+			let selection = yield {
+				type: "speak",
+				speaker: "Blender",
+				portrait: "portrait-blender-neutral",
+				text: "Anyway... would you like to visit a dungeon?",
+				responses: ["How about Treacherous Trench?", "I'm thinking Undersea Cavern.", "Could you take me to Calm Coral Reef?", "Shallow Sand Bar sounds good!", "No thanks."]
+			};
+
+			switch (selection) {
+				case 0: 
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "Great!  I'll warp you there."
+					};
+
+					return {
+						type: "crawl",
+						dungeon: "trench"
+					};
+
+				case 1:
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "Sounds good.  Have fun in there!"
+					};
+
+					return {
+						type: "crawl",
+						dungeon: "cavern"
+					};
+
+				case 2:
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "No problem.  Enjoy your exploration!"
+					};
+
+					return {
+						type: "crawl",
+						dungeon: "coral-reef"
+					};
+
+				case 3:
+					yield {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-blender-neutral",
+						text: "Sure thing.  Thanks for helping us test the game!"
+					};
+
+					return {
+						type: "crawl",
+						dungeon: "sand-bar"
+					};
+
+				default:
+					return {
+						type: "speak",
+						speaker: "Blender",
+						portrait: "portrait-mudkip-neutral",
+						text: "Ok, but don't hesitate to come back if you change your mind!"
+					};
+			}
+		}
 	}
 };
 
@@ -183,26 +270,8 @@ export let scene: OverworldScene = {
 			}
 		}
 	],
-	entities: [lonelyKip, angryKip]
+	entities: [guestGuide]
 };
 
 export let alphaScene: OverworldScene = Object.assign({}, scene);
-alphaScene.hotzones = alphaScene.hotzones.map((x) => x);
-alphaScene.hotzones.push({
-	id: "to-special",
-	area: [ { x: 0, y: 20 }, { x: 20, y: 20 }, { x: 20, y: 0 }, { x: 0, y: 0 } ],
-	*interact() {
-		let selection = yield {
-			type: "speak",
-			text: "Would you like to enter Shallow Sandbar?",
-			responses: [ "Yes", "No" ]
-		};
-
-		if (selection === 0) {
-			return {
-				type: "crawl",
-				dungeon: "sandbar"
-			};
-		}
-	}
-});
+alphaScene.entities = [alphaGuide];

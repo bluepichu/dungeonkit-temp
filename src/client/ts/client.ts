@@ -104,7 +104,7 @@ function loadAssets(): void {
 		.add("ent-spatula", "/assets/spatula.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
-		.add("portraits", "/assets/portraits.json")
+		.add("blender-portrait", "/assets/blender-portrait.json")
 		.once("complete", init);
 
 	loader.load();
