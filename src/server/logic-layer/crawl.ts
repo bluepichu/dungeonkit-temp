@@ -718,7 +718,7 @@ function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, dire
  * @param direciton - The direction in which to move.
  * @return Whether or not the action is legal.
  */
-function isValidMove(
+export function isValidMove(
 	state: CensoredInProgressCrawlState,
 	entity: CrawlEntity,
 	direction: number): boolean {
