@@ -199,8 +199,7 @@ export let puree: Attack = {
 	description: "Recovers HP and boosts defense.",
 	target: {
 		type: "self",
-		includeAllies: false,
-		cutsCorners: true
+		includeAllies: false
 	},
 	uses: {
 		max: 4,

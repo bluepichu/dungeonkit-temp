@@ -222,6 +222,7 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 	let mapUpdates: MapUpdate[] = [];
 
 	let newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
+	log(newState);
 
 	if (newState.valid) {
 		send(socketId, newState.state, eventLog, mapUpdates, callback);

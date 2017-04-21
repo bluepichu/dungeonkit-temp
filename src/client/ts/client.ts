@@ -280,7 +280,7 @@ function startCrawl(dungeon: Dungeon): void {
 		socket.emitTempSignal("name", name);
 	}
 
-	teamOverlay = new TeamOverlay();
+	teamOverlay = new TeamOverlay(renderer);
 	gameContainer.addChild(teamOverlay);
 
 	floorSign = new Container();
@@ -725,7 +725,7 @@ function showScene(cos: ClientOverworldScene) {
 	scene = cos;
 	setGamePhase(GamePhase.OVERWORLD);
 
-	overworldRenderer = new OverworldRenderer();
+	overworldRenderer = new OverworldRenderer(renderer);
 	overworldRenderer.displayScene(scene);
 
 	gameContainer.addChildAt(overworldRenderer, 0);

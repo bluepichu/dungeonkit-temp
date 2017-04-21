@@ -1,10 +1,12 @@
 "use strict";
 
 import {
+	CanvasRenderer,
 	Container,
 	Graphics,
 	Text,
 	TextStyle,
+	WebGLRenderer,
 	utils as PixiUtils
 } from "pixi.js";
 
@@ -62,14 +64,16 @@ const STYLES: TextStyleSet = {
 export default class TeamOverlay extends Container {
 	public children: TeamListing[];
 	private map: Map<string, TeamListing>;
+	private renderer: WebGLRenderer | CanvasRenderer;
 
 	/**
 	 * Creates an empty TeamOverlay.
 	 */
-	public constructor() {
+	public constructor(renderer: WebGLRenderer | CanvasRenderer) {
 		super();
 
 		this.map = new Map();
+		this.renderer = renderer;
 	}
 
 	/**
@@ -103,7 +107,7 @@ export default class TeamOverlay extends Container {
 
 		toAdd.forEach((id) => {
 			let entity = state.entities.filter((entity) => entity.id === id)[0];
-			let listing = new TeamListing(entity as CensoredSelfCrawlEntity);
+			let listing = new TeamListing(entity as CensoredSelfCrawlEntity, this.renderer);
 			this.addChild(listing);
 			listing.x = 170;
 			this.map.set(id, listing);
@@ -136,7 +140,7 @@ class TeamListing extends Container {
 	 * Constructs a listing for the given entity.
 	 * @param entity - The entity whose information to display.
 	 */
-	public constructor(entity: CensoredSelfCrawlEntity) {
+	public constructor(entity: CensoredSelfCrawlEntity, renderer: WebGLRenderer | CanvasRenderer) {
 		super();
 
 		this.bg = new Graphics();
@@ -153,6 +157,7 @@ class TeamListing extends Container {
 		this.entitySprite.scale.x = 1.5;
 		this.entitySprite.scale.y = 1.5;
 		this.addChild(this.entitySprite);
+		renderer.on("prerender", () => this.entitySprite.prerender());
 
 		this.nameText = new Text("", STYLES["title"]);
 		this.nameText.anchor.x = 1;
@@ -329,6 +334,7 @@ class ItemListing extends Container {
 			this.sprite = new GraphicsObject(GraphicsDescriptorCache.getGraphics(item.graphics));
 			this.sprite.y = -2;
 			this.addChild(this.sprite);
+			this.sprite.prerender();
 		}
 
 		this._item = item;

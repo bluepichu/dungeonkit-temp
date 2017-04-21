@@ -83,7 +83,7 @@ export default class GraphicsObject extends Sprite {
 	 * Run before the object is rendered.  Steps the frame, switches out the texture, and triggers the end-animation if
 	 *     necessary.
 	 */
-	protected prerender() {
+	public prerender() {
 		if (this.descriptor[this.animation].length === 1 && this.descriptor[this.animation][0].duration === 0 && !this.changed) {
 			return;
 		}
@@ -108,26 +108,11 @@ export default class GraphicsObject extends Sprite {
 			return;
 		}
 
-		this.texture = this.descriptor[this.animation][this.step].texture;
-		Object.assign(this.pivot, this.descriptor[this.animation][this.step].anchor);
+		let step = this.descriptor[this.animation][this.step];
+		this._texture = step.texture;
+		this._textureID = -1;
+		this.pivot.x = step.anchor.x;
+		this.pivot.y = step.anchor.y;
 		this.changed = false;
-	}
-
-	/**
-	 * Renders the GrahpicsObject using the given CanvasRenderer.
-	 * @param renderer - The renderer.
-	 */
-	public renderCanvas(renderer: CanvasRenderer): void {
-		this.prerender();
-		super.renderCanvas(renderer);
-	}
-
-	/**
-	 * Renders the GrahpicsObject using the given WebGLRenderer.
-	 * @param renderer - The renderer.
-	 */
-	public renderWebGL(renderer: WebGLRenderer): void {
-		this.prerender();
-		super.renderWebGL(renderer);
 	}
 }

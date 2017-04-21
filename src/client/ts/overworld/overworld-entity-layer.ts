@@ -33,7 +33,8 @@ export default class DungeonEntityLayer extends Layer<EntitySprite> {
 		this.get(id).position.y = position.y;
 	}
 
-	protected prerender(): void {
+	public prerender(): void {
+		super.prerender();
 		this.children.sort((a, b) => a.y - b.y);
 	}
 }

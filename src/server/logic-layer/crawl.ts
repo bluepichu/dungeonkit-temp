@@ -77,6 +77,7 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 
 	if (entity.ai) {
 		// What?
+		log("Trying to move as AI?");
 		return { valid: false, state };
 	}
 
@@ -106,6 +107,7 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 		return { valid: true, state: step(newState, eventLog, mapUpdates) };
 	}
 
+	state.entities.unshift(state.entities.pop());
 	return { valid: false, state }; // Action wasn't valid
 }
 

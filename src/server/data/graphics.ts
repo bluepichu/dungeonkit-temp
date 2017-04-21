@@ -251,11 +251,38 @@ function makeHurtAnimation(dir: number, pivot: Point, shadowPivot: Point): Anima
 	return [
 		{
 			sprites: [
-				{ texture: `hurt-${dir}`, anchor: pivot },
-				{ texture: "shadow", anchor: shadowPivot }
+				{ texture: `hurt-${dir}`, anchor: pivot, offset: -0.1 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.1 }
 			],
-			duration: 80
+			duration: 60
 		}
+	];
+}
+
+function makeDefeatAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
+	return [
+		{
+			sprites: [],
+			duration: 15
+		},
+		{
+			sprites: [
+				{ texture: `hurt-${dir}`, anchor: pivot, offset: -0.1 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.1 }
+			],
+			duration: 15
+		},
+		{
+			sprites: [],
+			duration: 15
+		},
+		{
+			sprites: [
+				{ texture: `hurt-${dir}`, anchor: pivot, offset: -0.1 },
+				{ texture: "shadow", anchor: shadowPivot, offset: -0.1 }
+			],
+			duration: 15
+		},
 	];
 }
 
@@ -988,7 +1015,7 @@ function entityAnimations(
 					: makeDefaultAnimation(dir, pivot, shadowPivot),
 			"walk": (useBase ? makeWalkAnimationFromBase(dir, pivot, shadowPivot) : makeWalkAnimation(dir, pivot, shadowPivot)),
 			"hurt": makeHurtAnimation(dir, pivot, shadowPivot),
-			"defeat": makeHurtAnimation(dir, pivot, shadowPivot),
+			"defeat": makeDefeatAnimation(dir, pivot, shadowPivot),
 			"throw": (useBase ? makeThrowAnimationFromBase(dir, pivot, shadowPivot) : makeThrowAnimation(dir, pivot, shadowPivot))
 		}
 	};

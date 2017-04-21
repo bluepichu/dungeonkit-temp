@@ -25,12 +25,12 @@ export default class OverworldRenderer extends Container {
 	private selfId: string;
 	private bounds: Rect;
 
-	constructor() {
+	constructor(renderer: WebGLRenderer | CanvasRenderer) {
 		super();
 
-		this.groundLayer = new OverworldGroundLayer();
-		this.itemLayer = new OverworldItemLayer();
-		this.entityLayer = new OverworldEntityLayer();
+		this.groundLayer = new OverworldGroundLayer(renderer);
+		this.itemLayer = new OverworldItemLayer(renderer);
+		this.entityLayer = new OverworldEntityLayer(renderer);
 
 		this.addChild(this.groundLayer);
 		this.addChild(this.itemLayer);

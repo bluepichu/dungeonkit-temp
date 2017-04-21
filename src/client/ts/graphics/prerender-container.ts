@@ -11,25 +11,15 @@ import {
  */
 export default class PrerenderContainer extends Container {
 	/**
+	  * Constructs a new prerender container.
+	  */
+	public constructor(renderer: CanvasRenderer | WebGLRenderer) {
+		super();
+		renderer.on("prerender", () => this.prerender());
+	}
+
+	/**
 	 * Called before the layer is rendered.  Intended to be overridden by implementing classes.
 	 */
-	protected prerender(): void {}
-
-	/**
-	 * Renders the PrerenderContainer using the given CanvasRenderer.
-	 * @param renderer - The renderer.
-	 */
-	public renderCanvas(renderer: CanvasRenderer): void {
-		this.prerender();
-		super.renderCanvas(renderer);
-	}
-
-	/**
-	 * Renders the PrerenderContainer using the given WebGLRenderer.
-	 * @param renderer - The renderer.
-	 */
-	public renderWebGL(renderer: WebGLRenderer): void {
-		this.prerender();
-		super.renderWebGL(renderer);
-	}
+	public prerender(): void {}
 }

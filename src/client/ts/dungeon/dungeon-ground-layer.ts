@@ -3,6 +3,7 @@
 import {
 	CanvasRenderer,
 	Container,
+	DisplayObject,
 	RenderTexture,
 	SCALE_MODES,
 	Sprite,
@@ -40,9 +41,11 @@ export default class DungeonGroundLayer extends Sprite {
 		this._descriptor = GraphicsDescriptorCache.getGraphics(descriptor);
 	}
 
-	protected generateGraphicsObject(key: string): GraphicsObject {
-		let tile = new GraphicsObject(this._descriptor);
-		tile.setAnimation(key);
+	protected generateGraphicsObject(key: string): DisplayObject {
+		let frame = this._descriptor[key][0];
+		let tile = new Sprite(frame.texture);
+		tile.pivot.x = frame.anchor.x;
+		tile.pivot.y = frame.anchor.y;
 		return tile;
 	}
 

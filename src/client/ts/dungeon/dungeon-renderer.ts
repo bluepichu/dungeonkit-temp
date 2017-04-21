@@ -28,8 +28,8 @@ export default class DungeonRenderer extends Container {
 		super();
 
 		this.groundLayer = new DungeonGroundLayer(renderer, dungeonGraphics);
-		this.itemLayer = new ItemLayer();
-		this.entityLayer = new EntityLayer();
+		this.itemLayer = new ItemLayer(renderer);
+		this.entityLayer = new EntityLayer(renderer);
 		this.deltaLayer = new DeltaLayer();
 
 		this.addChild(this.groundLayer);
