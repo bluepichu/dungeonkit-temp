@@ -1,8 +1,0 @@
-{
-	"frames": {
-		"bg-pkmn-square": { "frame": {"x": 0, "y": 0, "w": 958, "h": 719}, "sourceSize": {"x": 0, "y": 0, "w": 958, "h": 719} }
-	},
-	"meta": {
-		"image": "pkmn-square.png"
-	}
-}
