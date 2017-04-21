@@ -17,6 +17,23 @@ export let tackle: Attack = {
 	onHit: []
 };
 
+export let spatulate: Attack = {
+	name: "Spatulate",
+	animation: "spatulate",
+	description: "Spatulates the enemy.",
+	target: {
+		type: "front",
+		includeAllies: false
+	},
+	uses: {
+		max: 30,
+		current: 30
+	},
+	accuracy: 90,
+	power: 6,
+	onHit: []
+};
+
 export let spinshock: Attack = {
 	name: "Spinshock",
 	animation: "spinshock",
@@ -204,8 +221,8 @@ export let puree: Attack = {
 };
 
 export let op: Attack = {
-	name: "Overpowered",
-	animation: "tackle",
+	name: "Overpower",
+	animation: "calm-mind",
 	description: "Who put this in?!?",
 	target: {
 		type: "room",

@@ -10,7 +10,8 @@ import {
 	swift,
 	op,
 	blend,
-	puree
+	puree,
+	spatulate
 } from "./attacks";
 
 import {
@@ -324,7 +325,7 @@ let trench: Dungeon = {
 				},
 				enemies: [
 					{
-						density: { type: "binomial", n: 10, p: .4 },
+						density: { type: "binomial", n: 8, p: .4 },
 						name: "Blender",
 						graphics: "blender",
 						stats: blenderStats,
@@ -332,6 +333,15 @@ let trench: Dungeon = {
 							{ attack: tackle, weight: 1 },
 							{ attack: blend, weight: 1 },
 							{ attack: puree, weight: 1 }
+						]
+					},
+					{
+						density: { type: "binomial", n: 8, p: .6 },
+						name: "Spatula",
+						graphics: "spatula",
+						stats: blenderStats,
+						attacks: [
+							{ attack: spatulate, weight: 1 }
 						]
 					}
 				],
@@ -442,7 +452,7 @@ let sandbar: Dungeon = {
 				},
 				enemies: [
 					{
-						density: { type: "binomial", n: 10, p: .4 },
+						density: { type: "binomial", n: 8, p: .4 },
 						name: "Blender",
 						graphics: "blender",
 						stats: blenderStats,
@@ -450,6 +460,15 @@ let sandbar: Dungeon = {
 							{ attack: tackle, weight: 1 },
 							{ attack: blend, weight: 1 },
 							{ attack: puree, weight: 1 }
+						]
+					},
+					{
+						density: { type: "binomial", n: 8, p: .6 },
+						name: "Spatula",
+						graphics: "spatula",
+						stats: blenderStats,
+						attacks: [
+							{ attack: spatulate, weight: 1 }
 						]
 					}
 				],
@@ -494,7 +513,7 @@ let coralReef: Dungeon = {
 				},
 				enemies: [
 					{
-						density: { type: "binomial", n: 10, p: .4 },
+						density: { type: "binomial", n: 8, p: .4 },
 						name: "Blender",
 						graphics: "blender",
 						stats: blenderStats,
@@ -502,6 +521,15 @@ let coralReef: Dungeon = {
 							{ attack: tackle, weight: 1 },
 							{ attack: blend, weight: 1 },
 							{ attack: puree, weight: 1 }
+						]
+					},
+					{
+						density: { type: "binomial", n: 8, p: .6 },
+						name: "Spatula",
+						graphics: "spatula",
+						stats: blenderStats,
+						attacks: [
+							{ attack: spatulate, weight: 1 }
 						]
 					}
 				],
@@ -535,7 +563,7 @@ let coralReef: Dungeon = {
 				},
 				enemies: [
 					{
-						density: { type: "binomial", n: 10, p: .4 },
+						density: { type: "binomial", n: 8, p: .4 },
 						name: "Blender",
 						graphics: "blender",
 						stats: blenderStats,
@@ -543,6 +571,15 @@ let coralReef: Dungeon = {
 							{ attack: tackle, weight: 1 },
 							{ attack: blend, weight: 1 },
 							{ attack: puree, weight: 1 }
+						]
+					},
+					{
+						density: { type: "binomial", n: 8, p: .6 },
+						name: "Spatula",
+						graphics: "spatula",
+						stats: blenderStats,
+						attacks: [
+							{ attack: spatulate, weight: 1 }
 						]
 					}
 				],
@@ -587,12 +624,24 @@ let cavern: Dungeon = {
 				},
 				enemies: [
 					{
-						density: { type: "binomial", n: 10, p: .4 },
+						density: { type: "binomial", n: 8, p: .4 },
 						name: "Blender",
 						graphics: "blender",
 						stats: blenderStats,
 						attacks: [
-							{ attack: tackle, weight: 1 }						]
+							{ attack: tackle, weight: 1 },
+							{ attack: blend, weight: 1 },
+							{ attack: puree, weight: 1 }
+						]
+					},
+					{
+						density: { type: "binomial", n: 8, p: .6 },
+						name: "Spatula",
+						graphics: "spatula",
+						stats: blenderStats,
+						attacks: [
+							{ attack: spatulate, weight: 1 }
+						]
 					}
 				],
 				items: [
@@ -625,7 +674,7 @@ let cavern: Dungeon = {
 				},
 				enemies: [
 					{
-						density: { type: "binomial", n: 10, p: .4 },
+						density: { type: "binomial", n: 8, p: .4 },
 						name: "Blender",
 						graphics: "blender",
 						stats: blenderStats,
@@ -633,6 +682,15 @@ let cavern: Dungeon = {
 							{ attack: tackle, weight: 1 },
 							{ attack: blend, weight: 1 },
 							{ attack: puree, weight: 1 }
+						]
+					},
+					{
+						density: { type: "binomial", n: 8, p: .6 },
+						name: "Spatula",
+						graphics: "spatula",
+						stats: blenderStats,
+						attacks: [
+							{ attack: spatulate, weight: 1 }
 						]
 					}
 				],
@@ -652,7 +710,7 @@ let cavern: Dungeon = {
 			}
 		}
 	]
-}
+};
 
 let dungeons: Map<string, Dungeon> = new Map<string, Dungeon>();
 dungeons.set("trench", trench);

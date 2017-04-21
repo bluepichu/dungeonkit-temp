@@ -21,8 +21,8 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 		state.self.location.direction = 0;
 	}
 
-	let enemy:CensoredCrawlEntity = null;
-	
+	let enemy: CensoredCrawlEntity = undefined;
+
 	for (let entity of state.entities) {
 		if (entity.alignment !== state.self.alignment) {
 			enemy = entity;
@@ -34,27 +34,27 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	if (state.self.stats.hp.current / state.self.stats.hp.max <= 0.25) {
 		for (let item of state.self.items.held.items) {
 			if (item.name === "Screwdriver") {
-				return { type: "item", direction: 0, action: "use", item: item.id }
+				return { type: "item", direction: 0, action: "use", item: item.id };
 			}
 		}
 	}
 
 	/* Attack directly if we can, or indirectly some of the time */
-	let attacks = utils.shuffleList(state.self.attacks)
+	let attacks = utils.shuffleList(state.self.attacks);
 
 	for (let attack of attacks) {
 		if (attack.target.type === "front") {
 			for (let d = 0; d < 8; d++) {
 				let targets = getTargets(state, state.self, d, attack.target);
-				targets = targets.filter((entity) => entity.alignment != state.self.alignment);
+				targets = targets.filter((entity) => entity.alignment !== state.self.alignment);
 				if (targets.length > 0) {
 					return { type: "attack", direction: d, attack: attack };
 				}
 			}
 		} else {
-			if (attacks.length == 1 || Math.random() < 0.20) {
+			if (attacks.length === 1 || Math.random() < 0.20) {
 				let targets = getTargets(state, state.self, 0, attack.target);
-				targets = targets.filter((entity) => entity.alignment != state.self.alignment);
+				targets = targets.filter((entity) => entity.alignment !== state.self.alignment);
 				if (targets.length > 0) {
 					return { type: "attack", direction: 0, attack: attack };
 				}
@@ -63,12 +63,12 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	}
 
 	/* Attempt to throw something at our foe */
-	if (enemy !== null && utils.lineOfSight(state.self.location, enemy.location, state.floor.map)) {
+	if (enemy !== undefined && utils.lineOfSight(state.self.location, enemy.location, state.floor.map)) {
 		for (let item of state.self.items.held.items) {
 			if (item.actions !== undefined && item.actions["throw"] !== undefined &&
-			   	(item.name == "Paprika"    ||
-				 item.name == "Peppercorn" ||
-				 item.name == "Cayenne")) {
+			   	(item.name === "Paprika"    ||
+				 item.name === "Peppercorn" ||
+				 item.name === "Cayenne")) {
 				let angle = utils.getAngleBetween(state.self.location, enemy.location);
 				return { type: "item", direction: angle, action: "throw", item: item.id }
 			}
@@ -76,12 +76,12 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	}
 
 	/* Attempt to move closer if we can see our -friend- enemy */
-	if (enemy !== null) {
+	if (enemy !== undefined) {
 		let [loc, dist] = utils.range(8)
 		  .map(n => utils.offsetLocationInDir(state.self.location, n))
 		  .filter(l => utils.getTile(state.floor.map, l).type == DungeonTileType.FLOOR)
 		  .map(l => [l, getHeuristicDistance(l, enemy.location)])
-		  .reduce(([l1, d1], [l2, d2]) => d1 < d2 ? [l1, d1] : [l2, d2]); 
+		  .reduce(([l1, d1], [l2, d2]) => d1 < d2 ? [l1, d1] : [l2, d2]);
 
 		if (dist < getHeuristicDistance(state.self.location, enemy.location)) {
 			let angle = utils.getAngleBetween(state.self.location, loc as CrawlLocation);
@@ -93,7 +93,7 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	/* If in a corridor, attempt to continue moving forward */
 	if (tile.roomId === undefined) {
 		for (let d = 0; d < 8; d++) {
-			let dir = (state.self.location.direction + Math.ceil(d/2) * Math.pow(-1, d%2) + 8) % 8;
+			let dir = (state.self.location.direction + Math.ceil(d / 2) * Math.pow(-1, d % 2) + 8) % 8;
 
 			let offsetLocation = utils.offsetLocationInDir(state.self.location, dir);
 			let tile = utils.getTile(state.floor.map, offsetLocation);
@@ -118,7 +118,7 @@ function getHeuristicDistance(loc1: CrawlLocation, loc2: CrawlLocation) {
 	let rowDiff = Math.abs(loc1.r - loc2.r);
 	let colDiff = Math.abs(loc1.c - loc2.c);
 
-	return Math.max(rowDiff, colDiff) + Math.min(rowDiff, colDiff)/20;
+	return Math.max(rowDiff, colDiff) + Math.min(rowDiff, colDiff) / 20;
 }
 
 /**

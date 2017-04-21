@@ -20,6 +20,26 @@ export let blenderStats: EntityStats = {
 	}
 };
 
+export let spatulaStats: EntityStats = {
+	level: 6,
+	hp: {
+		max: 15,
+		current: 15
+	},
+	attack: {
+		base: 12,
+		modifier: 0
+	},
+	defense: {
+		base: 15,
+		modifier: 0
+	},
+	energy: {
+		max: 6000,
+		current: 6000
+	}
+};
+
 export let opStats: EntityStats = {
 	level: 10,
 	hp: {

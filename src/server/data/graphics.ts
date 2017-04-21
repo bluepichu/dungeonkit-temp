@@ -1018,6 +1018,10 @@ function entityAnimations(
 			case "puree":
 				desc.animations["puree"] = makePureeAnimation(dir, pivot, shadowPivot);
 				break;
+
+			case "spatulate":
+				desc.animations["spatulate"] = (useBase ? makeTackleAnimationFromBase(dir, pivot, shadowPivot) : makeTackleAnimation(dir, pivot, shadowPivot));
+				break;
 		}
 	}
 
@@ -1034,6 +1038,19 @@ let blenderGraphics: EntityGraphicsDescriptor = {
 		[5]: entityAnimations("blender", 5, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
 		[6]: entityAnimations("blender", 6, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true),
 		[7]: entityAnimations("blender", 7, { x: 12, y: 24 }, { x: 12, y: 5 }, ["tackle", "blend", "puree"], true, true)
+	}
+};
+
+let spatulaGraphics: EntityGraphicsDescriptor = {
+	descriptors: {
+		[0]: entityAnimations("spatula", 0, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[1]: entityAnimations("spatula", 1, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[2]: entityAnimations("spatula", 2, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[3]: entityAnimations("spatula", 3, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[4]: entityAnimations("spatula", 4, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[5]: entityAnimations("spatula", 5, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[6]: entityAnimations("spatula", 6, { x: 12, y: 18 }, { x: 12, y: 5 }, ["spatulate"], true, true),
+		[7]: entityAnimations("spatula", 7, { x: 12, y: 24 }, { x: 12, y: 5 }, ["spatulate"], true, true)
 	}
 };
 
@@ -1156,5 +1173,6 @@ export const graphics: Map<string, GraphicsObjectDescriptor> = new Map([
 
 export const entityGraphics: Map<string, EntityGraphicsDescriptor> = new Map([
 	["blender", blenderGraphics],
-	["toaster", toasterGraphics]
+	["toaster", toasterGraphics],
+	["spatula", spatulaGraphics]
 ]);

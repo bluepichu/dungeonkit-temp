@@ -123,7 +123,8 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
  */
 function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpdates: MapUpdate[], callback: () => void): void {
 	if (utils.isCrawlOver(state)) {
-		// Iunno
+		// send something here
+		callback();
 	} else {
 		games.set(socketId, state);
 

@@ -99,6 +99,7 @@ function loadAssets(): void {
 		.add("dng-stormy-sea", "/assets/tileset-stormy-sea.json")
 		.add("ent-blender", "/assets/blender.json")
 		.add("ent-toaster", "/assets/toaster.json")
+		.add("ent-spatula", "/assets/spatula.json")
 		.add("items", "/assets/items.json")
 		.add("markers", "/assets/markers.json")
 		.add("portraits", "/assets/portraits.json")
@@ -807,7 +808,7 @@ function setGamePhase(phase: GamePhase): void {
 									dash: key.isPressed(Keys.B)
 								});
 								awaitingMove = false;
-							}	
+							}
 						}
 					},
 					enabled: () => awaitingMove
