@@ -67,8 +67,7 @@ let build   = (dir) => path.join("build", dir);
 let map     = "map";
 let notify  = (message) => notifier.notify({
 			title: "Dungeonkit Build Notice",
-			message: message,
-			icon: path.join(__dirname, "icon.png")
+			message: message
 		});
 
 gulp.task("default", ["client", "server", "monitor", "test"]);

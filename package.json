@@ -90,18 +90,5 @@
     "test": "cd build && mocha",
     "cover": "cd build && istanbul cover _mocha && remap-istanbul -i coverage/coverage.json -t html -o coverage/report && open coverage/report/index.html"
   },
-  "main": "index.js",
-  "directories": {
-    "doc": "doc",
-    "test": "test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bluepichu/dungeonkit-temp.git"
-  },
-  "author": "",
-  "bugs": {
-    "url": "https://github.com/bluepichu/dungeonkit-temp/issues"
-  },
-  "homepage": "https://github.com/bluepichu/dungeonkit-temp#readme"
+  "main": "index.js"
 }
