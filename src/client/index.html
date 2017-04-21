@@ -2,6 +2,8 @@
 	<head>
 		<title>Toaster Wars 2KLutS</title>
 
+		<script src="/socket.io/socket.io.js"></script>
+
 		<link href="https://fonts.googleapis.com/css?family=Lato:100,300,400,700" rel="stylesheet">
 		<link rel="stylesheet" href="css/style.css" />
 
@@ -21,6 +23,41 @@
 		function go() {
 			window.location = "/game";
 		}
+
+		let socket = io();
+		let feedElt = document.getElementById("feed");
+
+		socket.on("feed", (data) => {
+			let msg = "";
+
+			switch (data.type) {
+				case "connect":
+					msg = `<span class="user">Guest_${data.user.substring(0, 8)}</span> connected.`;
+					break;
+
+				case "login":
+					msg = `<span class="user">${data.user}</span> logged in.  Thanks for playing the alpha!`;
+					break;
+
+				case "start":
+					msg = `<span class="user">${data.user}</span> started exploring <span class="dungeon">${data.dungeon}</span>!`
+					break;
+
+				case "floor":
+					msg = `<span class="user">${data.user}</span> got to floor ${data.floor} of <span class="dungeon">${data.dungeon}!</span>`;
+					break;
+
+				case "defeat":
+					msg = `<span class="user">${data.user}</span> was defeated on floor ${data.floor} of <span class="dungeon">${data.dungeon}</span>.`;
+					break;
+
+				case "clear":
+					msg = `<span class="user">${data.user}</span> cleared <span class="dungeon>${data.dungeon}</span>!`;
+					break;
+			}
+
+			feed.innerHTML += `<div class="feed-item">${msg}</div>`;
+		});
 		</script>
 	</head>
 	<body>
@@ -78,6 +115,10 @@
 					<h6>No flags here!</h6>
 					<img src="assets/dungeon-img.png" />
 				</div>
+			</section>
+			<section>
+				<h3>Recent Activity</h3>
+				<div id="feed"></div>
 			</section>
 		</main>
 	</body>

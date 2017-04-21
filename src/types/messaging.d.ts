@@ -28,7 +28,7 @@ interface WrappedOutMessage {
 	message: OutMessage;
 }
 
-type OutMessage = GetActionOutMessage | InvalidActionOutMessage;
+type OutMessage = GetActionOutMessage | InvalidActionOutMessage | CrawlEndOutMessage;
 
 interface GetActionOutMessage {
 	type: "crawl-get-action";
@@ -37,4 +37,10 @@ interface GetActionOutMessage {
 
 interface InvalidActionOutMessage {
 	type: "crawl-action-invalid";
+}
+
+interface CrawlEndOutMessage {
+	type: "crawl-end";
+	result: ConcludedCrawlState;
+	log: LogEvent[];
 }

@@ -187,7 +187,7 @@ let alphaGuide: OverworldEntity = {
 
 					return {
 						type: "crawl",
-						dungeon: "sand-bar"
+						dungeon: "sandbar"
 					};
 
 				default:

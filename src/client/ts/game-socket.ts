@@ -80,6 +80,14 @@ export default class GameSocket {
 	}
 
 	/**
+	 * Adds a hook for the "crawl-invalid" event.
+	 * @param fn - The function to call.
+	 */
+	public onCrawlEnd(fn: (log: LogEvent[], result: ConcludedCrawlState) => void): void {
+		this.socket.on("crawl-end", fn);
+	}
+
+	/**
 	 * Adds a hook for the "grahpics" event.
 	 * @param fn - The function to call.
 	 */
@@ -125,14 +133,6 @@ export default class GameSocket {
 	 */
 	public onInteractEnd(fn: () => void): void {
 		this.socket.on("overworld-interact-end", fn);
-	}
-
-	/**
-	 * Adds a hook for the "feed" event.
-	 * @param fn - The function to call.
-	 */
-	public onFeed(fn: (message: FeedMessage) => void): void {
-		this.socket.on("feed", fn);
 	}
 
 	/**

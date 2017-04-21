@@ -118,6 +118,20 @@ function init(): void {
 
 	socket.onCrawlInit(startCrawl);
 
+	socket.onCrawlEnd((log, result) => {
+		processAll(log);
+
+		processChain.then(() => {
+			if (result.success) {
+				floorSignText.text = `Cleared all ${result.floor} floors of ${result.dungeon.name}.\nCongratulations!\n\nRefresh to play again.`;
+			} else {
+				floorSignText.text = `Defeated on floor ${result.floor} of ${result.dungeon.name}.\n\nRefresh to play again.`;
+			}
+
+			Tweener.tween(floorSign, { alpha: 1 }, .1);
+		});
+	});
+
 	if (localStorage.getItem("user") && localStorage.getItem("pass")) {
 		socket.login(localStorage.getItem("user"), localStorage.getItem("pass"));
 	}

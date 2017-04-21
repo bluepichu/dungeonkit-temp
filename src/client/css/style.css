@@ -46,7 +46,7 @@ section {
 }
 
 h3 {
-	margin: 0px;
+	margin: 0px 0px .4em;
 	color: #FDD835;
 	font-size: 1.6em;
 }
@@ -135,4 +135,21 @@ button {
 	color: #232323;
 	font-size: 1em;
 	margin: 0px;
+}
+
+.user {
+	color: #F1453D;
+}
+
+.dungeon {
+	color: #03A9F4;
+}
+
+.feed-item {
+	padding: .4em .6em;
+	background: #383838;
+}
+
+.feed-item:nth-child(2n) {
+	background: #4d4d4d;
 }

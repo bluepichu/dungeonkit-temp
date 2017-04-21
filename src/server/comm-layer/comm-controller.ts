@@ -20,6 +20,8 @@ export default class CommController {
 	private knownGraphics: Set<String>;
 	private queue: kue.Queue;
 	private logicNode: string;
+	private io: SocketIO.Server;
+	private dungeonName: string;
 
 	/**
 	 * Creates a new CommController using the given socket, queue, and entity.
@@ -27,11 +29,12 @@ export default class CommController {
 	 * @param queue - The job queue.
 	 * @param entity - The entity representing the player.
 	 */
-	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity) {
+	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity, io: SocketIO.Server) {
 		this.entity = entity;
 		this.socket = socket;
 		this.knownGraphics = new Set<String>();
 		this.queue = queue;
+		this.io = io;
 
 		this.socket.on("disconnect", () => {
 			this.send({ type: "disconnect" });
@@ -195,6 +198,9 @@ export default class CommController {
 						salt: this.entity.salt
 					}
 				});
+
+				this.io.emit("feed", { type: "start", user: this.user || this.socket.id, dungeon: dungeon.name });
+				this.dungeonName = dungeon.name;
 			});
 	}
 
@@ -234,6 +240,10 @@ export default class CommController {
 		this.entity.stats = update.stateUpdate.self.stats;
 		this.entity.items = update.stateUpdate.self.items;
 
+		if (update.log.find((upd) => upd.type === "stairs")) {
+			this.io.emit("feed", { type: "floor", user: this.user || this.socket.id, floor: update.stateUpdate.floor.number, dungeon: this.dungeonName });
+		}
+
 		this.socket.emit("crawl-update", update);
 
 		this.waitOnAction();
@@ -246,6 +256,21 @@ export default class CommController {
 		this.socket.emit("crawl-invalid");
 
 		this.waitOnAction();
+	}
+
+	/**
+	 * Handles a "crawl end" message from a logic node.
+	 */
+	private handleCrawlEnd(log: LogEvent[], result: ConcludedCrawlState): void {
+		this.socket.emit("crawl-end", log, result);
+
+		if (result.success) {
+			this.io.emit("feed", { type: "clear", user: this.user || this.socket.id, dungeon: this.dungeonName });
+		} else {
+			this.io.emit("feed", { type: "defeat", user: this.user || this.socket.id, dungeon: this.dungeonName, floor: result.floor });
+		}
+		
+		this.dungeonName = undefined;
 	}
 
 	/**
@@ -294,6 +319,10 @@ export default class CommController {
 
 			case "crawl-action-invalid":
 				this.handleInvalid();
+				break;
+
+			case "crawl-end":
+				this.handleCrawlEnd(message.log, message.result);
 				break;
 		}
 	}

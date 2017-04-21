@@ -123,8 +123,22 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
  */
 function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpdates: MapUpdate[], callback: () => void): void {
 	if (utils.isCrawlOver(state)) {
-		// send something here
-		callback();
+		let message: WrappedOutMessage = {
+			socketId,
+			message: {
+				type: "crawl-end",
+				result: state,
+				log: eventLog
+			}
+		};
+
+		queue.create("out", message).save((err: Error) => {
+			if (err) {
+				log.error(err);
+			} else {
+				callback();
+			}
+		});
 	} else {
 		games.set(socketId, state);
 

@@ -39,6 +39,7 @@ export function start(queue: kue.Queue) {
 
 	app.get("/", (req, res) => res.sendFile(path.join(__dirname, "../../client/index.html")));
 	app.get("/game", (req, res) => res.sendFile(path.join(__dirname, "../../client/game.html")));
+	app.get("/feed", (req, res) => res.sendFile(path.join(__dirname, "../../client/feed.html")));
 
 	app.use("/", express.static(path.join(__dirname, "../../client")));
 
@@ -67,7 +68,7 @@ export function start(queue: kue.Queue) {
 		redisClient.hincrby(`comm_${process.env["worker_index"]}_stats`, "connections", 1);
 
 		let player = generatePlayer();
-		controllerMap.set(socket.id, new CommController(socket, queue, player));
+		controllerMap.set(socket.id, new CommController(socket, queue, player, io));
 
 		io.emit("feed", { type: "connect", user: socket.id });
 
@@ -80,13 +81,13 @@ export function start(queue: kue.Queue) {
 
 		socket.on("error", (err: Error) => log(err));
 
-		socket.on("start", () => {
+		socket.once("start", () => {
 			log(`<magenta>S ${socket.id}</magenta>`);
 			let controller = controllerMap.get(socket.id);
 			controller.initOverworld(controller.user ? alphaScene : scene);
 		});
 
-		socket.on("login", (user: string, pass: string) => {
+		socket.once("login", (user: string, pass: string) => {
 			log("Checking login:", user, pass);
 			login.checkLogin(user, pass)
 				.then((user) => {

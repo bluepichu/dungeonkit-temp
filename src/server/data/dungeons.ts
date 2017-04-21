@@ -1,6 +1,6 @@
 "use strict";
 
-import { blenderStats, opStats }  from "./stats";
+import { blenderStats, opStats, spatulaStats }  from "./stats";
 
 import {
 	tackle,
@@ -339,7 +339,7 @@ let trench: Dungeon = {
 						density: { type: "binomial", n: 8, p: .6 },
 						name: "Spatula",
 						graphics: "spatula",
-						stats: blenderStats,
+						stats: spatulaStats,
 						attacks: [
 							{ attack: spatulate, weight: 1 }
 						]
@@ -437,7 +437,7 @@ let sandbar: Dungeon = {
 			}
 		},
 		{
-			range: [3, 3],
+			range: [4, 4],
 			blueprint: {
 				type: "generated",
 				generatorOptions: {
@@ -466,7 +466,7 @@ let sandbar: Dungeon = {
 						density: { type: "binomial", n: 8, p: .6 },
 						name: "Spatula",
 						graphics: "spatula",
-						stats: blenderStats,
+						stats: spatulaStats,
 						attacks: [
 							{ attack: spatulate, weight: 1 }
 						]
@@ -527,7 +527,7 @@ let coralReef: Dungeon = {
 						density: { type: "binomial", n: 8, p: .6 },
 						name: "Spatula",
 						graphics: "spatula",
-						stats: blenderStats,
+						stats: spatulaStats,
 						attacks: [
 							{ attack: spatulate, weight: 1 }
 						]
@@ -577,7 +577,7 @@ let coralReef: Dungeon = {
 						density: { type: "binomial", n: 8, p: .6 },
 						name: "Spatula",
 						graphics: "spatula",
-						stats: blenderStats,
+						stats: spatulaStats,
 						attacks: [
 							{ attack: spatulate, weight: 1 }
 						]
@@ -638,7 +638,7 @@ let cavern: Dungeon = {
 						density: { type: "binomial", n: 8, p: .6 },
 						name: "Spatula",
 						graphics: "spatula",
-						stats: blenderStats,
+						stats: spatulaStats,
 						attacks: [
 							{ attack: spatulate, weight: 1 }
 						]
@@ -688,7 +688,7 @@ let cavern: Dungeon = {
 						density: { type: "binomial", n: 8, p: .6 },
 						name: "Spatula",
 						graphics: "spatula",
-						stats: blenderStats,
+						stats: spatulaStats,
 						attacks: [
 							{ attack: spatulate, weight: 1 }
 						]
