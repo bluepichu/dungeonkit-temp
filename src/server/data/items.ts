@@ -162,7 +162,7 @@ export let cayenne: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				message: `<self>${entity.name}</self> used the <item>Paprika</item>!`
+				message: `<self>${entity.name}</self> used the <item>Cayenne</item>!`
 			}, eventLog);
 
 			if (entity.attributes.indexOf(Attribute.IMMUNE_TO_SHORT_CIRCUIT) >= 0) {
@@ -198,7 +198,7 @@ export let cayenne: ItemBlueprint = {
 					name: entity.name,
 					graphics: entity.graphics
 				},
-				message: `<enemy>${entity.name}</enemy> was hit by the <item>Paprika</item>!`
+				message: `<enemy>${entity.name}</enemy> was hit by the <item>Cayenne</item>!`
 			}, eventLog);
 
 			if (entity.attributes.indexOf(Attribute.IMMUNE_TO_SHORT_CIRCUIT) >= 0) {

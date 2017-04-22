@@ -43,8 +43,8 @@ export let spatulaStats: EntityStats = {
 export let finalBossStats: EntityStats = {
 	level: 10,
 	hp: {
-		max: 1000,
-		current: 1000
+		max: 500,
+		current: 500
 	},
 	attack: {
 		base: 19,

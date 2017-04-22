@@ -64,6 +64,11 @@ let currentPhase: GamePhase = undefined;
 let currentMenu: Menu = undefined;
 let currentDirection: number = 0;
 
+let x: number;
+let y: number;
+let z: number;
+let w: number;
+
 ticker.shared.autoStart = false;
 
 /**
@@ -838,6 +843,12 @@ function setGamePhase(phase: GamePhase): void {
 						attackOverlay.active = pressed;
 					},
 					always: true
+				},
+				{
+					keys: [Keys.P],
+					handle: () => {
+
+					}
 				},
 				{
 					keys: [Keys.ONE, Keys.TWO, Keys.THREE, Keys.FOUR],

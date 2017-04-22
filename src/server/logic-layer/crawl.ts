@@ -58,7 +58,7 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
 		}
 
 		// AI, you done goofed
-		log(action)
+		log(action);
 		return step(state, eventLog, mapUpdates);
 	} else {
 		state.entities.unshift(state.entities.pop());
@@ -79,6 +79,10 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 		// What?
 		log("Trying to move as AI?");
 		return { valid: false, state };
+	}
+
+	if (action.type !== "wait" && action.type !== "move" && action.type !== "attack" && action.type !== "item" && action.type !== "stairs") {
+		return unreachable(action);
 	}
 
 	for (let act of getActionsToTry(entity, action)) {
@@ -795,9 +799,9 @@ function executeAttack(
  * @return A list of crawl entities targeted by the attack.
  */
 export function getTargets(
-	state: InProgressCrawlState, 
-	attacker: CrawlEntity, 
-	direction: number, 
+	state: InProgressCrawlState,
+	attacker: CrawlEntity,
+	direction: number,
 	selector: TargetSelector): CrawlEntity[];
 export function getTargets(
 	state: CensoredInProgressCrawlState,
