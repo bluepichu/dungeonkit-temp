@@ -178,7 +178,7 @@ export function getEntityGraphics(key: string): ExpandedEntityGraphicsDescriptor
 function expandDescriptor(
 		renderer: WebGLRenderer | CanvasRenderer,
 		descriptor: GraphicsObjectDescriptor,
-		direction: Direction = 0,
+		direction: Direction = Direction.EAST,
 		reflect: boolean = false): ExpandedGraphicsObjectDescriptor {
 	let expanded: ExpandedGraphicsObjectDescriptor = {};
 	let [dr, dc] = utils.decodeDirection(direction);

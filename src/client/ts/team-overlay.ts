@@ -151,7 +151,7 @@ class TeamListing extends Container {
 		this.bg.endFill();
 
 		this.entitySprite = new EntitySprite(GraphicsDescriptorCache.getEntityGraphics(entity.graphics));
-		this.entitySprite.direction = 7;
+		this.entitySprite.direction = Direction.SOUTHEAST;
 		this.entitySprite.x = -4;
 		this.entitySprite.y = 4;
 		this.entitySprite.scale.x = 1.5;

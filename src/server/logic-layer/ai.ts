@@ -17,7 +17,7 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	let tile = utils.getTile(state.floor.map, state.self.location);
 
 	if (state.self.location.direction === undefined) {
-		state.self.location.direction = 0;
+		state.self.location.direction = Direction.EAST;
 	}
 
 	let enemy: CensoredCrawlEntity = undefined;
