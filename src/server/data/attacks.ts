@@ -48,7 +48,7 @@ export let goldenSpatulate: Attack = {
 		current: 1000
 	},
 	accuracy: 90,
-	power: 1000000000,
+	power: 1000,
 	onHit: []
 };
 

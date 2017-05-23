@@ -285,7 +285,16 @@ function generateEnemy(enemyBlueprint: EntityBlueprint): WrappedUnplacedCrawlEnt
 		attacks: enemyBlueprint.attacks
 			.sort((a, b) => Math.random() * b.weight - Math.random() * a.weight)
 			.slice(0, 4)
-			.map((attackBlueprint) => attackBlueprint.attack),
+			.map((attackBlueprint) => ({
+				name: attackBlueprint.attack.name,
+				animation: attackBlueprint.attack.animation,
+				description: attackBlueprint.attack.description,
+				target: Object.assign({}, attackBlueprint.attack.target),
+				accuracy: attackBlueprint.attack.accuracy,
+				power: attackBlueprint.attack.power,
+				uses: Object.assign({}, attackBlueprint.attack.uses),
+				onHit: attackBlueprint.attack.onHit.map((effect) => Object.assign({}, effect))
+			})),
 		stats: {
 			level: enemyBlueprint.stats.level,
 			attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },

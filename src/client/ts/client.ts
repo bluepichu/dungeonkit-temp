@@ -653,6 +653,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "message":
+				console.log(event.message); // you're welcome
 				messageLog.push(event.message);
 				done();
 				break;

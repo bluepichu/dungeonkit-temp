@@ -199,7 +199,7 @@ export default class CommController {
 					}
 				});
 
-				this.io.emit("feed", { type: "start", user: this.user || this.socket.id, dungeon: dungeon.name });
+				this.io.emit("feed", { type: "start", user: this.user || `Guest_${this.socket.id.substring(0, 8)}`, dungeon: dungeon.name });
 				this.dungeonName = dungeon.name;
 			});
 	}
@@ -241,7 +241,7 @@ export default class CommController {
 		this.entity.items = update.stateUpdate.self.items;
 
 		if (update.log.find((upd) => upd.type === "stairs")) {
-			this.io.emit("feed", { type: "floor", user: this.user || this.socket.id, floor: update.stateUpdate.floor.number, dungeon: this.dungeonName });
+			this.io.emit("feed", { type: "floor", user: this.user || `Guest_${this.socket.id.substring(0, 8)}`, floor: update.stateUpdate.floor.number, dungeon: this.dungeonName });
 		}
 
 		this.socket.emit("crawl-update", update);
@@ -265,11 +265,11 @@ export default class CommController {
 		this.socket.emit("crawl-end", log, result);
 
 		if (result.success) {
-			this.io.emit("feed", { type: "clear", user: this.user || this.socket.id, dungeon: this.dungeonName });
+			this.io.emit("feed", { type: "clear", user: this.user || `Guest_${this.socket.id.substring(0, 8)}`, dungeon: this.dungeonName });
 		} else {
-			this.io.emit("feed", { type: "defeat", user: this.user || this.socket.id, dungeon: this.dungeonName, floor: result.floor });
+			this.io.emit("feed", { type: "defeat", user: this.user || `Guest_${this.socket.id.substring(0, 8)}`, dungeon: this.dungeonName, floor: result.floor });
 		}
-		
+
 		this.dungeonName = undefined;
 	}
 

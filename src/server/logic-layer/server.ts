@@ -41,10 +41,14 @@ export function start(q: kue.Queue): void {
 		queue.process(`in:${name}`, 1, (job: kue.Job, done: () => void) => {
 			log("<-------- in");
 			let { socketId, message } = job.data;
-			receive(socketId, message, () => {
-				// log throughput
+			try {
+				receive(socketId, message, () => {
+					// log throughput
+					done();
+				});
+			} catch (e) {
 				done();
-			});
+			}
 		});
 	});
 }
@@ -236,11 +240,7 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 	let mapUpdates: MapUpdate[] = [];
 
 	let newState: { valid: boolean, state: CrawlState } = { valid: false, state };
-	try {
-		newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
-	} catch (e) {
-
-	}
+	newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
 
 	// log(newState);
 

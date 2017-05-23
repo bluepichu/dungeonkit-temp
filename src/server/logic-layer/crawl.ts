@@ -33,6 +33,7 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
 
 	if (entity.ai) {
 		let action = ai.getAction(censoredState, entity);
+		log(action);
 
 		for (let act of getActionsToTry(entity, action)) {
 			if (!isValidAction(state, entity, act)) {
