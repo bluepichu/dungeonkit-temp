@@ -58,7 +58,7 @@ export default class OverworldRenderer extends Container {
 		this.updateViewport(position);
 	}
 
-	public walk(direction: number): void {
+	public walk(direction: Direction): void {
 		this.entityLayer.get(this.selfId).setAnimationOrContinue("walk");
 		this.entityLayer.get(this.selfId).direction = direction;
 	}

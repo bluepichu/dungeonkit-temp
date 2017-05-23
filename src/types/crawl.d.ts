@@ -69,6 +69,17 @@ declare const enum StatusCondition {
 	POISONED
 }
 
+declare const enum Direction {
+	EAST,
+	NORTHEAST,
+	NORTH,
+	NORTHWEST,
+	WEST,
+	SOUTHWEST,
+	SOUTH,
+	SOUTHEAST
+}
+
 interface CrawlEntity extends UnplacedCrawlEntity, Locatable {
 	map: FloorMap;
 }
@@ -94,7 +105,7 @@ interface MoveLogEvent {
 	entity: CondensedEntity;
 	start: CrawlLocation;
 	end: CrawlLocation;
-	direction: number;
+	direction: Direction;
 }
 
 interface AttackLogEvent {
@@ -102,7 +113,7 @@ interface AttackLogEvent {
 	entity: CondensedEntity;
 	location: CrawlLocation;
 	attack: Attack;
-	direction: number;
+	direction: Direction;
 }
 
 interface StatLogEvent {
@@ -164,7 +175,7 @@ interface ItemThrowLogEvent {
 	item: Item;
 	from: CrawlLocation;
 	to: CrawlLocation;
-	direction: number;
+	direction: Direction;
 }
 
 interface ItemFallLogEvent {
@@ -268,18 +279,18 @@ interface WaitAction {
 
 interface MoveAction {
 	type: "move";
-	direction: number;
+	direction: Direction;
 }
 
 interface AttackAction {
 	type: "attack";
-	direction: number;
+	direction: Direction;
 	attack: Attack;
 }
 
 interface ItemAction {
 	type: "item";
-	direction: number;
+	direction: Direction;
 	action: ItemActionType;
 	item: string;
 }

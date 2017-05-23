@@ -7,13 +7,13 @@ type OverworldBackground = PlacedGraphicsObject[];
 
 interface OverworldEntity extends Entity {
 	position: Point;
-	direction: number;
+	direction: Direction;
 	interact?(): IterableIterator<Interaction>;
 }
 
 interface PlayerOverworldEntity extends Entity {
 	position: Point;
-	direction: number;
+	direction: Direction;
 }
 
 type Interaction = SpeakingInteraction | CrawlInteraction | TransitionInteraction;
@@ -36,7 +36,7 @@ interface TransitionInteraction {
 	scene: OverworldScene;
 	start: {
 		position: Point;
-		direction: number;
+		direction: Direction;
 	};
 }
 

@@ -662,7 +662,7 @@ function executeItemDrop(state: InProgressCrawlState, location: CrawlLocation, i
  * @param item - The item being thrown.
  * @return The state after the item is thrown.
  */
-function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, direction: number, item: Item, eventLog: LogEvent[]): CrawlState {
+function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, direction: Direction, item: Item, eventLog: LogEvent[]): CrawlState {
 	let target: CrawlLocation;
 
 	if (item.handlers.throwTarget !== undefined) {
@@ -726,7 +726,7 @@ function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, dire
 export function isValidMove(
 	state: CensoredInProgressCrawlState,
 	entity: CrawlEntity,
-	direction: number): boolean {
+	direction: Direction): boolean {
 	if (entity.status.indexOf(StatusCondition.SHORT_CIRCUITED) >= 0) {
 		return false;
 	}
@@ -749,7 +749,7 @@ export function isValidMove(
 	let startInCooridor = !utils.isCrawlLocationInRoom(state.floor.map, entity.location);
 	let endInCooridor = !utils.isCrawlLocationInRoom(state.floor.map, location);
 
-	if (direction % 2 === 1 && (startInCooridor || endInCooridor)) {
+	if (utils.isDirectionDiagonal(direction) && (startInCooridor || endInCooridor)) {
 		return false;
 	}
 
@@ -802,12 +802,12 @@ function executeAttack(
 export function getTargets(
 	state: InProgressCrawlState,
 	attacker: CrawlEntity,
-	direction: number,
+	direction: Direction,
 	selector: TargetSelector): CrawlEntity[];
 export function getTargets(
 	state: CensoredInProgressCrawlState,
 	attacker: CensoredCrawlEntity,
-	direction: number,
+	direction: Direction,
 	selector: TargetSelector): CensoredCrawlEntity[] {
 	switch (selector.type) {
 		case "self":
@@ -825,7 +825,7 @@ export function getTargets(
 			let offset: [number, number] = utils.decodeDirection(direction);
 			let location = { r: attacker.location.r + offset[0], c: attacker.location.c + offset[1] };
 
-			if (direction % 2 === 1 &&
+			if (utils.isDirectionDiagonal(direction) &&
 				!(selector as FrontTargetSelector).cutsCorners &&
 				(!utils.isCrawlLocationInRoom(state.floor.map, attacker.location)
 					|| !utils.isCrawlLocationInRoom(state.floor.map, location))) {

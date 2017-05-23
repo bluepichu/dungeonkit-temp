@@ -216,7 +216,7 @@ export let rock: ItemBlueprint = {
 	description: "Can be thrown at most one space forward, but deals 100 damage if it hits.",
 	graphics: "item-rock",
 	handlers: {
-		throwTarget(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: number): CrawlLocation {
+		throwTarget(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: Direction): CrawlLocation {
 			let dirArr = utils.decodeDirection(direction);
 			let loc = { r: entity.location.r + dirArr[0], c: entity.location.c + dirArr[1] };
 

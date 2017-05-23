@@ -6,23 +6,23 @@
  * @return A number tuple describing the direction, in the form [dr, dc].
  * @throws {Error} Will throw an error if direction is not an integer.
  */
-export function decodeDirection(direction: number): [number, number] {
-	switch (((direction % 8) + 8) % 8) {
-		case 0:
+export function decodeDirection(direction: Direction): [number, number] {
+	switch (direction) {
+		case Direction.EAST:
 			return [0, 1];
-		case 1:
+		case Direction.NORTHEAST:
 			return [-1, 1];
-		case 2:
+		case Direction.NORTH:
 			return [-1, 0];
-		case 3:
+		case Direction.NORTHWEST:
 			return [-1, -1];
-		case 4:
+		case Direction.WEST:
 			return [0, -1];
-		case 5:
+		case Direction.SOUTHWEST:
 			return [1, -1];
-		case 6:
+		case Direction.SOUTH:
 			return [1, 0];
-		case 7:
+		case Direction.SOUTHEAST:
 			return [1, 1];
 		default:
 			throw new Error(`[Code 4] ${direction} is not a valid direction.`);
@@ -268,49 +268,49 @@ export function locationToPoint(location: CrawlLocation, gridSize: number): Poin
  */
 export function isVoid<T>(v: T | void): v is void {
 	return v === undefined;
-}		
+}
 
 /**
- * Offsets a location in a given direction
- * @param location - The location of the base object
- * @param direction - The direction to offset it by
- * @return The offset location
- */ 
+ * Offsets a location in a given direction.
+ * @param location - The location of the base object.
+ * @param direction - The direction to offset it by.
+ * @return The offset location.
+ */
+export function offsetLocationInDir(location: CrawlLocation, direction: Direction): CrawlLocation {
+	let [dr, dc] = decodeDirection(direction);
 
-export function offsetLocationInDir(location: CrawlLocation, direction: number): CrawlLocation {
-	let [dr, dc] = decodeDirection(direction)
 	return {
 		r: location.r + dr,
 		c: location.c + dc,
 		direction: location.direction
-	}
+	};
 }
 
 /**
- * Shuffles a list
- * @param input - The list to be shuffled
- * @return The shuffled list
+ * Shuffles a list.
+ * @param input - The list to be shuffled.
+ * @return The shuffled list.
  */
-
 export function shuffleList<T>(input: T[]): T[] {
-	let output = input.slice()
+	let output = input.slice();
+
 	for (let i = 0; i < output.length; i++) {
 		let dest = Math.floor(Math.random() * (output.length - i)) + i;
 		let tmp = output[dest];
 		output[dest] = output[i];
 		output[i] = tmp;
 	}
+
 	return output;
 }
 
 /**
- * Finds the (direction) angle between two crawl locations
- * @param loc1 - The first location
- * @param loc2 - The second location
- * @requires  - loc1 and loc2 have line of sight
- * @returns - The relative direction angle
+ * Finds the (direction) angle between two crawl locations.
+ * @param loc1 - The first location.
+ * @param loc2 - The second location.
+ * @requires  - loc1 and loc2 have line of sight.
+ * @returns - The relative direction angle.
  */
-
 export function getAngleBetween(loc1: CrawlLocation, loc2: CrawlLocation) {
 	let dr = Math.sign(loc2.r - loc1.r);
 	let dc = Math.sign(loc2.c - loc1.c);
@@ -327,20 +327,21 @@ export function getAngleBetween(loc1: CrawlLocation, loc2: CrawlLocation) {
 }
 
 /**
- * Checks whether two crawl locations have line of sight
- * @param loc1 - The first location
- * @param loc2 - The second location
- * @param map - The floormap
- * @return Whether or not they have line of sight
+ * Checks whether two crawl locations have line of sight.
+ * @param loc1 - The first location.
+ * @param loc2 - The second location.
+ * @param map - The floor map.
+ * @return Whether or not they have line of sight.
  */
 export function lineOfSight(loc1: CrawlLocation, loc2: CrawlLocation, map: FloorMap): boolean {
 	let dr = loc2.r - loc1.r;
 	let dc = loc2.c - loc1.c;
+
 	if (!(dr === 0 || dc === 0 || dr === dc)) {
 		return false;
 	}
 
-	let testLoc = { r: loc1.r, c: loc1.c }
+	let testLoc = { r: loc1.r, c: loc1.c };
 
 	for (let i = 0; i < Math.max(dr, dc); i++) {
 		let tile = getTile(map, testLoc);
@@ -350,24 +351,15 @@ export function lineOfSight(loc1: CrawlLocation, loc2: CrawlLocation, map: Floor
 		testLoc.r += Math.sign(dr);
 		testLoc.c += Math.sign(dc);
 	}
+
 	return true;
 }
 
 /**
- * Gives the range [i, j)
- * @param i - The start index
- * @param j - The end index
- * @return The range [i, j)
+ * Checks whether a given direction is diagonal.
+ * @param direction - The direction to check.
+ * @return Whether or not the direction is diagonal.
  */
-
-export function range(i: number, j?: number): number[] {
-	if (j === undefined) {
-		j = i;
-		i = 0;
-	}
-	let output = Array(Math.abs(j-i));
-	for (let idx = 0; idx < Math.abs(j-i); idx++) {
-		output[idx] = i + Math.sign(j-i) * idx;
-	}
-	return output
+export function isDirectionDiagonal(direction: Direction): boolean {
+	return (direction & 1) === 1; // Bit hack - directions are numbers!
 }

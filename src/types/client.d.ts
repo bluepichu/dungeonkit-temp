@@ -64,7 +64,7 @@ interface ClientOverworldEntity {
 
 interface SelfOverworldEntity extends Entity {
 	position: Point;
-	direction: number;
+	direction: Direction;
 }
 
 type ClientInteractionResponse = number;

@@ -4,7 +4,7 @@ interface ItemBlueprint {
 	equip?(entity: UnplacedCrawlEntity): UnplacedCrawlEntity; // via a proxy
 	handlers: {
 		use?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void;
-		throwTarget?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: number): CrawlLocation;
+		throwTarget?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: Direction): CrawlLocation;
 		entityDefeat?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void;
 		collide?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void;
 		pickup?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): boolean;

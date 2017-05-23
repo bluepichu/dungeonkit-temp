@@ -21,7 +21,7 @@ interface DungeonTileSelector {
  */
 interface EntityGraphicsDescriptor {
 	useReflection?: boolean;
-	descriptors: { [key: number]: GraphicsObjectDescriptor };
+	descriptors: { [key: number]: GraphicsObjectDescriptor }; // key is actually Direction
 }
 
 interface ExpandedGraphicsObjectDescriptor {

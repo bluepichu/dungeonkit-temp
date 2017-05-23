@@ -5,11 +5,10 @@ import * as crawl     from "./crawl";
 
 const log = require("beautiful-log")("dungeonkit:ai");
 
-
 /**
  * Selects which action should be taken in the given state by the given AI entity.
  * @param state - The current state.
- * @param entity - The entity for which to select a action.
+ * @param entity - The entity for which to select an action.
  * @return The selected action.
  */
 export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity): Action {
@@ -77,8 +76,8 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 
 	/* Attempt to move closer if we can see our -friend- enemy */
 	if (enemy !== undefined) {
-		let [loc, dir, dist] = utils.range(8)
-		  .map(n => [n, utils.offsetLocationInDir(state.self.location, n)])
+		let [loc, dir, dist] = new Array(8)
+		  .map((_, n) => [n, utils.offsetLocationInDir(state.self.location, n)])
 		  .filter(([d, l]) => utils.getTile(state.floor.map, l as CrawlLocation).type == DungeonTileType.FLOOR
 			         && crawl.isValidMove(state, entity, d as number))
 		  .map(([a, l]) => [l, a, getHeuristicDistance(l as CrawlLocation, enemy.location)])
@@ -134,7 +133,7 @@ function getHeuristicDistance(loc1: CrawlLocation, loc2: CrawlLocation) {
 function getTargets(
 	state: CensoredInProgressCrawlState,
 	attacker: CensoredCrawlEntity,
-	direction: number,
+	direction: Direction,
 	selector: TargetSelector): CensoredCrawlEntity[] {
 	switch (selector.type) {
 		case "self":
@@ -152,7 +151,7 @@ function getTargets(
 			let offset: [number, number] = utils.decodeDirection(direction);
 			let location = { r: attacker.location.r + offset[0], c: attacker.location.c + offset[1] };
 
-			if (direction % 2 === 1 &&
+			if (utils.isDirectionDiagonal(direction) &&
 				!(selector as FrontTargetSelector).cutsCorners &&
 				(!utils.isCrawlLocationInRoom(state.floor.map, attacker.location)
 					|| !utils.isCrawlLocationInRoom(state.floor.map, location))) {

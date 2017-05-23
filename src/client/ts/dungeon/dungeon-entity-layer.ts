@@ -52,7 +52,7 @@ export default class DungeonEntityLayer extends Layer<EntitySprite> {
 		return this.get(id).setAnimation(animation);
 	}
 
-	public setDirection(id: string, direction: number): void {
+	public setDirection(id: string, direction: Direction): void {
 		this.get(id).direction = direction;
 	}
 

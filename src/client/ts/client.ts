@@ -62,7 +62,7 @@ let interacting: boolean = false;
 let speakingArea: SpeakingArea = undefined;
 let currentPhase: GamePhase = undefined;
 let currentMenu: Menu = undefined;
-let currentDirection: number = 0;
+let currentDirection: Direction = Direction.SOUTH;
 
 let x: number;
 let y: number;
