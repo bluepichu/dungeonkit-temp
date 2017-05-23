@@ -14,7 +14,11 @@ const log = require("beautiful-log")("dungeonkit:crawl");
  * @param entities - The entities performing the crawl.
  * @return A promise for a concluded crawl.
  */
-export function startCrawl(dungeon: Dungeon, entities: UnplacedCrawlEntity[], eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
+export function startCrawl(
+		dungeon: Dungeon,
+		entities: UnplacedCrawlEntity[],
+		eventLog: LogEvent[],
+		mapUpdates: MapUpdate[]): CrawlState {
 	if (validateDungeonBlueprint(dungeon)) {
 		return advanceToFloor(dungeon, 1, entities, eventLog, mapUpdates);
 	} else {
@@ -72,7 +76,11 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[], mapUpdates: MapUpdate[]): { valid: boolean, state: CrawlState } {
+export function stepWithAction(
+		state: InProgressCrawlState,
+		action: Action,
+		eventLog: LogEvent[],
+		mapUpdates: MapUpdate[]): { valid: boolean, state: CrawlState } {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
@@ -82,7 +90,11 @@ export function stepWithAction(state: InProgressCrawlState, action: Action, even
 		return { valid: false, state };
 	}
 
-	if (action.type !== "wait" && action.type !== "move" && action.type !== "attack" && action.type !== "item" && action.type !== "stairs") {
+	if (action.type !== "wait"
+		&& action.type !== "move"
+		&& action.type !== "attack"
+		&& action.type !== "item"
+		&& action.type !== "stairs") {
 		return unreachable(action);
 	}
 
@@ -258,7 +270,8 @@ function getFloorBlueprint(dungeon: Dungeon, floor: number): FloorBlueprint {
 		}
 	}
 
-	throw new RangeError(`[Code 3] A blueprint for floor ${floor} was not found in the blueprint for dungeon '${dungeon.name}'.`);
+	throw new RangeError(
+		`[Code 3] A blueprint for floor ${floor} was not found in the blueprint for dungeon '${dungeon.name}'.`);
 }
 
 /**
@@ -439,7 +452,11 @@ function execute(
  * @param entity - The last entity to perform an action.
  * @return The state after these checks.
  */
-function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
+function postExecute(
+		state: CrawlState,
+		entity: CrawlEntity,
+		eventLog: LogEvent[],
+		mapUpdates: MapUpdate[]): CrawlState {
 	if (utils.isCrawlOver(state)) {
 		return state;
 	}
@@ -662,7 +679,12 @@ function executeItemDrop(state: InProgressCrawlState, location: CrawlLocation, i
  * @param item - The item being thrown.
  * @return The state after the item is thrown.
  */
-function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, direction: Direction, item: Item, eventLog: LogEvent[]): CrawlState {
+function executeItemThrow(
+		state: InProgressCrawlState,
+		entity: CrawlEntity,
+		direction: Direction,
+		item: Item,
+		eventLog: LogEvent[]): CrawlState {
 	let target: CrawlLocation;
 
 	if (item.handlers.throwTarget !== undefined) {
@@ -1130,13 +1152,17 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent, 
 		case "attack":
 		case "stat":
 		case "miss":
-			if (state.entities.some((entity) => !entity.ai && utils.isObjectVisible(state.floor.map, entity.location, event.location))) {
+			if (state.entities.some((entity) =>
+					!entity.ai && utils.isObjectVisible(state.floor.map, entity.location, event.location))) {
 				eventLog.push(event);
 			}
 			break;
 
 		case "move":
-			if (state.entities.some((entity) => !entity.ai && (utils.isObjectVisible(state.floor.map, entity.location, event.start) || utils.isObjectVisible(state.floor.map, entity.location, event.end)))) {
+			if (state.entities.some((entity) =>
+					!entity.ai &&
+						(utils.isObjectVisible(state.floor.map, entity.location, event.start)
+							|| utils.isObjectVisible(state.floor.map, entity.location, event.end)))) {
 				eventLog.push(event);
 			}
 			break;
@@ -1175,7 +1201,9 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 
 	for (let r = location.r - 3; r <= location.r + 3; r++) {
 		for (let c = location.c - 3; c <= location.c + 3; c++) {
-			if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
+			if (utils.inRange(r, 0, state.floor.map.height)
+				&& utils.inRange(c, 0, state.floor.map.width)
+				&& entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
 				if (!isAi) {
 					mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
 				}
@@ -1193,7 +1221,9 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 			// Keep on expanding
 			for (let r = loc.r - 3; r <= loc.r + 3; r++) {
 				for (let c = loc.c - 3; c <= loc.c + 3; c++) {
-					if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
+					if (utils.inRange(r, 0, state.floor.map.height)
+						&& utils.inRange(c, 0, state.floor.map.width)
+						&& entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
 						if (!isAi) {
 							mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
 						}

@@ -129,7 +129,8 @@ function getQueueStats(): Promise<QueueStats[]> {
 	return new Promise((resolve, reject) => {
 		queue.types((err: Error, types: string[]) => {
 			resolve(Promise.all(types.map((type) =>
-				new Promise((res, rej) => queue.activeCount(type, (err: Error, count: number) => res({ name: type, length: count }))))));
+				new Promise((res, rej) =>
+					queue.activeCount(type, (err: Error, count: number) => res({ name: type, length: count }))))));
 		});
 	});
 }

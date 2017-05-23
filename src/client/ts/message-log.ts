@@ -126,7 +126,11 @@ export default class MessageLog extends Container {
 		this.messages.splice(index, 1);
 		this.timeouts.splice(index, 1);
 
-		Tweener.tween(messageToRemove, { x: Math.max((this.reverse ? -1 : 1) * (messageToRemove.width + 100), 400) }, 1.1, "smooth")
+		Tweener.tween(
+				messageToRemove,
+				{ x: Math.max((this.reverse ? -1 : 1) * (messageToRemove.width + 100), 400) },
+				1.1,
+				"smooth")
 			.then(() => {
 				this.removeChild(messageToRemove);
 				this.repositionMessages();

@@ -69,7 +69,8 @@ export default class Menu extends Container {
 
 		bg.beginFill(Colors.WHITE);
 		bg.lineStyle(4, Colors.BLACK);
-		bg.drawRect(-10, -10, this.options.reduce((last, opt) => Math.max(last, opt.width), 200) + 30, options.length * 20 + 20);
+		bg.drawRect(-10, -10,
+			this.options.reduce((last, opt) => Math.max(last, opt.width), 200) + 30, options.length * 20 + 20);
 
 		this.options[0].selected = true;
 	}

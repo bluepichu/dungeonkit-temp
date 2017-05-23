@@ -16,7 +16,8 @@ interface Attack {
 /**
  * Describes the enemies targeted by an attack.
  */
-type TargetSelector = RoomTargetSelector | FrontTargetSelector | SelfTargetSelector | TeamTargetSelector | AroundTargetSelector;
+type TargetSelector = RoomTargetSelector | FrontTargetSelector | SelfTargetSelector | TeamTargetSelector
+	| AroundTargetSelector;
 
 /**
  * A target selector that selects entities in the same room as the attacker.

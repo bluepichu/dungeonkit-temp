@@ -61,7 +61,13 @@ class Tween {
 	 * @param type - The type of tween.
 	 * @param onComplete - A function to call when the tween is complete.
 	 */
-	constructor(obj: any, key: string, target: number, velocity: number, type: TweenType = "linear", onComplete?: Function) {
+	constructor(
+			obj: any,
+			key: string,
+			target: number,
+			velocity: number,
+			type: TweenType = "linear",
+			onComplete?: Function) {
 		this.object = obj;
 		this.key = key;
 		this.target = target;

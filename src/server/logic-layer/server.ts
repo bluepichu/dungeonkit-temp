@@ -12,12 +12,15 @@ import * as redis   from "redis";
 import * as random  from "seedrandom";
 import * as shortid from "shortid";
 
-nconf.argv().env();
+nconf.argv().env().defaults({
+	"redis-host": "127.0.0.1",
+	"redis-port": 6379
+});
 
 let log: bl.CallableLogger;
 let name: string;
 
-const redisClient = redis.createClient({ host: nconf.get("redis-host") || "127.0.0.1", port: nconf.get("redis-port") || 6379 });
+const redisClient = redis.createClient({ host: nconf.get("redis-host"), port: nconf.get("redis-port") });
 
 const genrand = () => random.xor128(shortid.generate()); // TODO: allow player to set/retrieve random seed
 
@@ -125,7 +128,12 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
  * @param mapUpdates - The map updates to send.
  * @param callback - The function to call when the message has been queued.
  */
-function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpdates: MapUpdate[], callback: () => void): void {
+function send(
+		socketId: string,
+		state: CrawlState,
+		eventLog: LogEvent[],
+		mapUpdates: MapUpdate[],
+		callback: () => void): void {
 	if (utils.isCrawlOver(state)) {
 		let message: WrappedOutMessage = {
 			socketId,
@@ -213,7 +221,9 @@ function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCra
 		let oldMap: FloorMap = {
 			width: state.floor.map.width,
 			height: state.floor.map.height,
-			grid: Array.from(new Array(state.floor.map.height), () => Array.from(new Array((state as InProgressCrawlState).floor.map.width), () => ({ type: DungeonTileType.UNKNOWN })))
+			grid: Array.from(new Array(state.floor.map.height),
+				() => Array.from(new Array((state as InProgressCrawlState).floor.map.width),
+					() => ({ type: DungeonTileType.UNKNOWN })))
 		};
 
 		log("Got to here");

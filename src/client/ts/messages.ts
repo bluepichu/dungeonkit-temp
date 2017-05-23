@@ -1,10 +1,12 @@
 "use strict";
 
+/* tslint:disable:max-line-length */
+
 export default {
 	/**
 	 * Displayed on startup.
 	 */
-	WELCOME: "Welcome to <item>TW: 2KLutS</item>!",
+	WELCOME: "Welcome to <item>DungeonKit</item>!",
 
 	/**
 	 * Displayed before the user starts the game.

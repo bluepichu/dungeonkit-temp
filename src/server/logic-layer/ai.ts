@@ -65,11 +65,9 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	if (enemy !== undefined && utils.lineOfSight(state.self.location, enemy.location, state.floor.map)) {
 		for (let item of state.self.items.held.items) {
 			if (item.actions !== undefined && item.actions["throw"] !== undefined &&
-			   	(item.name === "Paprika"    ||
-				 item.name === "Peppercorn" ||
-				 item.name === "Cayenne")) {
-				let angle = utils.getAngleBetween(state.self.location, enemy.location);
-				return { type: "item", direction: angle, action: "throw", item: item.id }
+				(item.name === "Paprika" || item.name === "Peppercorn" || item.name === "Cayenne")) {
+				let angle = utils.getDirectionTo(state.self.location, enemy.location);
+				return { type: "item", direction: angle, action: "throw", item: item.id };
 			}
 		}
 	}
@@ -77,11 +75,11 @@ export function getAction(state: CensoredEntityCrawlState, entity: CrawlEntity):
 	/* Attempt to move closer if we can see our -friend- enemy */
 	if (enemy !== undefined) {
 		let [loc, dir, dist] = new Array(8)
-		  .map((_, n) => [n, utils.offsetLocationInDir(state.self.location, n)])
-		  .filter(([d, l]) => utils.getTile(state.floor.map, l as CrawlLocation).type == DungeonTileType.FLOOR
-			         && crawl.isValidMove(state, entity, d as number))
-		  .map(([a, l]) => [l, a, getHeuristicDistance(l as CrawlLocation, enemy.location)])
-		  .reduce(([l1, a1, d1], [l2, a2, d2]) => d1 < d2 ? [l1, a1, d1] : [l2, a2, d2]);
+			.map((_, n) => [n, utils.offsetLocationInDir(state.self.location, n)])
+			.filter(([d, l]) => utils.getTile(state.floor.map, l as CrawlLocation).type === DungeonTileType.FLOOR
+					&& crawl.isValidMove(state, entity, d as number))
+			.map(([a, l]) => [l, a, getHeuristicDistance(l as CrawlLocation, enemy.location)])
+			.reduce(([l1, a1, d1], [l2, a2, d2]) => d1 < d2 ? [l1, a1, d1] : [l2, a2, d2]);
 
 		if (dist < getHeuristicDistance(state.self.location, enemy.location)) {
 			return { type: "move", direction: dir as number};

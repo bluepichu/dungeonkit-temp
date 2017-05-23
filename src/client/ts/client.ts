@@ -121,9 +121,12 @@ function init(): void {
 
 		processChain.then(() => {
 			if (result.success) {
-				floorSignText.text = `Cleared all ${result.floor} floors of ${result.dungeon.name}.\nCongratulations!\n\nRefresh to play again.`;
+				floorSignText.text =
+					`Cleared all ${result.floor} floors of ${result.dungeon.name}.\nCongratulations!\n\n`
+						+ `Refresh to play again.`;
 			} else {
-				floorSignText.text = `Defeated on floor ${result.floor} of ${result.dungeon.name}.\n\nRefresh to play again.`;
+				floorSignText.text =
+					`Defeated on floor ${result.floor} of ${result.dungeon.name}.\n\nRefresh to play again.`;
 			}
 
 			Tweener.tween(floorSign, { alpha: 1 }, .1);
@@ -525,7 +528,9 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				state.floor.map.grid =
 					utils.tabulate((row) =>
-						utils.tabulate((col) => ({ type: DungeonTileType.UNKNOWN }), (event as StartLogEvent).floorInformation.width),
+						utils.tabulate(
+							(col) => ({ type: DungeonTileType.UNKNOWN }),
+							(event as StartLogEvent).floorInformation.width),
 					event.floorInformation.height);
 
 				state.self = event.self;
@@ -583,10 +588,12 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				switch (event.stat) {
 					case "hp":
 						if (event.change < 0) {
-							messageLog.push(`${highlightEntity(event.entity)} took <attack>${-event.change}</attack> damage!`);
+							messageLog.push(
+								`${highlightEntity(event.entity)} took <attack>${-event.change}</attack> damage!`);
 							dungeonRenderer.showHurt(event.entity, event.location, event.change).then(done);
 						} else {
-							messageLog.push(`${highlightEntity(event.entity)} recovered <attack>${event.change}</attack> HP!`);
+							messageLog.push(
+								`${highlightEntity(event.entity)} recovered <attack>${event.change}</attack> HP!`);
 							dungeonRenderer.showHeal(event.entity, event.location, event.change).then(done);
 						}
 						break;
@@ -596,7 +603,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 							// idk lol
 							done();
 						} else {
-							messageLog.push(`${highlightEntity(event.entity)}'s belly filled ${event.change <= 60 ? "somewhat" : "greatly"}!`);
+							messageLog.push(`${highlightEntity(event.entity)}'s belly filled `
+								+ (event.change <= 60 ? "somewhat" : "greatly") + "!");
 
 							dungeonRenderer.showBelly(event.entity, event.location, Math.ceil(event.change / 6))
 								.then(done);
@@ -802,7 +810,10 @@ function setGamePhase(phase: GamePhase): void {
 					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT, Keys.SHIFT],
 					delay: 4,
 					handle: ([up, down, left, right, shift]: boolean[]) => {
-						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up ? 8 : 0) + (down ? 4 : 0) + (left ? 2 : 0) + (right ? 1 : 0)];
+						let direction =
+							[-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1]
+								[(up ? 8 : 0) + (down ? 4 : 0) + (left ? 2 : 0) + (right ? 1 : 0)];
+
 						if (direction < 0) {
 							return;
 						}
@@ -885,7 +896,11 @@ function setGamePhase(phase: GamePhase): void {
 				{
 					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT],
 					handle: ([up, down, left, right]: boolean[]) => {
-						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up && !down ? 8 : 0) + (down && !up ? 4 : 0) + (left && !right ? 2 : 0) + (right && !left ? 1 : 0)];
+						let direction =
+							[-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1]
+								[(up && !down ? 8 : 0) + (down && !up ? 4 : 0)
+									+ (left && !right ? 2 : 0) + (right && !left ? 1 : 0)];
+
 						let nextPos = Object.assign({}, scene.self.position);
 
 						if (up) {
@@ -904,7 +919,8 @@ function setGamePhase(phase: GamePhase): void {
 							nextPos.x += Constants.OVERWORLD_WALK_SPEED;
 						}
 
-						let hotzones = scene.scene.hotzones.filter((hotzone) => Geometry.pointInPolygon(nextPos, hotzone.area));
+						let hotzones = scene.scene.hotzones.filter(
+							(hotzone) => Geometry.pointInPolygon(nextPos, hotzone.area));
 
 						if (hotzones.length > 0) {
 							console.log("hotzone");
@@ -916,7 +932,13 @@ function setGamePhase(phase: GamePhase): void {
 
 						if (Geometry.pointInRect(nextPos, scene.scene.bounds)
 								&& scene.scene.obstacles.every((obst) => !Geometry.pointInPolygon(nextPos, obst))
-								&& scene.scene.entities.every((ent) => !Geometry.pointInRect(nextPos, { x: { min: ent.position.x - 16, max: ent.position.x + 16 }, y: { min: ent.position.y - 12, max: ent.position.y + 12}}))) {
+								&& scene.scene.entities.every(
+									(ent) => !Geometry.pointInRect(nextPos,
+										{
+											x: { min: ent.position.x - 16, max: ent.position.x + 16 },
+											y: { min: ent.position.y - 12, max: ent.position.y + 12}
+										})
+									)) {
 							overworldRenderer.moveTo(nextPos);
 							scene.self.position = nextPos;
 						}
@@ -960,7 +982,12 @@ function setGamePhase(phase: GamePhase): void {
 							return;
 						}
 
-						let nearest = scene.scene.entities.reduce((entA, entB) => Geometry.dist(scene.self.position, entA.position) < Geometry.dist(scene.self.position, entB.position) ? entA : entB);
+						let nearest = scene.scene.entities.reduce(
+							(entA, entB) =>
+								Geometry.dist(scene.self.position, entA.position)
+									<= Geometry.dist(scene.self.position, entB.position)
+										? entA
+										: entB);
 
 						if (Geometry.dist(nearest.position, scene.self.position) > 32) {
 							return;

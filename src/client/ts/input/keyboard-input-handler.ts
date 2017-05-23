@@ -54,7 +54,7 @@ export default class KeyboardInputHandler {
 				enabled: handler.enabled,
 				always: handler.always,
 				startOnly: handler.startOnly
-			 }));
+			}));
 	}
 
 	public handleInput(): void {

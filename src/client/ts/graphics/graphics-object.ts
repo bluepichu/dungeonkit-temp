@@ -84,7 +84,9 @@ export default class GraphicsObject extends Sprite {
 	 *     necessary.
 	 */
 	public prerender() {
-		if (this.descriptor[this.animation].length === 1 && this.descriptor[this.animation][0].duration === 0 && !this.changed) {
+		if (this.descriptor[this.animation].length === 1
+			&& this.descriptor[this.animation][0].duration === 0
+			&& !this.changed) {
 			return;
 		}
 

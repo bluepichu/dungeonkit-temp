@@ -70,7 +70,11 @@ export default class DungeonRenderer extends Container {
 			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
 	}
 
-	public showAttack(entity: CondensedEntity, location: CrawlLocation, direction: Direction, animation: string): Thenable {
+	public showAttack(
+			entity: CondensedEntity,
+			location: CrawlLocation,
+			direction: Direction,
+			animation: string): Thenable {
 		this.ensureEntityExists(entity, location);
 
 		this.entityLayer.setDirection(entity.id, direction);
@@ -79,7 +83,12 @@ export default class DungeonRenderer extends Container {
 			.then(() => this.entityLayer.setAnimation(entity.id, "default"));
 	}
 
-	public showThrow(entity: CondensedEntity, from: CrawlLocation, to: CrawlLocation, direction: Direction, item: Item): Thenable {
+	public showThrow(
+			entity: CondensedEntity,
+			from: CrawlLocation,
+			to: CrawlLocation,
+			direction: Direction,
+			item: Item): Thenable {
 		this.ensureEntityExists(entity, from);
 
 		this.entityLayer.setDirection(entity.id, direction);

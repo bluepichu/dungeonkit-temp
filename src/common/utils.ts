@@ -305,25 +305,24 @@ export function shuffleList<T>(input: T[]): T[] {
 }
 
 /**
- * Finds the (direction) angle between two crawl locations.
- * @param loc1 - The first location.
- * @param loc2 - The second location.
- * @requires  - loc1 and loc2 have line of sight.
- * @returns - The relative direction angle.
+ * Finds the direction from an observation crawl location to a target crawl location.
+ * @param observer - The location of the observer.
+ * @param target - The location of the target.
+ * @requires The observer has a direct line of sight to the target.
+ * @returns The direction from the observer to the target.
  */
-export function getAngleBetween(loc1: CrawlLocation, loc2: CrawlLocation) {
-	let dr = Math.sign(loc2.r - loc1.r);
-	let dc = Math.sign(loc2.c - loc1.c);
-	     if (dr == 0  && dc == 1 ) return 0;
-	else if (dr == -1 && dc == 1 ) return 1;
-	else if (dr == -1 && dc == 0 ) return 2;
-	else if (dr == -1 && dc == -1) return 3;
-	else if (dr == 0  && dc == -1) return 4;
-	else if (dr == 1  && dc == -1) return 5;
-	else if (dr == 1  && dc == 0 ) return 6;
-	else if (dr == 1  && dc == 1 ) return 7;
-	else throw new Error('Getting angle between overlapping locations');
+export function getDirectionTo(observer: CrawlLocation, target: CrawlLocation) {
+	let direction = [
+		[ Direction.NORTHWEST, Direction.NORTH, Direction.NORTHEAST ],
+		[ Direction.WEST,      undefined,       Direction.EAST      ],
+		[ Direction.SOUTHWEST, Direction.SOUTH, Direction.SOUTHEAST ]
+	][Math.sign(target.r - observer.r) + 1][Math.sign(target.c - observer.c) + 1];
 
+	if (direction === undefined) {
+		throw new Error("Direction from a location to itself is ambiguous.");
+	} else {
+		return direction;
+	}
 }
 
 /**

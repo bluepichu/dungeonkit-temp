@@ -1,5 +1,7 @@
 "use strict";
 
+/* tslint:disable:max-line-length */
+
 const letters = "abcdefghijklmnopqrstuvwxyz";
 
 function makeDefaultAnimation(dir: number, pivot: Point, shadowPivot: Point): AnimationDescriptor {
@@ -372,7 +374,7 @@ let pkmnSquareGraphics: GraphicsObjectDescriptor = {
 			}
 		]
 	}
-}
+};
 
 let pondGraphics: GraphicsObjectDescriptor = {
 	base: "bg",
@@ -386,7 +388,7 @@ let pondGraphics: GraphicsObjectDescriptor = {
 			}
 		]
 	}
-}
+};
 
 function dungeonGraphicsAnimations(patternCounts: { [key: number]: number }): { [key: string]: AnimationDescriptor } {
 	let ret: { [key: string]: AnimationDescriptor }  = {};
@@ -445,6 +447,7 @@ function generateDungeonGraphics(name: string, tiles: string[][]): GraphicsObjec
 	};
 }
 
+// TODO: retrieve this automatically
 let stormySeaTiles = [
 	[ "w-10000011", "w-10001111", "w-00001110", "w-10000010", "w-10001000", "w-00001010", "w-10001010", "w-10001111", "w-00101010", "open", "stairs" ],
 	[ "w-11100011", "w-11111111", "w-00111110", "w-00100010", "w-00000000", "w-10111011", "w-11100011", "w-11111111", "w-00111110" ],

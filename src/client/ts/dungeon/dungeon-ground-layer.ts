@@ -94,7 +94,8 @@ export default class DungeonGroundLayer extends Sprite {
 	private getTileType(map: FloorMap, loc: CrawlLocation): string {
 		for (let r = loc.r - 1; r <= loc.r + 1; r++) {
 			for (let c = loc.c - 1; c <= loc.c + 1; c++) {
-				if (utils.isCrawlLocationInFloorMap(map, { r, c }) && utils.getTile(map, { r, c }).type === DungeonTileType.UNKNOWN) {
+				if (utils.isCrawlLocationInFloorMap(map, { r, c })
+					&& utils.getTile(map, { r, c }).type === DungeonTileType.UNKNOWN) {
 					return undefined;
 				}
 			}
@@ -135,7 +136,8 @@ export default class DungeonGroundLayer extends Sprite {
 			}
 		}
 
-		let variant = Math.floor(Math.random() * (Object.keys(this._descriptor).filter((key) => parseInt(key.split("-")[1], 16) === pattern).length));
+		let variant = Math.floor(Math.random() * (Object.keys(this._descriptor)
+			.filter((key) => parseInt(key.split("-")[1], 16) === pattern).length));
 
 		return `wall-${("00" + pattern.toString(16)).substr(-2)}-${letters.charAt(variant)}`;
 	}
