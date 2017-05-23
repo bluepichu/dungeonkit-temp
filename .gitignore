@@ -12,3 +12,9 @@ build
 
 # Redis
 dump.rdb
+
+# Artillery
+artillery_report_*
+
+*.swo
+*.swp

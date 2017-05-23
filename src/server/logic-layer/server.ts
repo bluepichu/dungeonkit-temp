@@ -9,6 +9,7 @@ import * as bl      from "beautiful-log";
 import * as kue     from "kue";
 import * as nconf   from "nconf";
 import * as redis   from "redis";
+import * as random  from "seedrandom";
 import * as shortid from "shortid";
 
 nconf.argv().env();
@@ -18,7 +19,10 @@ let name: string;
 
 const redisClient = redis.createClient({ host: nconf.get("redis-host") || "127.0.0.1", port: nconf.get("redis-port") || 6379 });
 
+const genrand = () => random.xor128(shortid.generate()); // TODO: allow player to set/retrieve random seed
+
 const games: Map<string, CrawlState> = new Map<string, CrawlState>();
+const randoms: Map<string, () => number> = new Map<string, () => number>();
 let queue: kue.Queue;
 
 const names = ["Oran", "Pecha", "Rawst", "Cheri", "Chesto", "Sitrus"];
@@ -34,13 +38,17 @@ export function start(q: kue.Queue): void {
 		log(`Logic server "${name}" is up`);
 		queue = q;
 
-		queue.process(`in:${name}`, 2, (job: kue.Job, done: () => void) => {
-			log("<-------- in");
+		queue.process(`in:${name}`, 1, (job: kue.Job, done: () => void) => {
+			log(`---> ${name}`);
 			let { socketId, message } = job.data;
-			receive(socketId, message, () => {
-				// log throughput
+			try {
+				receive(socketId, message, () => {
+					// log throughput
+					done();
+				});
+			} catch (e) {
 				done();
-			});
+			}
 		});
 	});
 }
@@ -67,7 +75,7 @@ function register(): Promise<string> {
 				} else {
 					register().then(resolve); // Name was taken, try again
 				}
-			});;
+			});
 		});
 	});
 }
@@ -79,6 +87,21 @@ function register(): Promise<string> {
  * @param callback - A function to call when processing is complete.
  */
 function receive(socketId: string, message: InMessage, callback: () => void): void {
+	switch (message.type) {
+		case "crawl-start":
+		case "crawl-action":
+			if (!randoms.has(socketId)) {
+				randoms.set(socketId, genrand());
+			}
+
+			Math.random = randoms.get(socketId);
+			break;
+
+		case "disconnect":
+			randoms.delete(socketId);
+			break;
+	}
+
 	switch (message.type) {
 		case "crawl-start":
 			handleCrawlStart(socketId, message.dungeon, message.entity, callback);
@@ -104,7 +127,23 @@ function receive(socketId: string, message: InMessage, callback: () => void): vo
  */
 function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpdates: MapUpdate[], callback: () => void): void {
 	if (utils.isCrawlOver(state)) {
-		// Iunno
+		let message: WrappedOutMessage = {
+			socketId,
+			message: {
+				type: "crawl-end",
+				result: state,
+				log: eventLog
+			}
+		};
+
+		queue.create("out", message).save((err: Error) => {
+			log(`${name} ---> out`);
+			if (err) {
+				log.error(err);
+			} else {
+				callback();
+			}
+		});
 	} else {
 		games.set(socketId, state);
 
@@ -137,7 +176,10 @@ function send(socketId: string, state: CrawlState, eventLog: LogEvent[], mapUpda
 			}
 		};
 
+		log("Got to here");
+
 		queue.create("out", message).save((err: Error) => {
+			log(`${name} ---> out`);
 			if (err) {
 				log.error(err);
 			} else {
@@ -158,7 +200,10 @@ function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCra
 	redisClient.zincrby("dk:logic", [1, name]);
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
+
 	let state = crawl.startCrawl(dungeons.get(dungeon), [entity], eventLog, mapUpdates);
+
+	log("Got to here");
 
 	if (utils.isCrawlOver(state)) {
 		// What?
@@ -169,7 +214,9 @@ function handleCrawlStart(socketId: string, dungeon: string, entity: UnplacedCra
 			width: state.floor.map.width,
 			height: state.floor.map.height,
 			grid: Array.from(new Array(state.floor.map.height), () => Array.from(new Array((state as InProgressCrawlState).floor.map.width), () => ({ type: DungeonTileType.UNKNOWN })))
-		}
+		};
+
+		log("Got to here");
 
 		send(socketId, newState, eventLog, mapUpdates, callback);
 	}
@@ -195,25 +242,29 @@ function handleCrawlAction(socketId: string, action: Action, options: ActionOpti
 
 	if (action.type === "attack" && "attack" in action) {
 		// Replace with the correct attack object
-		(action as AttackAction).attack = self.attacks.filter((attack) => attack.name === (action as AttackAction).attack.name)[0];
+		action.attack = self.attacks.filter((attack) => attack.name === (action as AttackAction).attack.name)[0];
 	}
 
 	let eventLog: LogEvent[] = [];
 	let mapUpdates: MapUpdate[] = [];
 
-	if (!crawl.isValidAction(state, self, action)) {
+	let newState: { valid: boolean, state: CrawlState } = { valid: false, state };
+	newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
+
+	// log(newState);
+
+	if (newState.valid) {
+		send(socketId, newState.state, eventLog, mapUpdates, callback);
+	} else {
 		queue.create("out", { socketId, message: { type: "crawl-action-invalid" }}).save((err: Error) => {
+			log(`${name} ---> out`);
 			if (err) {
 				log.error(err);
 			} else {
 				callback();
 			}
 		});
-		return;
 	}
-
-	let newState = crawl.stepWithAction(state, action, eventLog, mapUpdates);
-	send(socketId, newState, eventLog, mapUpdates, callback);
 }
 
 /**

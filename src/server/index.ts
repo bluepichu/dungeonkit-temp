@@ -13,6 +13,7 @@ import * as sourcemap   from "source-map-support";
 
 nconf.argv().env();
 
+const commNodeNames = ["Blast", "Totter", "Reviver", "Plain", "X-Eye"];
 const numCommNodes = nconf.get("comm") || 1;
 const numLogicNodes = nconf.get("logic") || 1;
 
@@ -40,7 +41,7 @@ if (cluster.isMaster) {
 	}
 
 	net.createServer({ pauseOnConnect: true } as {}, (connection: net.Socket) => {
-		let worker = workers[0]; // TODO
+		let worker = workers[ipValue(connection) % numCommNodes];
 		worker.send("sticky-session:connection", connection);
 	}).listen(PORT);
 
@@ -65,7 +66,6 @@ if (cluster.isMaster) {
 		Promise.all([commStatsPrm, logicStatsPrm, queueStatsPrm])
 			.then(([commNodes, logicNodes, queues]) => {
 				let stats: MonitorStats = { commNodes, logicNodes, queues };
-				log(stats);
 				io.emit("update", stats);
 			});
 	}, 5000);
@@ -84,7 +84,7 @@ function spawnCommNode(log: (...args: any[]) => void, idx: number): void {
 
 	workers[idx].on("exit", (code, signal) => {
 		spawnCommNode(log, idx);
-	})
+	});
 }
 
 function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
@@ -94,12 +94,20 @@ function spawnLogicNode(log: (...args: any[]) => void, idx: number): void {
 
 	workers[idx].on("exit", (code, signal) => {
 		spawnLogicNode(log, idx);
-	})
+	});
 }
 
 function getCommStats(redisClient: redis.RedisClient): Promise<CommNodeStats[]> {
 	return new Promise((resolve, reject) => {
-		resolve([{ name: "Blinker" }])
+		let ret: CommNodeStats[] = [];
+
+		for (let i = 0; i < numCommNodes; i++) {
+			ret.push({
+				name: commNodeNames[i]
+			});
+		}
+
+		resolve(ret);
 	});
 }
 
@@ -109,7 +117,7 @@ function getLogicStats(redisClient: redis.RedisClient): Promise<LogicNodeStats[]
 			let ret: LogicNodeStats[] = [];
 
 			for (let i = 0; i < stats.length; i += 2) {
-				ret.push({ name: stats[i], games: parseInt(stats[i+1]) });
+				ret.push({ name: stats[i], games: parseInt(stats[i + 1]) });
 			}
 
 			resolve(ret);
@@ -124,4 +132,16 @@ function getQueueStats(): Promise<QueueStats[]> {
 				new Promise((res, rej) => queue.activeCount(type, (err: Error, count: number) => res({ name: type, length: count }))))));
 		});
 	});
+}
+
+function ipValue(connection: net.Socket): number {
+	let s = "";
+
+	for (let i = 0; i < connection.remoteAddress.length; i++) {
+		if (0x30 <= connection.remoteAddress.charCodeAt(i) && connection.remoteAddress.charCodeAt(i) <= 0x39) {
+			s += connection.remoteAddress[i];
+		}
+	}
+
+	return parseInt(s);
 }

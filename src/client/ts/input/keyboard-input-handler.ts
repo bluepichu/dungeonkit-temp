@@ -4,7 +4,7 @@ import CommandArea from "../command-area";
 import Keys        from "./keys";
 
 interface Handler {
-	keys: number[]
+	keys: number[];
 	delay?: number;
 	handle: (pressed: boolean[]) => any;
 	enabled?: () => boolean;
@@ -13,7 +13,7 @@ interface Handler {
 }
 
 interface ExpandedHandler {
-	keys: number[]
+	keys: number[];
 	currentKeys: boolean[];
 	baseDelay: number;
 	currentDelay: number;

@@ -6,6 +6,7 @@ import {
 	RenderTexture,
 	SCALE_MODES,
 	Sprite,
+	Texture,
 	WebGLRenderer
 } from "pixi.js";
 
@@ -187,6 +188,15 @@ function expandDescriptor(
 		for (let frame of descriptor.animations[animation]) {
 
 			let container = new Container();
+
+			if (frame.sprites.length === 0) {
+				expanded[animation].push({
+					duration: frame.duration,
+					texture: Texture.EMPTY,
+					anchor: { x: 0, y: 0 }
+				});
+				continue;
+			}
 
 			for (let spriteDescriptor of frame.sprites) {
 				let sprite = Sprite.fromFrame(`${descriptor.base}-${spriteDescriptor.texture}`);

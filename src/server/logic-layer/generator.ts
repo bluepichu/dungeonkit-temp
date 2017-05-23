@@ -21,35 +21,64 @@ export function generateFloor(
 	floor: number,
 	blueprint: FloorBlueprint,
 	entities: UnplacedCrawlEntity[]): InProgressCrawlState {
-	let map = generateFloorMap(blueprint.generatorOptions);
-	map = placeStairs(map);
-	let state = initializeState(dungeon, floor, map);
-	state = placeEntityGroup(state, entities);
-	state = placeEnemies(state, blueprint);
-	state = placeItems(state, blueprint);
+	let state: InProgressCrawlState;
+
+	switch (blueprint.type) {
+		case "generated":
+				let map = generateFloorMap(blueprint.generatorOptions);
+				map = placeStairs(map);
+				state = initializeState(dungeon, floor, map);
+				state = placeEntityGroup(state, entities);
+				state = placeEnemies(state, blueprint);
+				state = placeItems(state, blueprint);
+				break;
+
+		case "static":
+				state = initializeState(dungeon, floor, blueprint.map);
+
+				for (let entity of entities) {
+					let map: FloorMap = {
+						width: state.floor.map.width,
+						height: state.floor.map.height,
+						grid: utils.tabulate((row) =>
+							utils.tabulate((col) =>
+								({ type: DungeonTileType.UNKNOWN }),
+								state.floor.map.width),
+							state.floor.map.height)
+					};
+					state.entities.push(Object.assign(wrap(entities.pop()), { location: blueprint.playerLocation, map }));
+				}
+
+				for (let enemy of blueprint.enemies) {
+					let map: FloorMap = {
+						width: state.floor.map.width,
+						height: state.floor.map.height,
+						grid: utils.tabulate((row) =>
+							utils.tabulate((col) =>
+								({ type: DungeonTileType.UNKNOWN }),
+								state.floor.map.width),
+							state.floor.map.height)
+					};
+					state.entities.push(Object.assign(wrap(generateEnemy(enemy.blueprint)), { location: enemy.location, map }));
+				}
+
+				for (let item of blueprint.items) {
+					state.items.push(Object.assign({ id: shortid.generate(), location: item.location }, item.blueprint));
+				}
+
+				break;
+
+		default:
+			return unreachable(blueprint);
+	}
+
+	for (let item of state.items) {
+		if (item.name === "Salt") {
+			item.amount = Math.floor(Math.random() * 1280) + 1;
+		}
+	}
+
 	return state;
-}
-
-type MacroTile = RoomMacroTile | JunctionMacroTile;
-
-interface RoomMacroTile {
-	type: "room";
-	connectors: {
-		up: CrawlLocation,
-		down: CrawlLocation,
-		left: CrawlLocation,
-		right: CrawlLocation
-	}
-}
-
-interface JunctionMacroTile {
-	type: "junction";
-	connectors: {
-		up: CrawlLocation,
-		down: CrawlLocation,
-		left: CrawlLocation,
-		right: CrawlLocation
-	}
 }
 
 /*
@@ -58,174 +87,98 @@ interface JunctionMacroTile {
  * @return The generated map.
  */
 function generateFloorMap(options: GeneratorOptions): FloorMap {
-	let mw = evaluateDistribution(options.width);
-	let mh = evaluateDistribution(options.height);
-	let scale = options.scale;
+	let open = 0;
+	let width = evaluateDistribution(options.width);
+	let height = evaluateDistribution(options.height);
+	let roomId = 1;
 
-	let macro: MacroTile[][] = Array.from(new Array(mh), () => Array.from(new Array(mw), () => undefined))
-	let grid: DungeonTile[][] = Array.from(new Array(mh * scale), () => Array.from(new Array(mw * scale), () => ({ type: DungeonTileType.WALL })));
+	let grid: number[][] = utils.tabulate((i) => utils.tabulate((j) => 0, width), height);
+	// in this grid
+	//    0 is unassigned
+	//    anything lower is a room (id = -value)
+	//    9 is open (corridor)
+	//    10 is wall
+	//    1 is a right connection on a room
+	//    2 ... top
+	//    3 ... left
+	//    4 ... bottom
+	//    5 is a right connection on a corridor
+	//    6 ... top
+	//    7 ... left
+	//    8 ... bottom
 
-	let available: [number, number][] = [];
+	let init = selectFeature(options.features.rooms);
 
-	for (let i = 0; i < mh; i++) {
-		for (let j = 0; j < mw; j++) {
-			available.push([i, j]);
-		}
-	}
+	let r = utils.randint(0, height - init.height);
+	let c = utils.randint(0, width - init.width);
 
-	let rooms = evaluateDistribution(options.rooms);
-	let junctions = evaluateDistribution(options.junctions);
+	let choices = placeFeature(grid, {r, c}, init, roomId);
 
-	rooms = Math.max(rooms, 1);
-	junctions = Math.min(junctions, mw*mh - rooms);
+	roomId++;
 
-	for (let k = 0; k < rooms; k++) {
-		let locidx = utils.randint(0, available.length - 1);
-		let loc = available[locidx];
-		available.splice(locidx, 1);
+	for (let t = 0; t < options.limit; t++) {
+		let {r, c} = choices[utils.randint(0, choices.length - 1)];
 
-		let roomidx = utils.randint(0, options.features.rooms.length - 1);
-		let roomFeature = options.features.rooms[roomidx];
+		if (0 < grid[r][c] && grid[r][c] < 9) {
+			let placed: boolean = false;
+			let feature: Feature = undefined;
+			let isRoom: boolean = false;
 
-		let dr = loc[0] * scale + utils.randint(2, scale - roomFeature.height - 2);
-		let dc = loc[1] * scale + utils.randint(2, scale - roomFeature.width - 2);
-
-		let possibleConnectors = {
-			up: [] as CrawlLocation[],
-			down: [] as CrawlLocation[],
-			left: [] as CrawlLocation[],
-			right: [] as CrawlLocation[]
-		};
-
-		for (let i = 0; i < roomFeature.height; i++) {
-			for (let j = 0; j < roomFeature.width; j++) {
-				switch (roomFeature.grid[i][j]) {
-					case " ":
-						grid[i + dr][j + dc] = { type: DungeonTileType.FLOOR, roomId: k + 1 };
-						break;
-
-					case "^":
-						possibleConnectors.up.push({ r: i + dr, c: j + dc });
-						break;
-
-					case "v":
-						possibleConnectors.down.push({ r: i + dr, c: j + dc });
-						break;
-
-					case "<":
-						possibleConnectors.left.push({ r: i + dr, c: j + dc });
-						break;
-
-					case ">":
-						possibleConnectors.right.push({ r: i + dr, c: j + dc });
-						break;
-				}
+			if (grid[r][c] < 5 || Math.random() < .5) {
+				feature = selectFeature(options.features.corridors);
+			} else {
+				feature = selectFeature(options.features.rooms);
+				isRoom = true;
 			}
-		}
 
-		macro[loc[0]][loc[1]] = {
-			type: "room",
-			connectors: {
-				up: possibleConnectors.up[utils.randint(0, possibleConnectors.up.length - 1)],
-				down: possibleConnectors.down[utils.randint(0, possibleConnectors.down.length - 1)],
-				left: possibleConnectors.left[utils.randint(0, possibleConnectors.left.length - 1)],
-				right: possibleConnectors.right[utils.randint(0, possibleConnectors.right.length - 1)]
-			}
-		};
-	}
-
-	for (let k = 0; k < junctions; k++) {
-		let locidx = utils.randint(0, available.length - 1);
-		let loc = available[locidx];
-		available.splice(locidx, 1);
-
-		let start = {
-			r: loc[0] * scale + utils.randint(Math.floor(scale / 5), Math.floor(4 * scale / 5)),
-			c: loc[1] * scale + utils.randint(Math.floor(scale / 5), Math.floor(2 * scale / 5))
-		};
-
-		let end = {
-			r: start.r,
-			c: start.c + 1
-		}
-
-		connect(grid, start, end);
-		let leftUp = Math.random() < .5;
-
-		macro[loc[0]][loc[1]] = {
-			type: "junction",
-			connectors: {
-				left: start,
-				right: end,
-				up: leftUp ? start : end,
-				down: leftUp ? end : start
-			}
-		};
-	}
-
-	for (let mi = 0; mi < mh; mi++) {
-		for (let mj = 0; mj < mw; mj++) {
-			if (macro[mi][mj]) {
-				for (let mi2 = mi + 1; mi2 < mh; mi2++) {
-					if (macro[mi2][mj]) {
-						let start = macro[mi][mj].connectors.down;
-						let end = macro[mi2][mj].connectors.up;
-						grid[start.r][start.c] = { type: DungeonTileType.FLOOR };
-						start.r++;
-						grid[end.r][end.c] = { type: DungeonTileType.FLOOR };
-						end.r--;
-						connect(grid, start, end);
+			for (let i = 0; i < feature.height; i++) {
+				for (let j = 0; j < feature.width; j++) {
+					if (canPlaceFeature(grid, {r: r - i, c: c - j}, feature, isRoom)) {
+						choices =
+							choices.concat(placeFeature(grid, {r: r - i, c: c - j}, feature, isRoom ? roomId++ : 0));
+						placed = true;
 						break;
 					}
 				}
-				for (let mj2 = mj + 1; mj2 < mh; mj2++) {
-					if (macro[mi][mj2]) {
-						let start = macro[mi][mj].connectors.right;
-						let end = macro[mi][mj2].connectors.left;
-						grid[start.r][start.c] = { type: DungeonTileType.FLOOR };
-						start.c++;
-						grid[end.r][end.c] = { type: DungeonTileType.FLOOR };
-						end.c--;
-						connect(grid, start, end);
-						break;
-					}
+
+				if (placed) {
+					break;
 				}
 			}
 		}
 	}
 
-	return {
-		width: mw * scale,
-		height: mh * scale,
-		grid
-	}
-}
+	for (let i = 0; i < grid.length; i++) {
+		for (let j = 0; j < grid[i].length; j++) {
+			if (grid[i][j] === 9) {
+				let adjacent = 0;
 
-/**
- * Makes a path to connect the two points.
- */
-function connect(grid: DungeonTile[][], start: CrawlLocation, end: CrawlLocation) {
-	let loc = { r: start.r, c: start.c };
+				for (let di = -1; di <= 1; di++) {
+					for (let dj = -1; dj <= 1; dj++) {
+						if (Math.abs(di) + Math.abs(dj) !== 1
+							|| i + di < 0
+							|| i + di > grid.length
+							|| j + dj < 0
+							|| j + dj > grid[i + di].length) {
+							continue;
+						}
 
-	while (loc.r != end.r || loc.c != end.c) {
-		grid[loc.r][loc.c] = { type: DungeonTileType.FLOOR };
+						if (grid[i + di][j + dj] === 9 || grid[i + di][j + dj] < 0) {
+							adjacent++;
+						}
+					}
+				}
 
-		if (loc.c == end.c || (loc.r != end.r && Math.random() < .5)) {
-			if (loc.r > end.r) {
-				loc.r--;
-			} else {
-				loc.r++;
-			}
-		} else {
-			if (loc.c > end.c) {
-				loc.c--;
-			} else {
-				loc.c++;
+				if (adjacent <= 1 && Math.random() < options.cleanliness) {
+					grid[i][j] = 10;
+					i--;
+					j--;
+				}
 			}
 		}
 	}
 
-	grid[end.r][end.c] = { type: DungeonTileType.FLOOR };
+	return gridToFloorMap(grid);
 }
 
 /**
@@ -307,36 +260,56 @@ function placeEntityGroup(state: InProgressCrawlState, entities: UnplacedCrawlEn
  */
 function placeEnemies(
 	state: InProgressCrawlState,
-	blueprint: FloorBlueprint): InProgressCrawlState {
+	blueprint: GeneratedFloorBlueprint): InProgressCrawlState {
 	blueprint.enemies.forEach((enemyBlueprint) => {
 		let count = evaluateDistribution(enemyBlueprint.density);
 
 		for (let i = 0; i < count; i++) {
-			placeEntityGroup(state, [wrap({
-				name: enemyBlueprint.name,
-				graphics: enemyBlueprint.graphics,
-				id: shortid.generate(),
-				attacks: enemyBlueprint.attacks
-					.sort((a, b) => Math.random() * b.weight - Math.random() * a.weight)
-					.slice(0, 4)
-					.map((attackBlueprint) => attackBlueprint.attack),
-				stats: {
-					level: enemyBlueprint.stats.level,
-					attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
-					defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 },
-					hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
-					belly: { max: enemyBlueprint.stats.belly.max, current: enemyBlueprint.stats.belly.current }
-				},
-				alignment: 0,
-				ai: true,
-				items: {
-					held: { capacity: 1, items: [] }
-				},
-			})]);
+			placeEntityGroup(state, [generateEnemy(enemyBlueprint)]);
 		}
 	});
 
 	return state;
+}
+
+/**
+ * Generates an enemy from a blueprint.
+ * @param enemyBlueprint - The blueprint from which to generate the enemy.
+ * @return The generated enemy.
+ */
+function generateEnemy(enemyBlueprint: EntityBlueprint): WrappedUnplacedCrawlEntity {
+	return wrap({
+		name: enemyBlueprint.name,
+		graphics: enemyBlueprint.graphics,
+		id: shortid.generate(),
+		attacks: enemyBlueprint.attacks
+			.sort((a, b) => Math.random() * b.weight - Math.random() * a.weight)
+			.slice(0, 4)
+			.map((attackBlueprint) => ({
+				name: attackBlueprint.attack.name,
+				animation: attackBlueprint.attack.animation,
+				description: attackBlueprint.attack.description,
+				target: Object.assign({}, attackBlueprint.attack.target),
+				accuracy: attackBlueprint.attack.accuracy,
+				power: attackBlueprint.attack.power,
+				uses: Object.assign({}, attackBlueprint.attack.uses),
+				onHit: attackBlueprint.attack.onHit.map((effect) => Object.assign({}, effect))
+			})),
+		stats: {
+			level: enemyBlueprint.stats.level,
+			attack: { base: enemyBlueprint.stats.attack.base, modifier: 0 },
+			defense: { base: enemyBlueprint.stats.defense.base, modifier: 0 },
+			hp: { max: enemyBlueprint.stats.hp.max, current: enemyBlueprint.stats.hp.current },
+			energy: { max: enemyBlueprint.stats.energy.max, current: enemyBlueprint.stats.energy.current }
+		},
+		alignment: 0,
+		ai: true,
+		items: {
+			held: { capacity: 1, items: [] }
+		},
+		status: [],
+		attributes: []
+	});
 }
 
 /**
@@ -347,7 +320,7 @@ function placeEnemies(
  */
 function placeItems(
 	state: InProgressCrawlState,
-	blueprint: FloorBlueprint): InProgressCrawlState {
+	blueprint: GeneratedFloorBlueprint): InProgressCrawlState {
 	blueprint.items.forEach((itemBlueprint) => {
 		let count = evaluateDistribution(itemBlueprint.density);
 
@@ -634,8 +607,8 @@ function evaluateDistribution(distribution: Distribution): number {
 		case "uniform":
 			return utils.randint(distribution.a, distribution.b);
 
-		// default:
-		// 	throw new Error(`[Error X] Unknown probability distribution type "${distribution.type}".`);
+		default:
+			unreachable(distribution);
 	}
 }
 
@@ -680,4 +653,12 @@ export function wrap(entity: UnplacedCrawlEntity): WrappedUnplacedCrawlEntity {
  */
 function isWrapped(entity: UnplacedCrawlEntity): entity is WrappedUnplacedCrawlEntity {
 	return "wrapped" in entity;
+}
+
+/**
+ * Used for asserting that all cases should be handled.
+ * @throws An error stating that the case is invalid.
+ */
+function unreachable(arg: never): never {
+	throw new Error(`Reached default case of exhaustive switch.`);
 }

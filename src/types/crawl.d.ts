@@ -50,6 +50,7 @@ declare const enum DungeonTileType {
 interface CrawlLocation {
 	r: number;
 	c: number;
+	direction?: number;
 }
 
 interface Locatable {
@@ -59,6 +60,13 @@ interface Locatable {
 interface UnplacedCrawlEntity extends Entity {
 	alignment: number;
 	ai: boolean;
+	status: StatusCondition[];
+}
+
+declare const enum StatusCondition {
+	CONFUSED,
+	SHORT_CIRCUITED,
+	POISONED
 }
 
 interface CrawlEntity extends UnplacedCrawlEntity, Locatable {
@@ -73,7 +81,7 @@ interface CondensedEntity {
 
 type LogEvent = WaitLogEvent | MoveLogEvent | AttackLogEvent | StatLogEvent | DefeatLogEvent | StairsLogEvent
 	| StartLogEvent | MissLogEvent | MessageLogEvent | ItemPickupLogEvent | ItemDropLogEvent | ItemThrowLogEvent
-	| ItemFallLogEvent;
+	| ItemFallLogEvent | StatusAfflictionLogEvent | StatusRecoveryLogEvent;
 
 interface WaitLogEvent {
 	type: "wait";
@@ -164,6 +172,18 @@ interface ItemFallLogEvent {
 	item: Item;
 }
 
+interface StatusAfflictionLogEvent {
+	type: "status_affliction";
+	entity: CondensedEntity;
+	status: StatusCondition;
+}
+
+interface StatusRecoveryLogEvent {
+	type: "status_recovery";
+	entity: CondensedEntity;
+	status: StatusCondition;
+}
+
 interface SynchronizedMessage<T> {
 	id: string;
 	last?: string;
@@ -177,7 +197,28 @@ interface FloorRangeBlueprint {
 	blueprint: FloorBlueprint;
 }
 
-interface FloorBlueprint {
+type FloorBlueprint = StaticFloorBlueprint | GeneratedFloorBlueprint;
+
+interface StaticFloorBlueprint {
+	type: "static";
+	map: {
+		width: number;
+		height: number;
+		grid: DungeonTile[][];
+	};
+	enemies: {
+		blueprint: EntityBlueprint;
+		location: CrawlLocation;
+	}[];
+	items: {
+		blueprint: ItemBlueprint;
+		location: CrawlLocation;
+	}[];
+	playerLocation: CrawlLocation;
+}
+
+interface GeneratedFloorBlueprint {
+	type: "generated";
 	generatorOptions: GeneratorOptions;
 	enemies: EntityBlueprint[];
 	items: DungeonItemBlueprint[];
@@ -204,12 +245,12 @@ interface AttackBlueprint {
 interface GeneratorOptions {
 	width: Distribution;
 	height: Distribution;
-	scale: number;
-	rooms: Distribution;
-	junctions: Distribution;
 	features: {
 		rooms: Feature[];
+		corridors: Feature[];
 	};
+	limit: number;
+	cleanliness: number;
 }
 
 interface Feature {
@@ -273,6 +314,7 @@ interface CensoredCrawlEntity extends Locatable {
 	alignment: number;
 	ai: boolean;
 	stats: CensoredEntityStats;
+	status: StatusCondition[];
 }
 
 interface CensoredEntityStats {
@@ -293,4 +335,5 @@ interface CensoredSelfCrawlEntity extends Locatable {
 		bag?: ItemSet;
 	};
 	// map: FloorMap;
+	status: StatusCondition[];
 }

@@ -36,6 +36,15 @@ export default class GameSocket {
 	}
 
 	/**
+	 * Logs in a user.
+	 * @param user - The username to send.
+	 * @param pass - the password to send.
+	 */
+	public login(user: string, pass: string): void {
+		this.socket.emit("login", user, pass);
+	}
+
+	/**
 	 * Interacts with an overworld hotzone.
 	 * @param entity - The id of the hotzone to interact with.
 	 */
@@ -68,6 +77,14 @@ export default class GameSocket {
 	 */
 	public onCrawlInvalid(fn: () => void): void {
 		this.socket.on("crawl-invalid", fn);
+	}
+
+	/**
+	 * Adds a hook for the "crawl-invalid" event.
+	 * @param fn - The function to call.
+	 */
+	public onCrawlEnd(fn: (log: LogEvent[], result: ConcludedCrawlState) => void): void {
+		this.socket.on("crawl-end", fn);
 	}
 
 	/**

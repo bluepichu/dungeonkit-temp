@@ -3,6 +3,7 @@
 import {
 	CanvasRenderer,
 	Container,
+	DisplayObject,
 	RenderTexture,
 	SCALE_MODES,
 	Sprite,
@@ -14,6 +15,8 @@ import * as GraphicsDescriptorCache from "../graphics/graphics-descriptor-cache"
 import GraphicsObject               from "../graphics/graphics-object";
 import Layer                        from "../graphics/layer";
 import * as utils                   from "../../../common/utils";
+
+const letters = "abcdefghijklmnopqrstuvwxyz";
 
 export default class DungeonGroundLayer extends Sprite {
 	public texture: RenderTexture;
@@ -38,9 +41,11 @@ export default class DungeonGroundLayer extends Sprite {
 		this._descriptor = GraphicsDescriptorCache.getGraphics(descriptor);
 	}
 
-	protected generateGraphicsObject(key: string): GraphicsObject {
-		let tile = new GraphicsObject(this._descriptor);
-		tile.setAnimation(key);
+	protected generateGraphicsObject(key: string): DisplayObject {
+		let frame = this._descriptor[key][0];
+		let tile = new Sprite(frame.texture);
+		tile.pivot.x = frame.anchor.x;
+		tile.pivot.y = frame.anchor.y;
 		return tile;
 	}
 
@@ -117,7 +122,22 @@ export default class DungeonGroundLayer extends Sprite {
 			}
 		}
 
-		return "wall-" + ("00" + pattern.toString(16)).substr(-2);
+		let cornerChecks = [
+			[0b01000000, 0b10100000],
+			[0b00010000, 0b00101000],
+			[0b00000100, 0b00001010],
+			[0b00000001, 0b10000010]
+		];
+
+		for (let [corner, sides] of cornerChecks) {
+			if ((pattern & corner) > 0 && (pattern & sides) < sides) {
+				pattern = pattern & ~corner;
+			}
+		}
+
+		let variant = Math.floor(Math.random() * (Object.keys(this._descriptor).filter((key) => parseInt(key.split("-")[1], 16) === pattern).length));
+
+		return `wall-${("00" + pattern.toString(16)).substr(-2)}-${letters.charAt(variant)}`;
 	}
 
 	public getRoomBounds(roomId: number): Viewport {

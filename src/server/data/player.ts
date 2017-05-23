@@ -34,6 +34,7 @@ export function generatePlayer(name: string = "Eevee"): PlayerOverworldEntity {
 		},
 		graphics: "eevee",
 		position: { x: 60, y: 323 },
-		direction: 1
+		direction: 1,
+		attributes: []
 	};
 }

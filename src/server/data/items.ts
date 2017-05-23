@@ -49,7 +49,7 @@ function deepProxy<T>(obj: T, field: string, handler: DeepProxyHandler): T {
 
 export let reviverSeed: ItemBlueprint = {
 	name: "Reviver Seed",
-	description: "Revives the user on defeat.  Fills the belly slightly when eaten.",
+	description: "Revives the user on defeat.  Fills the energy slightly when eaten.",
 	graphics: "item-seed",
 	actions: {
 		use: ["eat", "use"],
@@ -78,11 +78,11 @@ export let reviverSeed: ItemBlueprint = {
 				message: `The <item>Reviver Seed</item> turned into a <item>Plain Seed</item>!`
 			}, eventLog);
 			item.name = "Plain Seed";
-			item.description = "Does nothing in particular.  Fills the belly slightly when eaten.";
+			item.description = "Does nothing in particular.  Fills the energy slightly when eaten.";
 			item.handlers = { use: item.handlers.use };
 		},
 		use(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]) {
-			let newBelly = Math.min(entity.stats.belly.current + 60, entity.stats.belly.max);
+			let newenergy = Math.min(entity.stats.energy.current + 60, entity.stats.energy.max);
 
 			crawl.propagateLogEvent(state, {
 				type: "stat",
@@ -92,8 +92,8 @@ export let reviverSeed: ItemBlueprint = {
 					graphics: entity.graphics
 				},
 				location: entity.location,
-				stat: "belly",
-				change: newBelly - entity.stats.belly.current
+				stat: "energy",
+				change: newenergy - entity.stats.energy.current
 			}, eventLog);
 			crawl.propagateLogEvent(state, {
 				type: "message",
@@ -105,14 +105,14 @@ export let reviverSeed: ItemBlueprint = {
 				message: `<self>${entity.name}</self> ate the <item>Reviver Seed</item>!`
 			}, eventLog);
 
-			entity.stats.belly.current = newBelly;
+			entity.stats.energy.current = newenergy;
 		}
 	}
 };
 
 export let oranBerry: ItemBlueprint = {
 	name: "Oran Berry",
-	description: "A sweet berry.  Heals 20 HP and fills the belly slightly when eaten.",
+	description: "A sweet berry.  Heals 20 HP and fills the energy slightly when eaten.",
 	graphics: "item-berry",
 	actions: {
 		use: ["eat", "use"],
@@ -132,7 +132,7 @@ export let oranBerry: ItemBlueprint = {
 			}, eventLog);
 
 			let newHp = Math.min(entity.stats.hp.max, entity.stats.hp.current + 20);
-			let newBelly = Math.min(entity.stats.belly.max, entity.stats.belly.current + 90);
+			let newenergy = Math.min(entity.stats.energy.max, entity.stats.energy.current + 90);
 
 			crawl.propagateLogEvent(state, {
 				type: "stat",
@@ -154,12 +154,12 @@ export let oranBerry: ItemBlueprint = {
 					graphics: entity.graphics
 				},
 				location: entity.location,
-				stat: "belly",
-				change: newBelly - entity.stats.belly.current
+				stat: "energy",
+				change: newenergy - entity.stats.energy.current
 			}, eventLog);
 
 			entity.stats.hp.current = newHp;
-			entity.stats.belly.current = newBelly;
+			entity.stats.energy.current = newenergy;
 		}
 	}
 };

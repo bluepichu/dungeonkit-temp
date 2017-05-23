@@ -6,7 +6,7 @@ import * as printer   from "./printer";
 import * as utils     from "../../common/utils";
 import { Queue }      from "../../common/queue";
 
-const log = require("beautiful-log")("dungeonkit:crawl")
+const log = require("beautiful-log")("dungeonkit:crawl");
 
 /**
  * Starts a new crawl in the given dungeon with the given entities.
@@ -33,22 +33,34 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
 
 	if (entity.ai) {
 		let action = ai.getAction(censoredState, entity);
-		let newState = execute(state, entity, action, eventLog, mapUpdates);
-		log("Done executing move - filtering");
+		log(action);
 
-		if (state.entities.every((entity) => entity.ai)) {
-			return {
-				dungeon: state.dungeon,
-				success: false,
-				floor: state.floor.number
-			};
+		for (let act of getActionsToTry(entity, action)) {
+			if (!isValidAction(state, entity, act)) {
+				continue;
+			}
+
+			let newState = execute(state, entity, action, eventLog, mapUpdates);
+			log("Done executing move - filtering");
+
+			if (state.entities.every((entity) => entity.ai)) {
+				return {
+					dungeon: state.dungeon,
+					success: false,
+					floor: state.floor.number
+				};
+			}
+
+			if (utils.isCrawlOver(newState)) {
+				return newState;
+			}
+
+			return step(newState, eventLog, mapUpdates);
 		}
 
-		if (utils.isCrawlOver(newState)) {
-			return newState;
-		}
-
-		return step(newState, eventLog, mapUpdates);
+		// AI, you done goofed
+		log(action);
+		return step(state, eventLog, mapUpdates);
 	} else {
 		state.entities.unshift(state.entities.pop());
 		return state;
@@ -60,31 +72,72 @@ export function step(state: InProgressCrawlState, eventLog: LogEvent[], mapUpdat
  * @param state - The game to run.
  * @return A promise for a concluded crawl.
  */
-export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[], mapUpdates: MapUpdate[]): CrawlState {
+export function stepWithAction(state: InProgressCrawlState, action: Action, eventLog: LogEvent[], mapUpdates: MapUpdate[]): { valid: boolean, state: CrawlState } {
 	let entity = nextEntity(state);
 	let censoredState = getCensoredState(state, entity);
 
 	if (entity.ai) {
 		// What?
-		return state;
+		log("Trying to move as AI?");
+		return { valid: false, state };
 	}
 
-	let newState = execute(state, entity, action, eventLog, mapUpdates);
-	log("Done executing move - filtering");
-
-	if (state.entities.every((entity) => entity.ai)) {
-		return {
-			dungeon: state.dungeon,
-			success: false,
-			floor: state.floor.number
-		};
+	if (action.type !== "wait" && action.type !== "move" && action.type !== "attack" && action.type !== "item" && action.type !== "stairs") {
+		return unreachable(action);
 	}
 
-	if (utils.isCrawlOver(newState)) {
-		return newState;
+	for (let act of getActionsToTry(entity, action)) {
+		if (!isValidAction(state, entity, act)) {
+			continue;
+		}
+
+		let newState = execute(state, entity, act, eventLog, mapUpdates);
+		log("Done executing move - filtering");
+
+		if (state.entities.every((entity) => entity.ai)) {
+			return {
+				valid: true,
+				state: {
+					dungeon: state.dungeon,
+					success: false,
+					floor: state.floor.number
+				}
+			};
+		}
+
+		if (utils.isCrawlOver(newState)) {
+			return { valid: true, state: newState };
+		}
+
+		return { valid: true, state: step(newState, eventLog, mapUpdates) };
 	}
 
-	return step(newState, eventLog, mapUpdates);
+	state.entities.unshift(state.entities.pop());
+	return { valid: false, state }; // Action wasn't valid
+}
+
+/**
+ * Generates the set of actions to try for the given input move.  In particular, yields the move with each direction
+ *     in a random order if the entity is confused, and otherwise yields just the original move.
+ * @param entity - The entity taking the action.
+ * @param action - The action being taken.
+ */
+function* getActionsToTry(entity: CrawlEntity, action: Action): Iterable<Action> {
+	if (entity.status.indexOf(StatusCondition.CONFUSED) >= 0 && action.type !== "wait" && action.type !== "stairs") {
+		let directions = [0, 1, 2, 3, 4, 5, 6, 7];
+
+		while (directions.length > 0) {
+			let idx = utils.randint(0, directions.length - 1);
+			let t = directions[idx];
+			directions[idx] = directions[directions.length - 1];
+			directions[directions.length - 1] = t;
+
+			action.direction = directions.pop();
+			yield action;
+		}
+	} else {
+		yield action;
+	}
 }
 
 /**
@@ -149,10 +202,12 @@ function advanceToFloor(
 		};
 	} else {
 		let blueprint = getFloorBlueprint(dungeon, floor);
-		let state = generator.generateFloor(dungeon, floor, blueprint, entities)
+		let state = generator.generateFloor(dungeon, floor, blueprint, entities);
 
 		state.entities.forEach((entity) => {
 			updateFloorMap(state, entity, mapUpdates);
+			entity.stats.attack.modifier = 0;
+			entity.stats.defense.modifier = 0;
 		});
 
 		let player = state.entities.filter((ent) => !ent.ai)[0];
@@ -274,7 +329,8 @@ function censorEntity(entity: CrawlEntity): CensoredCrawlEntity {
 		stats: {
 			attack: { modifier: entity.stats.attack.modifier },
 			defense: { modifier: entity.stats.defense.modifier }
-		}
+		},
+		status: entity.status
 	};
 }
 
@@ -294,7 +350,8 @@ function censorSelf(entity: CrawlEntity): CensoredSelfCrawlEntity {
 		graphics: entity.graphics,
 		alignment: entity.alignment,
 		ai: entity.ai,
-		items: entity.items
+		items: entity.items,
+		status: entity.status
 	};
 }
 
@@ -315,11 +372,10 @@ export function isValidAction(
 			return true;
 
 		case "move":
-			return isValidMove(state, entity, (action as MoveAction).direction);
+			return isValidMove(state, entity, action.direction);
 
 		case "attack":
-			let attack = (action as AttackAction).attack;
-			return entity.attacks.indexOf(attack) >= 0 && attack.uses.current > 0;
+			return entity.attacks.indexOf(action.attack) >= 0 && action.attack.uses.current > 0;
 
 		case "item":
 			return true; // TODO
@@ -388,7 +444,30 @@ function postExecute(state: CrawlState, entity: CrawlEntity, eventLog: LogEvent[
 		return state;
 	}
 
-	if (entity.stats.belly.current === 0) {
+	for (let i = 0; i < entity.status.length; i++) {
+		switch (entity.status[i]) {
+			case StatusCondition.CONFUSED:
+			case StatusCondition.SHORT_CIRCUITED:
+			case StatusCondition.POISONED:
+				if (Math.random() < .125) {
+					propagateLogEvent(state, {
+						type: "status_recovery",
+						entity: {
+							id: entity.id,
+							name: entity.name,
+							graphics: entity.graphics
+						},
+						status: entity.status[i]
+					}, eventLog);
+
+					entity.status.splice(i, 1);
+					i--;
+				}
+				break;
+		}
+	}
+
+	if (entity.stats.energy.current === 0) {
 		entity.stats.hp.current--;
 	}
 
@@ -457,7 +536,7 @@ function executeWait(
 	entity: CrawlEntity,
 	action: WaitAction,
 	eventLog: LogEvent[]): CrawlState {
-	drainBellyAndRecoverHp(entity, 1, 1);
+	drainEnergyAndRecoverHp(entity, 1, 1);
 
 	return state;
 }
@@ -497,7 +576,7 @@ function executeMove(
 		direction: action.direction
 	}, eventLog);
 
-	drainBellyAndRecoverHp(entity, 2, 0.25);
+	drainEnergyAndRecoverHp(entity, 2, 0.25);
 
 	return executeItemPickup(state, entity, eventLog);
 }
@@ -513,25 +592,37 @@ function executeItemPickup(state: InProgressCrawlState, entity: CrawlEntity, eve
 	let item = utils.getItemAtCrawlLocation(state, entity.location);
 
 	if (item !== undefined) {
+		if (item.handlers.pickup !== undefined && !item.handlers.pickup(entity, state, item, eventLog)) {
+			return state;
+		}
+
 		if (entity.items.bag !== undefined && entity.items.bag.items.length < entity.items.bag.capacity) {
+			propagateLogEvent(state, {
+				type: "item_pickup",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				item: item
+			}, eventLog);
 			entity.items.bag.items.push(item);
 			state.items = state.items.filter((it) => it !== item);
 		} else if (entity.items.held.items.length < entity.items.held.capacity) {
+			propagateLogEvent(state, {
+				type: "item_pickup",
+				entity: {
+					id: entity.id,
+					name: entity.name,
+					graphics: entity.graphics
+				},
+				item: item
+			}, eventLog);
 			entity.items.held.items.push(item);
 			state.items = state.items.filter((it) => it !== item);
 		} else {
 			return state;
 		}
-
-		propagateLogEvent(state, {
-			type: "item_pickup",
-			entity: {
-				id: entity.id,
-				name: entity.name,
-				graphics: entity.graphics
-			},
-			item: item
-		}, eventLog);
 	}
 
 	return state;
@@ -632,10 +723,14 @@ function executeItemThrow(state: InProgressCrawlState, entity: CrawlEntity, dire
  * @param direciton - The direction in which to move.
  * @return Whether or not the action is legal.
  */
-function isValidMove(
+export function isValidMove(
 	state: CensoredInProgressCrawlState,
 	entity: CrawlEntity,
 	direction: number): boolean {
+	if (entity.status.indexOf(StatusCondition.SHORT_CIRCUITED) >= 0) {
+		return false;
+	}
+
 	let offset: [number, number] = utils.decodeDirection(direction);
 	let location = { r: entity.location.r + offset[0], c: entity.location.c + offset[1] };
 
@@ -691,7 +786,7 @@ function executeAttack(
 
 	targets.forEach((target) => applyAttack(state, action.attack, entity, target, eventLog));
 
-	drainBellyAndRecoverHp(entity, 3, 1);
+	drainEnergyAndRecoverHp(entity, 3, 0);
 
 	return state;
 }
@@ -704,19 +799,27 @@ function executeAttack(
  * @param selector - The attack's target selector.
  * @return A list of crawl entities targeted by the attack.
  */
-function getTargets(
+export function getTargets(
 	state: InProgressCrawlState,
 	attacker: CrawlEntity,
 	direction: number,
-	selector: TargetSelector): CrawlEntity[] {
+	selector: TargetSelector): CrawlEntity[];
+export function getTargets(
+	state: CensoredInProgressCrawlState,
+	attacker: CensoredCrawlEntity,
+	direction: number,
+	selector: TargetSelector): CensoredCrawlEntity[] {
 	switch (selector.type) {
 		case "self":
 			return [attacker];
 
+		case "around":
+			return state.entities.filter((entity) => utils.distance(attacker.location, entity.location) === 1
+				&& (entity.alignment !== attacker.alignment || selector.includeAllies));
+
 		case "team":
-			let tts = selector as TeamTargetSelector;
 			return state.entities.filter((entity) => entity.alignment === attacker.alignment
-				&& (entity !== attacker || !tts.includeSelf));
+				&& (entity !== attacker || !selector.includeSelf));
 
 		case "front":
 			let offset: [number, number] = utils.decodeDirection(direction);
@@ -732,7 +835,6 @@ function getTargets(
 
 		case "room":
 			let room = state.floor.map.grid[attacker.location.r][attacker.location.c].roomId;
-			let rts = selector as RoomTargetSelector;
 			let selection = state.entities;
 
 			if (room === undefined) {
@@ -743,8 +845,8 @@ function getTargets(
 			}
 
 			return selection.filter((entity) => entity.alignment !== attacker.alignment
-				|| (entity !== attacker && rts.includeAllies)
-				|| (entity === attacker && rts.includeSelf));
+				|| (entity !== attacker && selector.includeAllies)
+				|| (entity === attacker && selector.includeSelf));
 
 		default:
 			unreachable(selector);
@@ -794,31 +896,51 @@ function applyAttack(
 		}, eventLog);
 	}
 
-	attack.onHit.forEach((effect: SecondaryStatEffect) => {
-		switch (effect.stat) {
-			case "attack":
-				defender.stats.attack.modifier += effect.amount;
+	attack.onHit.forEach((effect: SecondaryEffect) => {
+		switch (effect.type) {
+			case "stat":
+				switch (effect.stat) {
+					case "attack":
+						defender.stats.attack.modifier += effect.amount;
+						break;
+
+					case "defense":
+						defender.stats.defense.modifier += effect.amount;
+						break;
+
+					default:
+						unreachable(effect.stat);
+				}
+
+				propagateLogEvent(state, {
+					type: "stat",
+					entity: {
+						id: defender.id,
+						name: defender.name,
+						graphics: defender.graphics
+					},
+					location: defender.location,
+					stat: effect.stat,
+					change: effect.amount
+				}, eventLog);
 				break;
 
-			case "defense":
-				defender.stats.defense.modifier += effect.amount;
-				break;
+			case "heal":
+				propagateLogEvent(state, {
+					type: "stat",
+					entity: {
+						id: defender.id,
+						name: defender.name,
+						graphics: defender.graphics
+					},
+					location: defender.location,
+					stat: "hp",
+					change: effect.amount
+				}, eventLog);
 
-			default:
-				unreachable(effect.stat);
+				defender.stats.hp.current = Math.min(defender.stats.hp.current + effect.amount, defender.stats.hp.max);
+				break;
 		}
-
-		propagateLogEvent(state, {
-			type: "stat",
-			entity: {
-				id: defender.id,
-				name: defender.name,
-				graphics: defender.graphics
-			},
-			location: defender.location,
-			stat: effect.stat,
-			change: effect.amount
-		}, eventLog);
 	});
 }
 
@@ -833,13 +955,13 @@ function computeDamage(attacker: Entity, defender: Entity, attack: Attack): numb
 	let a = getModifiedStat(attacker.stats.attack) + attack.power;
 	let b = attacker.stats.level;
 	let c = getModifiedStat(defender.stats.defense);
-	let d = ((a - c) / 8) + (b * 43690 / 65536);
+	let d = ((a - c) / 8) + (b * 2 / 3);
 
 	if (d < 0) {
 		return 0;
 	}
 
-	let baseDamage = (((d * 2) - c) + 10) + ((d * d) * 3276 / 65536);
+	let baseDamage = (((d * 2) - c) + 10) + ((d * d) / 20);
 	let multiplier = (Math.random() * 2 + 7) / 8;
 	return Math.round(baseDamage * multiplier);
 }
@@ -950,17 +1072,19 @@ function executeItem(
 			break;
 	}
 
-	drainBellyAndRecoverHp(entity, 1, 0.5);
+	drainEnergyAndRecoverHp(entity, 1, 0.5);
 
 	return state;
 }
 
-function drainBellyAndRecoverHp(entity: CrawlEntity, bellyDrain: number, hpRecoverProbability: number): void {
-	if (entity.stats.hp.current > 0 && entity.stats.belly.current > 0) {
-		if (Math.random() < hpRecoverProbability) {
+function drainEnergyAndRecoverHp(entity: CrawlEntity, energyDrain: number, hpRecoverProbability: number): void {
+	if (entity.stats.hp.current > 0 && entity.stats.energy.current > 0) {
+		if (entity.status.indexOf(StatusCondition.POISONED) >= 0) {
+			entity.stats.hp.current = Math.max(0, entity.stats.hp.current - 1);
+		} else if (Math.random() < hpRecoverProbability) {
 			entity.stats.hp.current = Math.min(entity.stats.hp.current + 1, entity.stats.hp.max);
 		}
-		entity.stats.belly.current = Math.max(0, entity.stats.belly.current - bellyDrain);
+		entity.stats.energy.current = Math.max(0, entity.stats.energy.current - energyDrain);
 	}
 }
 
@@ -1025,6 +1149,8 @@ export function propagateLogEvent(state: InProgressCrawlState, event: LogEvent, 
 		case "item_drop":
 		case "item_throw":
 		case "item_fall":
+		case "status_affliction":
+		case "status_recovery":
 			eventLog.push(event);
 			break;
 
@@ -1047,8 +1173,8 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 
 	let queue: Queue<CrawlLocation> = new Queue<CrawlLocation>();
 
-	for (let r = location.r - 2; r <= location.r + 2; r++) {
-		for (let c = location.c - 2; c <= location.c + 2; c++) {
+	for (let r = location.r - 3; r <= location.r + 3; r++) {
+		for (let c = location.c - 3; c <= location.c + 3; c++) {
 			if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
 				if (!isAi) {
 					mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
@@ -1065,8 +1191,8 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
 		if (state.floor.map.grid[loc.r][loc.c].type !== DungeonTileType.WALL
 			&& utils.inSameRoom(state.floor.map, loc, entity.location)) {
 			// Keep on expanding
-			for (let r = loc.r - 2; r <= loc.r + 2; r++) {
-				for (let c = loc.c - 2; c <= loc.c + 2; c++) {
+			for (let r = loc.r - 3; r <= loc.r + 3; r++) {
+				for (let c = loc.c - 3; c <= loc.c + 3; c++) {
 					if (utils.inRange(r, 0, state.floor.map.height) && utils.inRange(c, 0, state.floor.map.width) && entityGrid[r][c].type === DungeonTileType.UNKNOWN) {
 						if (!isAi) {
 							mapUpdates.push({ location: { r, c }, tile: state.floor.map.grid[r][c] });
@@ -1084,6 +1210,6 @@ function updateFloorMap(state: InProgressCrawlState, entity: CrawlEntity, mapUpd
  * Used for asserting that all cases should be handled.
  * @throws An error stating that the case is invalid.
  */
-function unreachable(arg: never): never {
+export function unreachable(arg: never): never {
 	throw new Error(`Reached default case of exhaustive switch.`);
 }

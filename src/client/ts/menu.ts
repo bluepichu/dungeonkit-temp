@@ -58,10 +58,7 @@ export default class Menu extends Container {
 		this._selection = 0;
 
 		let bg = new Graphics();
-		bg.beginFill(Colors.WHITE);
-		bg.lineStyle(4, Colors.BLACK);
-		bg.drawRect(-10, -10, 200, options.length * 20 + 20);
-		this.addChild(bg)
+		this.addChild(bg);
 
 		this.options = options.map((text, i) => {
 			let opt = new Option(text);
@@ -70,13 +67,17 @@ export default class Menu extends Container {
 			return opt;
 		});
 
+		bg.beginFill(Colors.WHITE);
+		bg.lineStyle(4, Colors.BLACK);
+		bg.drawRect(-10, -10, this.options.reduce((last, opt) => Math.max(last, opt.width), 200) + 30, options.length * 20 + 20);
+
 		this.options[0].selected = true;
 	}
 
 	/**
-	 * Moves the selection to the previous option.
+	 * Moves the selection to the next option.
 	 */
-	public prev(): void {
+	public next(): void {
 		this.options[this._selection].selected = false;
 		this._selection++;
 		this._selection %= this.options.length;
@@ -84,9 +85,9 @@ export default class Menu extends Container {
 	}
 
 	/**
-	 * Moves the selection to the next option.
+	 * Moves the selection to the previous option.
 	 */
-	public next(): void {
+	public prev(): void {
 		this.options[this._selection].selected = false;
 		this._selection--;
 		this._selection += this.options.length;

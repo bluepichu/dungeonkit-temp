@@ -7,10 +7,12 @@ interface ItemBlueprint {
 		throwTarget?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, direction: number): CrawlLocation;
 		entityDefeat?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, held: boolean, eventLog: LogEvent[]): void;
 		collide?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): void;
+		pickup?(entity: CrawlEntity, state: InProgressCrawlState, item: Item, eventLog: LogEvent[]): boolean;
 	};
 	actions?: {
 		[action: string]: string[]; // In reality, index is ItemActionType
 	};
+	amount?: number;
 	graphics: string;
 }
 

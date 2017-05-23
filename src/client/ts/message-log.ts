@@ -50,17 +50,19 @@ export default class MessageLog extends Container {
 	private timeouts: NodeJS.Timer[];
 	private spacing: number;
 	private maximumHeight: number;
+	private reverse: boolean;
 
 	/**
 	 * Constructs a new empty MessageLog.
 	 */
-	constructor() {
+	public constructor(reverse?: boolean) {
 		super();
 		this.messages = [];
 		this.timeouts = [];
 
 		this.spacing = 40;
 		this.maximumHeight = 400;
+		this.reverse = reverse || false;
 	}
 
 	/**
@@ -95,7 +97,7 @@ export default class MessageLog extends Container {
 				break;
 			}
 
-			Tweener.tween(message, { x: -12, y: -height }, 1.1, "smooth");
+			Tweener.tween(message, { x: this.reverse ? 12 : -12, y: -height }, 1.1, "smooth");
 
 			height += message.height;
 		}
@@ -124,7 +126,7 @@ export default class MessageLog extends Container {
 		this.messages.splice(index, 1);
 		this.timeouts.splice(index, 1);
 
-		Tweener.tween(messageToRemove, { x: Math.max(messageToRemove.width + 100, 400) }, 1.1, "smooth")
+		Tweener.tween(messageToRemove, { x: Math.max((this.reverse ? -1 : 1) * (messageToRemove.width + 100), 400) }, 1.1, "smooth")
 			.then(() => {
 				this.removeChild(messageToRemove);
 				this.repositionMessages();
@@ -139,7 +141,7 @@ export default class MessageLog extends Container {
 		let ret = new Container();
 
 		let text = new MultiStyleText(message, MESSAGE_LOG_STYLES);
-		text.anchor.x = 1;
+		text.anchor.x = this.reverse ? 0 : 1;
 		text.anchor.y = 1;
 
 		let bg = new Graphics();

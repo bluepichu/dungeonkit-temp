@@ -19,6 +19,11 @@ interface Entity {
 		held: ItemSet;
 		bag?: ItemSet;
 	};
+	attributes: Attribute[];
+}
+
+declare const enum Attribute {
+	IMMUNE_TO_PARALYSIS
 }
 
 /**
@@ -29,7 +34,7 @@ interface EntityStats {
 	hp: MaxCurrentStat;
 	attack: BaseModifierStat;
 	defense: BaseModifierStat;
-	belly: MaxCurrentStat;
+	energy: MaxCurrentStat;
 }
 
 /**

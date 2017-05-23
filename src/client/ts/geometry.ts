@@ -18,7 +18,7 @@ export function pointInPolygon(point: Point, polygon: Polygon): boolean {
 		if ((quad + 2) % 4 === nextQuad) {
 			// The edge went form a quadrant to the opposite quadrant
 			// Did it pass above or below the point?
-			let last = poly[i-1];
+			let last = poly[i - 1];
 			if (next.y / next.x >= last.y / last.x) {
 				winding -= 2;
 			} else {

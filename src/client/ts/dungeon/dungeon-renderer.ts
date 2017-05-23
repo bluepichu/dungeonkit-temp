@@ -28,8 +28,8 @@ export default class DungeonRenderer extends Container {
 		super();
 
 		this.groundLayer = new DungeonGroundLayer(renderer, dungeonGraphics);
-		this.itemLayer = new ItemLayer();
-		this.entityLayer = new EntityLayer();
+		this.itemLayer = new ItemLayer(renderer);
+		this.entityLayer = new EntityLayer(renderer);
 		this.deltaLayer = new DeltaLayer();
 
 		this.addChild(this.groundLayer);
@@ -185,7 +185,7 @@ export default class DungeonRenderer extends Container {
 	}
 
 	public setZoomOut(zoom: boolean, map: FloorMap): void {
-		if (this._zoomOut != zoom) {
+		if (this._zoomOut !== zoom) {
 			if (zoom) {
 				this._zoomOut = true;
 				this.updateViewport({ r: [0, map.height], c: [0, map.width] });

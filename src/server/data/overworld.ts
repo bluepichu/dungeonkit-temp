@@ -13,6 +13,7 @@ let lonelyKip: OverworldEntity = {
 	items: {
 		held: { capacity: 0, items: [] }
 	},
+	attributes: [],
 	*interact() {
 		yield {
 			type: "speak",
@@ -32,7 +33,7 @@ let lonelyKip: OverworldEntity = {
 			type: "speak",
 			speaker: "Mudkip",
 			portrait: "portrait-mudkip-neutral",
-			text: "Anyway... would you like to go to Prototypical Forest?",
+			text: "Anyway... would you like to go to Stormy Sea?",
 			responses: ["Sure!", "No thanks."]
 		};
 
@@ -46,7 +47,7 @@ let lonelyKip: OverworldEntity = {
 
 			return {
 				type: "crawl",
-				dungeon: "proto-forest"
+				dungeon: "stormy-sea"
 			};
 		} else {
 			return {
@@ -70,6 +71,7 @@ let angryKip: OverworldEntity = {
 	items: {
 		held: { capacity: 0, items: [] }
 	},
+	attributes: [],
 	*interact() {
 		yield {
 			type: "speak",

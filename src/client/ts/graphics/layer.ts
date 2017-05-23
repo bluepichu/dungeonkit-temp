@@ -18,12 +18,13 @@ export default Layer;
  */
 export abstract class Layer<T extends GraphicsObject> extends PrerenderContainer {
 	protected map: Map<string, T>;
+	public children: T[];
 
 	/**
 	 * Creates an empty layer.
 	 */
-	constructor() {
-		super();
+	constructor(renderer: WebGLRenderer | CanvasRenderer) {
+		super(renderer);
 		this.map = new Map();
 	}
 
@@ -88,5 +89,12 @@ export abstract class Layer<T extends GraphicsObject> extends PrerenderContainer
 	public clear(): void {
 		this.map.forEach((child) => this.removeChild(child));
 		this.map.clear();
+	}
+
+	/**
+	 * Calls prerender on all children.
+	 */
+	public prerender(): void {
+		this.children.forEach((child) => child.prerender());
 	}
 }

@@ -31,6 +31,7 @@ import MessageLog                   from "./message-log";
 import OverworldRenderer            from "./overworld/overworld-renderer";
 import SpeakingArea                 from "./speaking-area";
 import TeamOverlay                  from "./team-overlay";
+import tilesheetParser              from "./graphics/tilesheet-parser";
 import * as Tweener                 from "./graphics/tweener";
 import * as utils                   from "../../common/utils";
 import * as WebFont                 from "webfontloader";
@@ -63,6 +64,11 @@ let currentPhase: GamePhase = undefined;
 let currentMenu: Menu = undefined;
 let currentDirection: number = 0;
 
+let x: number;
+let y: number;
+let z: number;
+let w: number;
+
 ticker.shared.autoStart = false;
 
 /**
@@ -73,10 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		WebFont.load({
 			google: {
 				families: ["Lato:100,300,400,700"]
-			},
-			custom: {
-				families: ["DK Icons"],
-				urls: ["/assets/fonts.css"]
 			},
 			active: loadAssets
 		});
@@ -90,9 +92,11 @@ document.addEventListener("DOMContentLoaded", () => {
  * needed (probably dynamic loading).
  */
 function loadAssets(): void {
+	(loader as any)._afterMiddleware.unshift(tilesheetParser); // tilesheet parser needs to run first
+
 	loader
 		.add("bg-pkmn-square", "/assets/pkmn-square.json")
-		.add("dng-proto", "/assets/tiles.json")
+		.add("dng-proto", "/assets/tileset-stormy-sea.json")
 		.add("ent-mudkip", "/assets/mudkip.json")
 		.add("ent-eevee", "/assets/eevee.json")
 		.add("items", "/assets/items.json")
@@ -111,6 +115,20 @@ function init(): void {
 	socket = new GameSocket();
 
 	socket.onCrawlInit(startCrawl);
+
+	socket.onCrawlEnd((log, result) => {
+		processAll(log);
+
+		processChain.then(() => {
+			if (result.success) {
+				floorSignText.text = `Cleared all ${result.floor} floors of ${result.dungeon.name}.\nCongratulations!\n\nRefresh to play again.`;
+			} else {
+				floorSignText.text = `Defeated on floor ${result.floor} of ${result.dungeon.name}.\n\nRefresh to play again.`;
+			}
+
+			Tweener.tween(floorSign, { alpha: 1 }, .1);
+		});
+	});
 
 	socket.onOverworldInit(showScene);
 
@@ -182,7 +200,7 @@ function init(): void {
 		}
 	});
 
-	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); }
+	commandArea.onInvalid = (msg: string) => { messageLog.push(msg, 10000); };
 
 	gameContainer.addChild(commandArea);
 
@@ -270,7 +288,7 @@ function startCrawl(dungeon: Dungeon): void {
 		socket.emitTempSignal("name", name);
 	}
 
-	teamOverlay = new TeamOverlay();
+	teamOverlay = new TeamOverlay(renderer);
 	gameContainer.addChild(teamOverlay);
 
 	floorSign = new Container();
@@ -500,8 +518,8 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 				let floorName =
 					(state.dungeon.direction === "down" ? "B" : "")
-					+ "F"
-					+ state.floor.number;
+					+ state.floor.number
+					+ "F";
 
 				floorSignText.text = `${state.dungeon.name}\n${floorName}`;
 
@@ -612,8 +630,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 			case "defeat":
 				messageLog.push(`${highlightEntity(event.entity)} was defeated!`);
-				dungeonRenderer.showDefeat(event.entity);
-				done();
+				dungeonRenderer.showDefeat(event.entity).then(done);
 				break;
 
 			case "stairs":
@@ -629,6 +646,7 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 				break;
 
 			case "message":
+				console.log(event.message); // you're welcome
 				messageLog.push(event.message);
 				done();
 				break;
@@ -651,6 +669,40 @@ function getResolutionPromise(processes: Processable[]): Promise<void> {
 
 			case "item_fall":
 				messageLog.push(`The <item>${event.item.name}</item> fell to the ground.`);
+				done();
+				break;
+
+			case "status_affliction":
+				switch (event.status) {
+					case StatusCondition.CONFUSED:
+						messageLog.push(`${highlightEntity(event.entity)} became confused!`);
+						break;
+
+					case StatusCondition.SHORT_CIRCUITED:
+						messageLog.push(`${highlightEntity(event.entity)} became paralyzed!`);
+						break;
+
+					case StatusCondition.POISONED:
+						messageLog.push(`${highlightEntity(event.entity)} became poisoned!`);
+						break;
+				}
+				done();
+				break;
+
+			case "status_recovery":
+				switch (event.status) {
+					case StatusCondition.CONFUSED:
+						messageLog.push(`${highlightEntity(event.entity)} recovered from confusion.`);
+						break;
+
+					case StatusCondition.SHORT_CIRCUITED:
+						messageLog.push(`${highlightEntity(event.entity)} recovered from paralysis.`);
+						break;
+
+					case StatusCondition.POISONED:
+						messageLog.push(`${highlightEntity(event.entity)} recovered from poison.`);
+						break;
+				}
 				done();
 				break;
 
@@ -681,7 +733,7 @@ function showScene(cos: ClientOverworldScene) {
 	scene = cos;
 	setGamePhase(GamePhase.OVERWORLD);
 
-	overworldRenderer = new OverworldRenderer();
+	overworldRenderer = new OverworldRenderer(renderer);
 	overworldRenderer.displayScene(scene);
 
 	gameContainer.addChildAt(overworldRenderer, 0);
@@ -711,7 +763,7 @@ function startInteraction(): void {
 				};
 			}
 		}
-	})
+	});
 
 	socket.onInteractEnd(() => {
 		interacting = false;
@@ -747,9 +799,9 @@ function setGamePhase(phase: GamePhase): void {
 		case GamePhase.CRAWL:
 			inputHandler.hooks = [
 				{
-					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT],
+					keys: [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT, Keys.SHIFT],
 					delay: 4,
-					handle: ([up, down, left, right]: boolean[]) => {
+					handle: ([up, down, left, right, shift]: boolean[]) => {
 						let direction = [-1, 0, 4, -1, 6, 7, 5, -1, 2, 1, 3, -1, -1, -1, -1, -1][(up ? 8 : 0) + (down ? 4 : 0) + (left ? 2 : 0) + (right ? 1 : 0)];
 						if (direction < 0) {
 							return;
@@ -757,13 +809,16 @@ function setGamePhase(phase: GamePhase): void {
 						if (awaitingMove) {
 							dungeonRenderer.showDirection(state.self.id, direction);
 							currentDirection = direction;
-							socket.sendCrawlAction({
-								type: "move",
-								direction
-							}, {
-								dash: key.isPressed(Keys.B)
-							});
-							awaitingMove = false;
+
+							if (!shift) {
+								socket.sendCrawlAction({
+									type: "move",
+									direction
+								}, {
+									dash: key.isPressed(Keys.B)
+								});
+								awaitingMove = false;
+							}
 						}
 					},
 					enabled: () => awaitingMove
@@ -782,6 +837,12 @@ function setGamePhase(phase: GamePhase): void {
 						attackOverlay.active = pressed;
 					},
 					always: true
+				},
+				{
+					keys: [Keys.P],
+					handle: () => {
+
+					}
 				},
 				{
 					keys: [Keys.ONE, Keys.TWO, Keys.THREE, Keys.FOUR],
@@ -816,7 +877,7 @@ function setGamePhase(phase: GamePhase): void {
 					},
 					always: true
 				}
-			]
+			];
 			break;
 
 		case GamePhase.OVERWORLD:
@@ -925,7 +986,7 @@ function setGamePhase(phase: GamePhase): void {
 					startOnly: true,
 					enabled: () => currentMenu !== undefined
 				}
-			]
+			];
 			break;
 
 		default:

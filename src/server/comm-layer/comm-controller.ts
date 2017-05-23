@@ -17,7 +17,9 @@ export default class CommController {
 	private socket: SocketIO.Socket;
 	private knownGraphics: Set<String>;
 	private queue: kue.Queue;
+	private commNode: string;
 	private logicNode: string;
+	private dungeonName: string;
 
 	/**
 	 * Creates a new CommController using the given socket, queue, and entity.
@@ -25,11 +27,12 @@ export default class CommController {
 	 * @param queue - The job queue.
 	 * @param entity - The entity representing the player.
 	 */
-	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity) {
+	public constructor(socket: SocketIO.Socket, queue: kue.Queue, entity: PlayerOverworldEntity, commNode: string) {
 		this.entity = entity;
 		this.socket = socket;
 		this.knownGraphics = new Set<String>();
 		this.queue = queue;
+		this.commNode = commNode;
 
 		this.socket.on("disconnect", () => {
 			this.send({ type: "disconnect" });
@@ -59,7 +62,8 @@ export default class CommController {
 			attacks: this.entity.attacks,
 			items: this.entity.items,
 			position: this.entity.position,
-			direction: this.entity.direction
+			direction: this.entity.direction,
+			attributes: this.entity.attributes
 		};
 
 		this.socket.emit("overworld-init", {
@@ -119,7 +123,7 @@ export default class CommController {
 						} else {
 							advance(interaction.next(response));
 						}
-					})
+					});
 					break;
 
 				case "crawl":
@@ -171,6 +175,8 @@ export default class CommController {
 			.then(() => {
 				let dungeon = dungeons.get(dungeonName);
 				this.checkGraphics(dungeon.graphics);
+				this.socket.removeAllListeners("overworld-interact-entity");
+				this.socket.removeAllListeners("overworld-interact-hotzone");
 				this.socket.emit("crawl-init", dungeon);
 				this.send({
 					type: "crawl-start",
@@ -183,9 +189,13 @@ export default class CommController {
 						attacks: this.entity.attacks,
 						items: this.entity.items,
 						alignment: 1,
-						ai: false
+						ai: false,
+						status: [],
+						attributes: this.entity.attributes
 					}
-				})
+				});
+
+				this.dungeonName = dungeon.name;
 			});
 	}
 
@@ -222,6 +232,9 @@ export default class CommController {
 		update.stateUpdate.self.items.held.items.forEach((item) => this.checkGraphics(item.graphics));
 		update.stateUpdate.entities.forEach((ent) => this.checkEntityGraphics(ent.graphics));
 
+		this.entity.stats = update.stateUpdate.self.stats;
+		this.entity.items = update.stateUpdate.self.items;
+
 		this.socket.emit("crawl-update", update);
 
 		this.waitOnAction();
@@ -233,7 +246,20 @@ export default class CommController {
 	private handleInvalid(): void {
 		this.socket.emit("crawl-invalid");
 
+		log(`${this.commNode} --->`);
+
 		this.waitOnAction();
+	}
+
+	/**
+	 * Handles a "crawl end" message from a logic node.
+	 */
+	private handleCrawlEnd(eventLog: LogEvent[], result: ConcludedCrawlState): void {
+		this.socket.emit("crawl-end", eventLog, result);
+
+		log(`${this.commNode} --->`);
+
+		this.dungeonName = undefined;
 	}
 
 	/**
@@ -242,6 +268,7 @@ export default class CommController {
 	private waitOnAction(): void {
 		this.socket.once("crawl-action", (action: Action, options: ActionOptions) => {
 			log(`M ${this.socket.id}`);
+			log(`${this.commNode} --->`);
 
 			this.send({
 				type: "crawl-action",
@@ -261,13 +288,13 @@ export default class CommController {
 			message
 		};
 
-		log("--------> in");
+		log(`${this.commNode} ---> ${this.logicNode}`);
 
 		this.queue.create(`in:${this.logicNode}`, msg).save((err: Error) => {
 			if (err) {
 				log.error(err);
 			}
-		})
+		});
 	}
 
 	/**
@@ -282,6 +309,10 @@ export default class CommController {
 
 			case "crawl-action-invalid":
 				this.handleInvalid();
+				break;
+
+			case "crawl-end":
+				this.handleCrawlEnd(message.log, message.result);
 				break;
 		}
 	}

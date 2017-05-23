@@ -152,27 +152,25 @@ let corridorFeatures = [
 ];
 
 let dungeon: Dungeon = {
-	name: "Prototypical Forest",
+	name: "Stormy Sea",
 	floors: 4,
 	direction: "up",
 	difficulty: 3,
-	graphics: "dng-proto",
+	graphics: "dng-stormy-sea",
 	blueprint: [
 		{
 			range: [1, 4],
 			blueprint: {
+				type: "generated",
 				generatorOptions: {
-					width: { type: "uniform", a: 3, b: 4 },
-					height: { type: "uniform", a: 3, b: 4 },
-					scale: 15,
+					width: { type: "uniform", a: 45, b: 60 },
+					height: { type: "uniform", a: 45, b: 60 },
 					features: {
 						rooms: roomFeatures,
-						// corridors: corridorFeatures
+						corridors: corridorFeatures
 					},
-					// limit: 100000,
-					// cleanliness: .95
-					rooms: { type: "uniform", a: 4, b: 8 },
-					junctions: { type: "uniform", a: 2, b: 4 }
+					limit: 1000,
+					cleanliness: .95
 				},
 				enemies: [
 					{
@@ -199,6 +197,6 @@ let dungeon: Dungeon = {
 };
 
 let dungeons: Map<string, Dungeon> = new Map<string, Dungeon>();
-dungeons.set("proto-forest", dungeon);
+dungeons.set("stormy-sea", dungeon);
 
 export default dungeons;

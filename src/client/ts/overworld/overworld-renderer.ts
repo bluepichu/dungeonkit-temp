@@ -25,12 +25,12 @@ export default class OverworldRenderer extends Container {
 	private selfId: string;
 	private bounds: Rect;
 
-	constructor() {
+	constructor(renderer: WebGLRenderer | CanvasRenderer) {
 		super();
 
-		this.groundLayer = new OverworldGroundLayer();
-		this.itemLayer = new OverworldItemLayer();
-		this.entityLayer = new OverworldEntityLayer();
+		this.groundLayer = new OverworldGroundLayer(renderer);
+		this.itemLayer = new OverworldItemLayer(renderer);
+		this.entityLayer = new OverworldEntityLayer(renderer);
 
 		this.addChild(this.groundLayer);
 		this.addChild(this.itemLayer);
@@ -77,7 +77,7 @@ export default class OverworldRenderer extends Container {
 		let pos = {
 			x: Math.max(this.bounds.x.min + vw / 4, Math.min(this.bounds.x.max - vw / 4, position.x)),
 			y: Math.max(this.bounds.y.min + vh / 4, Math.min(this.bounds.y.max - vh / 4, position.y))
-		}
+		};
 
 		this.groundLayer.x = -pos.x;
 		this.groundLayer.y = -pos.y;

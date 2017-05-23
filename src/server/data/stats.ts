@@ -14,7 +14,7 @@ export let mudkipStats: EntityStats = {
 		base: 19,
 		modifier: 0
 	},
-	belly: {
+	energy: {
 		max: 600,
 		current: 600
 	}
@@ -34,7 +34,7 @@ export let eeveeStats: EntityStats = {
 		base: 21,
 		modifier: 0
 	},
-	belly: {
+	energy: {
 		max: 600,
 		current: 600
 	}
