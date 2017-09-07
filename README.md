@@ -5,6 +5,18 @@
 DungeonKit is a boilerplate of sorts for building Mystery Dungeon-style (that is, grid-based and turn-based) rougelike
 games with Javascript (via Node and Typescript).
 
+## What's with the `-temp` in the name?
+
+**This really isn't ready for public consumption.**  I want to do some refactoring and documentation before I try to package it as usable, but I also want to get some of the code out there now.
+
+Do keep in mind that the use of artwork from the Pokemon Mystery Dungeon games is mostly for testing/convenience purposes.  I'm not claiming to have any rights to it; those remain with the creators of those games.
+
+## I'm looking for Toaster Wars.
+
+If you're looking for the Plaid CTF edition of Toaster Wars: Going Rogue, you can find that on the `plaid` branch.
+
+If you're looking for the PicoCTF edition of Toaster Wars, that isn't hosted here (that version of DK predates this repository).  Bug me and I'll release it elsewhere.
+
 ## Documentation
 
 For documentation, check out the `doc` folder.
