@@ -25,7 +25,7 @@
     "@types/stats": "^0.16.30",
     "@types/webfontloader": "^1.6.27",
     "babel-preset-es2015": "^6.9.0",
-    "beautiful-log": "bluepichu/beautiful-log#71193966e08d30e5574d748422b403c6c6f83077",
+    "beautiful-log": "../beautiful-log",
     "clone": "^1.0.2",
     "express": "^4.13.4",
     "gulp": "^3.9.1",
